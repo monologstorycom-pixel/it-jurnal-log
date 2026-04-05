@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT ADMIN | Kerja</title>
+    <title>IT JURNAL LOG by RSBY </title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#161b22">
     <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" href="/icon-512.png">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -22,12 +23,17 @@
         .txt-bold { color: #000 !important; font-weight: 700; }
         .status-solved { color: #008000 !important; font-weight: 800; font-size: 0.7rem; }
         .status-pending { color: #8b6508 !important; font-weight: 800; font-size: 0.7rem; }
-        .btn-update { background: #198754; color: #fff; border: none; padding: 3px 8px; font-size: 0.65rem; border-radius: 4px; font-weight: 700; }
+        .btn-update { background: #198754; color: #fff; border: none; padding: 3px 8px; font-size: 0.65rem; border-radius: 4px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 4px; }
+        .btn-update:hover { background: #157347; }
+        .btn-edit { background: #0d6efd; color: #fff; border: none; padding: 3px 8px; font-size: 0.65rem; border-radius: 4px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 4px; }
+        .btn-edit:hover { background: #0b5ed7; }
+        .btn-delete { background: #dc3545; color: #fff; border: none; padding: 3px 8px; font-size: 0.65rem; border-radius: 4px; font-weight: 700; cursor: pointer; width: 100%; }
+        .btn-delete:hover { background: #bb2d3b; }
         .btn-lihat { background: #000; color: #fff !important; padding: 5px 12px; border-radius: 4px; border: none; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: 0.2s; white-space: nowrap; }
         .btn-lihat:hover { background: #333; }
         .btn-tambah-foto { background: transparent; color: #8b6508; border: 1px solid #8b6508; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; cursor: pointer; transition: 0.2s; white-space: nowrap; }
         .btn-tambah-foto:hover { background: #8b6508; color: #fff; }
-        
+
         @media (max-width: 768px) {
             .app-nav { padding: 1rem; text-align: center; }
             .container-fluid { padding: 1rem !important; }
@@ -38,26 +44,38 @@
     </style>
 </head>
 <body>
-    <nav class="app-nav"><div style="font-weight: 700;">🛠️ IT ADMIN / KERJA MODE</div></nav>
+    <nav class="app-nav"><div style="font-weight: 700;">>_ IT SUPPORT LOG | DASHBOARD</div></nav>
     <div class="container-fluid p-4">
         <div class="row">
             <div class="col-md-3 form-sidebar">
                 <form action="/save" method="POST" enctype="multipart/form-data" id="mainForm">
-                    <span class="label-text">Tanggal & Jam</span><input type="datetime-local" name="tanggalManual" class="input-custom" required>
-                    <span class="label-text">Pemesan (User)</span><input type="text" name="pemesan" class="input-custom" required>
-                    <span class="label-text">Aktivitas</span><input type="text" name="aktivitas" class="input-custom" required>
+                    <span class="label-text">Tanggal & Jam</span>
+                    <input type="datetime-local" name="tanggalManual" class="input-custom" required>
+                    <span class="label-text">Pemesan (User)</span>
+                    <input type="text" name="pemesan" class="input-custom" required>
+                    <span class="label-text">Aktivitas</span>
+                    <input type="text" name="aktivitas" class="input-custom" required>
                     <span class="label-text">Divisi</span>
                     <select name="divisi" class="input-custom">
-                        <option value="IT & IC">IT & IC</option><option value="Accounting">Accounting</option><option value="Exim & Pembelian">Exim & Pembelian</option><option value="Operasional">Operasional</option><option value="Finance">Finance</option><option value="Produksi">Produksi</option><option value="Bahanbaku">Bahanbaku</option><option value="Admin Sales">Admin Sales</option>
+                        <option value="IT & IC">IT & IC</option>
+                        <option value="Accounting">Accounting</option>
+                        <option value="Exim & Pembelian">Exim & Pembelian</option>
+                        <option value="Operasional">Operasional</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Produksi">Produksi</option>
+                        <option value="Bahanbaku">Bahanbaku</option>
+                        <option value="Admin Sales">Admin Sales</option>
                     </select>
-                    <span class="label-text">Deskripsi</span><textarea name="deskripsi" class="input-custom" rows="4" required></textarea>
+                    <span class="label-text">Deskripsi</span>
+                    <textarea name="deskripsi" class="input-custom" rows="4" required></textarea>
                     <span class="label-text">Status</span>
-                    <select name="status" class="input-custom"><option value="Solved">SOLVED</option><option value="Pending">PENDING</option></select>
-                    
+                    <select name="status" class="input-custom">
+                        <option value="Solved">SOLVED</option>
+                        <option value="Pending">PENDING</option>
+                    </select>
                     <span class="label-text">Upload Foto (Auto Compress)</span>
                     <input type="file" name="foto" class="input-custom file-compress" accept="image/*" capture="environment">
                     <small class="text-success fw-bold d-none compress-msg">✅ Foto berhasil dikompres!</small>
-                    
                     <button type="submit" class="btn btn-light w-100 fw-bold mt-2">SIMPAN DATA</button>
                 </form>
             </div>
@@ -69,10 +87,28 @@
                         <div class="col-auto">
                             <select name="month" class="form-select form-select-sm bg-dark text-white border-secondary">
                                 <option value="" disabled selected>Pilih Bulan...</option>
-                                <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option><option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">Agustus</option><option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+                                <option value="1">Januari</option>
+                                <option value="2">Februari</option>
+                                <option value="3">Maret</option>
+                                <option value="4">April</option>
+                                <option value="5">Mei</option>
+                                <option value="6">Juni</option>
+                                <option value="7">Juli</option>
+                                <option value="8">Agustus</option>
+                                <option value="9">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
                             </select>
                         </div>
-                        <div class="col-auto"><select name="year" class="form-select form-select-sm bg-dark text-white border-secondary"><option value="2026">2026</option><option value="2025">2025</option></select></div>
+                        <div class="col-auto">
+                            <!-- DROPDOWN TAHUN DINAMIS — otomatis nambah tiap tahun baru -->
+                            <select name="year" class="form-select form-select-sm bg-dark text-white border-secondary">
+                                <% yearOptions.forEach(y => { %>
+                                    <option value="<%= y %>"><%= y %></option>
+                                <% }) %>
+                            </select>
+                        </div>
                         <div class="col-auto"><button type="submit" class="btn btn-sm btn-primary fw-bold">CARI</button></div>
                         <div class="col-auto ms-md-auto"><a href="/kerja" class="btn btn-sm btn-outline-secondary text-white fw-bold">TAMPILKAN SEMUA</a></div>
                     </form>
@@ -80,21 +116,57 @@
 
                 <div class="table-container table-responsive">
                     <table class="table">
-                        <thead><tr style="background:#1f242b; color:#fff;"><th>WAKTU</th><th>UNIT</th><th style="width: 35%;">AKTIVITAS</th><th>STATUS</th><th class="text-center">DOKUMENTASI</th><th>AKSI</th></tr></thead>
+                        <thead>
+                            <tr style="background:#1f242b; color:#fff;">
+                                <th>WAKTU</th>
+                                <th>UNIT</th>
+                                <th style="width: 33%;">AKTIVITAS</th>
+                                <th>STATUS</th>
+                                <th class="text-center">DOKUMENTASI</th>
+                                <th class="text-center">AKSI</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             <% journals.forEach(item => { %>
                                 <tr>
-                                    <td style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #006666 !important; white-space: nowrap;"><%= new Date(item.tanggalManual).toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}).replace(/\./g, ':') %></td>
-                                    <td style="white-space: nowrap;"><div class="txt-bold"><%= item.divisi %></div><div style="font-size: 0.75rem; color: #555;">User: <%= item.pemesan %></div></td>
-                                    <td><div class="txt-bold" style="margin-bottom:3px;"><%= item.aktivitas %></div><div style="font-size: 0.8rem; color: #444;"><%= item.deskripsi %></div></td>
-                                    <td><span class="<%= item.status === 'Solved' ? 'status-solved' : 'status-pending' %>"><%= item.status %></span></td>
-                                    <td class="text-center">
-                                        <% if(item.fotoUrl) { %><button type="button" class="btn-lihat" onclick="showFoto('<%= item.fotoUrl %>')">LIHAT FOTO</button><% } else { %><button type="button" class="btn-tambah-foto" onclick="openUploadModal(<%= item.id %>)">+ TAMBAH FOTO</button><% } %>
+                                    <td style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #006666 !important; white-space: nowrap;">
+                                        <%= new Date(item.tanggalManual).toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}).replace(/\./g, ':') %>
+                                    </td>
+                                    <td style="white-space: nowrap;">
+                                        <div class="txt-bold"><%= item.divisi %></div>
+                                        <div style="font-size: 0.75rem; color: #555;">User: <%= item.pemesan %></div>
                                     </td>
                                     <td>
+                                        <div class="txt-bold" style="margin-bottom:3px;"><%= item.aktivitas %></div>
+                                        <div style="font-size: 0.8rem; color: #444;"><%= item.deskripsi %></div>
+                                    </td>
+                                    <td>
+                                        <span class="<%= item.status === 'Solved' ? 'status-solved' : 'status-pending' %>"><%= item.status %></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if(item.fotoUrl) { %>
+                                            <button type="button" class="btn-lihat" onclick="showFoto('<%= item.fotoUrl %>')">LIHAT FOTO</button>
+                                        <% } else { %>
+                                            <button type="button" class="btn-tambah-foto" onclick="openUploadModal(<%= item.id %>)">+ TAMBAH FOTO</button>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-center" style="min-width: 110px;">
                                         <% if(item.status === 'Pending') { %>
-                                            <form action="/update-status/<%= item.id %>" method="POST"><input type="hidden" name="newStatus" value="Solved"><button type="submit" class="btn-update">SET SOLVED</button></form>
-                                        <% } else { %><span style="color: #aaa; font-size: 0.7rem; font-style: italic;">Selesai</span><% } %>
+                                            <form action="/update-status/<%= item.id %>" method="POST">
+                                                <input type="hidden" name="newStatus" value="Solved">
+                                                <button type="submit" class="btn-update"> SET SOLVED</button>
+                                            </form>
+                                        <% } %>
+                                        <button type="button" class="btn-edit" onclick="openEditModal(
+                                            <%= item.id %>,
+                                            `<%- item.aktivitas.replace(/`/g, '\\`') %>`,
+                                            `<%= item.divisi %>`,
+                                            `<%- item.pemesan.replace(/`/g, '\\`') %>`,
+                                            `<%- item.deskripsi.replace(/`/g, '\\`').replace(/\n/g, '\\n') %>`,
+                                            `<%= item.status %>`,
+                                            `<%= new Date(item.tanggalManual).toISOString().slice(0,16) %>`
+                                        )"> EDIT</button>
+                                        <button type="button" class="btn-delete" onclick="confirmDelete(<%= item.id %>, `<%- item.aktivitas.replace(/`/g, '\\`') %>`)">HAPUS</button>
                                     </td>
                                 </tr>
                             <% }) %>
@@ -105,46 +177,207 @@
         </div>
     </div>
 
-    <div class="modal fade" id="fotoModalAdmin" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content bg-dark border-secondary"><div class="modal-header border-secondary"><h5 class="modal-title text-white" style="font-size: 1rem;">Dokumentasi Jurnal</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body text-center p-3"><img id="popupImageAdmin" src="" class="img-fluid rounded" style="max-height: 75vh;"></div></div></div></div>
+    <!-- MODAL LIHAT FOTO -->
+    <div class="modal fade" id="fotoModalAdmin" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white" style="font-size: 1rem;">Dokumentasi Jurnal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-3">
+                    <img id="popupImageAdmin" src="" class="img-fluid rounded" style="max-height: 75vh;">
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <div class="modal fade" id="uploadSusulanModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content bg-dark border-secondary"><div class="modal-header border-secondary"><h5 class="modal-title text-white" style="font-size: 1rem;">Upload Foto Susulan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data"><div class="modal-body"><span class="label-text">Pilih File Foto (Auto Compress)</span><input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment"><small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto berhasil dikompres!</small></div><div class="modal-footer border-secondary"><button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button><button type="submit" class="btn btn-success fw-bold">UPLOAD SEKARANG</button></div></form></div></div></div>
+    <!-- MODAL UPLOAD FOTO SUSULAN -->
+    <div class="modal fade" id="uploadSusulanModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white" style="font-size: 1rem;">Upload Foto Susulan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <span class="label-text">Pilih File Foto (Auto Compress)</span>
+                        <input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment">
+                        <small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto berhasil dikompres!</small>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+                        <button type="submit" class="btn btn-success fw-bold">UPLOAD SEKARANG</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT DATA -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white" style="font-size: 1rem;">✏️ Edit Data Jurnal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <span class="label-text">Tanggal & Jam</span>
+                                <input type="datetime-local" name="tanggalManual" id="edit_tanggal" class="input-custom" required>
+                                <span class="label-text">Pemesan (User)</span>
+                                <input type="text" name="pemesan" id="edit_pemesan" class="input-custom" required>
+                                <span class="label-text">Aktivitas</span>
+                                <input type="text" name="aktivitas" id="edit_aktivitas" class="input-custom" required>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="label-text">Divisi</span>
+                                <select name="divisi" id="edit_divisi" class="input-custom">
+                                    <option value="IT & IC">IT & IC</option>
+                                    <option value="Accounting">Accounting</option>
+                                    <option value="Exim & Pembelian">Exim & Pembelian</option>
+                                    <option value="Operasional">Operasional</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Produksi">Produksi</option>
+                                    <option value="Bahanbaku">Bahanbaku</option>
+                                    <option value="Admin Sales">Admin Sales</option>
+                                </select>
+                                <span class="label-text">Status</span>
+                                <select name="status" id="edit_status" class="input-custom">
+                                    <option value="Solved">SOLVED</option>
+                                    <option value="Pending">PENDING</option>
+                                </select>
+                                <span class="label-text">Ganti Foto (Opsional)</span>
+                                <input type="file" name="foto" class="input-custom file-compress" accept="image/*">
+                                <small class="text-success fw-bold d-none compress-msg">✅ Foto berhasil dikompres!</small>
+                            </div>
+                            <div class="col-12">
+                                <span class="label-text">Deskripsi</span>
+                                <textarea name="deskripsi" id="edit_deskripsi" class="input-custom" rows="3" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+                        <button type="submit" class="btn btn-primary fw-bold">SIMPAN PERUBAHAN</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI DELETE -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark border-danger">
+                <div class="modal-header border-danger">
+                    <h5 class="modal-title text-white" style="font-size: 1rem;">🗑️ Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-white mb-1">Yakin mau hapus data ini?</p>
+                    <p id="deleteItemName" class="fw-bold" style="color: #ff6b6b; font-size: 0.9rem;"></p>
+                    <p class="text-secondary" style="font-size: 0.8rem;">⚠️ Data yang dihapus tidak bisa dikembalikan, termasuk foto dokumentasinya.</p>
+                </div>
+                <div class="modal-footer border-danger">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+                    <form id="formDelete" action="" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger fw-bold">YA, HAPUS SEKARANG</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function showFoto(url) { document.getElementById('popupImageAdmin').src = url; new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show(); }
-        function openUploadModal(id) { document.getElementById('formUploadSusulan').action = '/upload-foto/' + id; new bootstrap.Modal(document.getElementById('uploadSusulanModal')).show(); }
+        function showFoto(url) {
+            document.getElementById('popupImageAdmin').src = url;
+            new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show();
+        }
+
+        function openUploadModal(id) {
+            document.getElementById('formUploadSusulan').action = '/upload-foto/' + id;
+            new bootstrap.Modal(document.getElementById('uploadSusulanModal')).show();
+        }
+
+        function openEditModal(id, aktivitas, divisi, pemesan, deskripsi, status, tanggal) {
+            document.getElementById('formEdit').action = '/edit/' + id;
+            document.getElementById('edit_tanggal').value = tanggal;
+            document.getElementById('edit_aktivitas').value = aktivitas;
+            document.getElementById('edit_pemesan').value = pemesan;
+            document.getElementById('edit_deskripsi').value = deskripsi.replace(/\\n/g, '\n');
+            document.getElementById('edit_divisi').value = divisi;
+            document.getElementById('edit_status').value = status;
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+
+        function confirmDelete(id, aktivitas) {
+            document.getElementById('formDelete').action = '/delete/' + id;
+            document.getElementById('deleteItemName').textContent = '"' + aktivitas + '"';
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
 
         // SCRIPT AUTO COMPRESS IMAGE
         async function compressImage(file, { quality = 0.6, maxWidth = 1000, maxHeight = 1000 }) {
             return new Promise((resolve, reject) => {
-                const reader = new FileReader(); reader.readAsDataURL(file);
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
                 reader.onload = event => {
-                    const img = new Image(); img.src = event.target.result;
+                    const img = new Image();
+                    img.src = event.target.result;
                     img.onload = () => {
-                        let width = img.width; let height = img.height;
-                        if (width > height) { if (width > maxWidth) { height = Math.round(height * maxWidth / width); width = maxWidth; } } else { if (height > maxHeight) { width = Math.round(width * maxHeight / height); height = maxHeight; } }
-                        const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                        canvas.toBlob(blob => { resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg', lastModified: Date.now() })); }, 'image/jpeg', quality);
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > maxWidth) { height = Math.round(height * maxWidth / width); width = maxWidth; }
+                        } else {
+                            if (height > maxHeight) { width = Math.round(width * maxHeight / height); height = maxHeight; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        canvas.toBlob(blob => {
+                            resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg', lastModified: Date.now() }));
+                        }, 'image/jpeg', quality);
                     };
-                }; reader.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
             });
         }
+
         document.querySelectorAll('.file-compress').forEach(input => {
             input.addEventListener('change', async (e) => {
-                const file = e.target.files[0]; if (!file || !file.type.startsWith('image/')) return;
+                const file = e.target.files[0];
+                if (!file || !file.type.startsWith('image/')) return;
                 const msgEl = e.target.nextElementSibling;
                 try {
                     const compressedFile = await compressImage(file, { quality: 0.6, maxWidth: 1000, maxHeight: 1000 });
-                    const dataTransfer = new DataTransfer(); dataTransfer.items.add(compressedFile); e.target.files = dataTransfer.files;
-                    if(msgEl && msgEl.classList.contains('compress-msg')) { msgEl.classList.remove('d-none'); }
-                } catch (err) { console.error("Gagal kompres:", err); }
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(compressedFile);
+                    e.target.files = dataTransfer.files;
+                    if (msgEl && msgEl.classList.contains('compress-msg')) {
+                        msgEl.classList.remove('d-none');
+                    }
+                } catch (err) {
+                    console.error("Gagal kompres:", err);
+                }
             });
         });
 
         // REGISTER PWA SERVICE WORKER
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').then(reg => console.log('SW OK')).catch(err => console.log('SW Gagal', err)); });
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW OK'))
+                    .catch(err => console.log('SW Gagal', err));
+            });
         }
     </script>
 </body>
