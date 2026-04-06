@@ -14,20 +14,43 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap');
         body { background-color: #0d0d0d !important; color: #fff; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
-        .app-nav { border-bottom: 2px solid #262626; padding: 1.2rem 2rem; background: #161b22; display: flex; justify-content: space-between; align-items: center; }
-        .table-container { background: #ffffff !important; border-radius: 10px; border: 1px solid #333; margin-top: 15px; }
-        .table { min-width: 900px; margin: 0; }
-        .table td { padding: 1.2rem 1rem; vertical-align: middle; color: #000000 !important; font-size: 0.85rem; border-bottom: 1px solid #eee; }
-        .txt-bold { font-weight: 700; color: #000; font-size: 0.95rem; }
-        .status-solved { color: #008000 !important; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; }
-        .status-pending { color: #8b6508 !important; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; }
-        .btn-lihat { background: #000; color: #fff !important; padding: 5px 12px; border-radius: 4px; border: none; font-size: 0.7rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .app-nav { border-bottom: 2px solid #262626; padding: 1rem 1.5rem; background: #161b22; display: flex; justify-content: space-between; align-items: center; }
+        .table-container { background: #ffffff !important; border-radius: 10px; border: 1px solid #333; margin-top: 12px; }
+        .table { min-width: 100%; margin: 0; }
+        .table th, .table td { padding: 0.85rem 0.85rem; vertical-align: middle; color: #000000 !important; font-size: 0.82rem; border-bottom: 1px solid #eee; }
+        .table th { font-size: 0.82rem; }
+        .txt-bold { font-weight: 700; color: #000; font-size: 0.9rem; }
+        .status-solved { color: #008000 !important; font-weight: 800; font-size: 0.72rem; text-transform: uppercase; }
+        .status-pending { color: #8b6508 !important; font-weight: 800; font-size: 0.72rem; text-transform: uppercase; }
+        .btn-lihat { background: #000; color: #fff !important; padding: 4px 10px; border-radius: 4px; border: none; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+        .compact-card { background:#161b22; border-radius:8px; border:1px solid #333; padding: 1rem; }
+        .compact-card .section-title { color: #fff; font-weight: 700; margin-bottom: 10px; font-size: 0.88rem; }
+        .note-entry { background: #0d0d0d; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #0d6efd; }
+        .note-entry strong { font-size: 0.92rem; }
+        .note-entry p { color: #aaa; margin: 4px 0 0 0; font-size: 0.82rem; }
+        .note-entry small { color: #666; font-size: 0.72rem; }
+        .floating-notes { position: fixed; top: 110px; right: 20px; width: 320px; max-height: 75vh; overflow-y: auto; background: #161b22; border: 1px solid #333; border-radius: 12px; box-shadow: 0 24px 60px rgba(0,0,0,0.35); padding: 1rem; z-index: 1050; }
+        .floating-notes .notes-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+        .floating-notes .section-title { margin: 0; font-size: 0.95rem; }
+        .floating-notes .close-notes { margin-left: auto; border: none; background: transparent; color: #fff; font-size: 1.1rem; cursor: pointer; opacity: 0.8; }
+        .floating-notes .close-notes:hover { opacity: 1; }
+        .floating-notes #notesList { color: #aaa; font-size: 0.85rem; }
+        .floating-notes .note-entry { margin-bottom: 10px; }
+        .accordion-button { padding: 0.85rem 1rem; font-size: 0.9rem; }
+        .accordion-button:not(.collapsed) { color: #fff; background: #1a1f28; }
+        .accordion-button.collapsed { color: #fff; background: #161b22; }
+        .accordion-body { padding: 1rem 1rem 0.5rem; }
+
+        @media (max-width: 1200px) {
+            .floating-notes { position: static; width: 100%; max-height: none; box-shadow: none; border-radius: 8px; margin-top: 1rem; }
+        }
 
         @media (max-width: 768px) {
             .app-nav { flex-direction: column; text-align: center; gap: 15px; padding: 1rem; }
             .container-fluid { padding: 1rem !important; }
             .filter-form .col-auto { width: 100%; margin-bottom: 10px; }
             .filter-form select, .filter-form button, .filter-form a { width: 100%; text-align: center; }
+            .compact-card { padding: 0.85rem; }
         }
     </style>
 </head>
@@ -50,9 +73,7 @@
                 <div class="col-auto">
                     <a href="/" class="btn btn-outline-secondary fw-bold text-white">HARI INI</a>
                 </div>
-                <div class="col-auto ms-md-auto">
-                    <a href="/export?date=<%= filterInfo.date %>" class="btn btn-success fw-bold">DOWNLOAD</a>
-                </div>
+
             </form>
             <div class="mt-2" style="color: #aaa; font-size: 0.75rem;">
                 📋 Menampilkan: <strong><%= filterInfo.dateDisplay %></strong>
@@ -85,9 +106,12 @@
         </div>
 
         <!-- NOTES SECTION -->
-        <div class="p-3 mb-4" style="background:#161b22; border-radius:8px; border:1px solid #333;">
-            <div style="color: #fff; font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">📝 CATATAN (NOTES)</div>
-            <div id="notesList" style="color: #aaa; font-size: 0.85rem;">Loading notes...</div>
+        <div class="floating-notes" id="floatingNotes">
+            <div class="notes-header">
+                <div class="section-title">📝 CATATAN (NOTES)</div>
+                <button type="button" class="close-notes" onclick="hideNotesPanel()" aria-label="Tutup notes">×</button>
+            </div>
+            <div id="notesList">Loading notes...</div>
         </div>
 
         <div class="table-container table-responsive">
@@ -187,6 +211,10 @@
                 console.error('Error loading notes:', err);
                 document.getElementById('notesList').innerHTML = '<p style="color: #f00;">Error loading notes</p>';
             }
+        }
+
+        function hideNotesPanel() {
+            document.getElementById('floatingNotes').style.display = 'none';
         }
 
         // Load notes on page load
