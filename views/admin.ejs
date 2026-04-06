@@ -88,6 +88,12 @@
             </div>
             
             <div class="col-md-9">
+                <% if (saved) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+                        <strong>Berhasil!</strong> Data berhasil disimpan.
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                <% } %>
                 <div class="mb-3 p-3" style="background:#161b22; border-radius:8px; border:1px solid #333;">
                     <form action="/kerja" method="GET" class="row g-2 align-items-center m-0 filter-form">
                         <div class="col-auto"><span class="small fw-bold text-secondary d-block d-md-inline mb-2 mb-md-0">CARI DATA LAMA:</span></div>

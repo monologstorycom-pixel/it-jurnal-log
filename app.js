@@ -89,7 +89,11 @@ app.get('/', async (req, res) => {
 // ==========================================
 app.get('/kerja', async (req, res) => {
     try {
+<<<<<<< Updated upstream
         const { month, year, status } = req.query;
+=======
+        const { month, year, status, saved } = req.query;
+>>>>>>> Stashed changes
         let whereClause = {};
 
         if (month && year) {
@@ -99,7 +103,10 @@ app.get('/kerja', async (req, res) => {
             whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
         }
 
+<<<<<<< Updated upstream
         // Add status filter if specified
+=======
+>>>>>>> Stashed changes
         if (status && status !== '') {
             whereClause.status = status;
         }
@@ -108,7 +115,7 @@ app.get('/kerja', async (req, res) => {
             where: whereClause, orderBy: { tanggalManual: 'desc' } 
         });
 
-        res.render('admin', { journals, yearOptions: getYearOptions() });
+        res.render('admin', { journals, yearOptions: getYearOptions(), saved: saved === '1' });
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
 });
 
@@ -121,7 +128,7 @@ app.post('/save', upload.single('foto'), async (req, res) => {
         await prisma.journal.create({
             data: { aktivitas, divisi, pemesan, deskripsi, status, tanggalManual: new Date(tanggalManual), fotoUrl: req.file ? '/uploads/' + req.file.filename : null }
         });
-        res.redirect('/kerja');
+        res.redirect('/kerja?saved=1');
     } catch (error) { console.error(error); res.status(500).send("Gagal Simpan."); }
 });
 
