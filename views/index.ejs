@@ -84,6 +84,12 @@
             </form>
         </div>
 
+        <!-- NOTES SECTION -->
+        <div class="p-3 mb-4" style="background:#161b22; border-radius:8px; border:1px solid #333;">
+            <div style="color: #fff; font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">📝 CATATAN (NOTES)</div>
+            <div id="notesList" style="color: #aaa; font-size: 0.85rem;">Loading notes...</div>
+        </div>
+
         <div class="table-container table-responsive">
             <table class="table">
                 <thead>
@@ -151,6 +157,44 @@
             new bootstrap.Modal(document.getElementById('fotoModal')).show();
         }
 
+        // ========== NOTES MANAGEMENT (VIEW ONLY) ==========
+        async function loadNotes() {
+            try {
+                const res = await fetch('/api/notes');
+                const notes = await res.json();
+                const notesList = document.getElementById('notesList');
+                
+                if (notes.length === 0) {
+                    notesList.innerHTML = '<p style="color: #666;">Belum ada catatan.</p>';
+                    return;
+                }
+                
+                let html = '';
+                notes.forEach(note => {
+                    const date = new Date(note.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                    html += `
+                        <div style="background: #0d0d0d; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #0d6efd;">
+                            <div style="flex: 1;">
+                                <strong style="color: #fff; font-size: 0.95rem;">${note.title}</strong>
+                                <p style="color: #aaa; margin: 4px 0 0 0; font-size: 0.85rem;">${note.content}</p>
+                                <small style="color: #666;">${date}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                notesList.innerHTML = html;
+            } catch (err) {
+                console.error('Error loading notes:', err);
+                document.getElementById('notesList').innerHTML = '<p style="color: #f00;">Error loading notes</p>';
+            }
+        }
+
+        // Load notes on page load
+        window.addEventListener('load', () => {
+            loadNotes();
+        });
+
+        // ========== PWA SETUP ==========
         // REGISTER PWA SERVICE WORKER
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

@@ -89,11 +89,29 @@
             
             <div class="col-md-9">
                 <% if (saved) { %>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
-                        <strong>Berhasil!</strong> Data berhasil disimpan.
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+                        <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body">Berhasil! Data berhasil disimpan.</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>
                     </div>
                 <% } %>
+
+                <!-- NOTES SECTION -->
+                <div class="mb-3 p-3" style="background:#161b22; border-radius:8px; border:1px solid #333;">
+                    <div style="color: #fff; font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">📝 CATATAN (NOTES)</div>
+                    <div class="row">
+                        <div class="col-12">
+                            <input type="text" id="noteTitle" placeholder="Judul catatan..." class="form-control bg-dark text-white border-secondary" style="margin-bottom: 8px;">
+                            <textarea id="noteContent" placeholder="Isi catatan..." class="form-control bg-dark text-white border-secondary" rows="2" style="margin-bottom: 8px;"></textarea>
+                            <button onclick="addNoteAdmin()" class="btn btn-sm btn-success fw-bold">➕ TAMBAH CATATAN</button>
+                        </div>
+                    </div>
+                    <div id="adminNotesList" style="color: #aaa; font-size: 0.85rem; margin-top: 12px;">Loading notes...</div>
+                </div>
+
                 <div class="mb-3 p-3" style="background:#161b22; border-radius:8px; border:1px solid #333;">
                     <form action="/kerja" method="GET" class="row g-2 align-items-center m-0 filter-form">
                         <div class="col-auto"><span class="small fw-bold text-secondary d-block d-md-inline mb-2 mb-md-0">CARI DATA LAMA:</span></div>
@@ -401,6 +419,96 @@
                     .catch(err => console.log('SW Gagal', err));
             });
         }
+
+        const saveToastEl = document.getElementById('saveToast');
+        if (saveToastEl) {
+            new bootstrap.Toast(saveToastEl, { delay: 4000 }).show();
+        }
+
+        // ========== NOTES MANAGEMENT ==========
+        async function loadAdminNotes() {
+            try {
+                const res = await fetch('/api/notes');
+                const notes = await res.json();
+                const notesList = document.getElementById('adminNotesList');
+                
+                if (notes.length === 0) {
+                    notesList.innerHTML = '<p style="color: #666;">Belum ada catatan.</p>';
+                    return;
+                }
+                
+                let html = '';
+                notes.forEach(note => {
+                    const date = new Date(note.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+                    html += `
+                        <div style="background: #0d0d0d; padding: 10px; border-radius: 4px; margin-bottom: 6px; border-left: 2px solid #0d6efd;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <strong style="color: #fff; font-size: 0.9rem;">${note.title}</strong>
+                                    <p style="color: #999; margin: 2px 0 0 0; font-size: 0.8rem;">${note.content}</p>
+                                    <small style="color: #666;">${date}</small>
+                                </div>
+                                <button onclick="deleteAdminNote(${note.id})" class="btn btn-sm btn-danger fw-bold" style="white-space: nowrap; padding: 2px 6px; font-size: 0.7rem;">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                notesList.innerHTML = html;
+            } catch (err) {
+                console.error('Error loading notes:', err);
+                document.getElementById('adminNotesList').innerHTML = '<p style="color: #f00;">Error loading notes</p>';
+            }
+        }
+
+        async function addNoteAdmin() {
+            const title = document.getElementById('noteTitle').value.trim();
+            const content = document.getElementById('noteContent').value.trim();
+            
+            if (!title || !content) {
+                alert('Judul dan isi catatan harus diisi!');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content })
+                });
+                
+                if (res.ok) {
+                    document.getElementById('noteTitle').value = '';
+                    document.getElementById('noteContent').value = '';
+                    loadAdminNotes();
+                } else {
+                    alert('Error menambah catatan');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Gagal menambah catatan');
+            }
+        }
+
+        async function deleteAdminNote(id) {
+            if (!confirm('Yakin hapus catatan ini?')) return;
+            
+            try {
+                const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadAdminNotes();
+                } else {
+                    alert('Error menghapus catatan');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Gagal menghapus catatan');
+            }
+        }
+
+        // Load notes on page load
+        window.addEventListener('load', () => {
+            loadAdminNotes();
+        });
 
 // ==========================================
         // SCRIPT MANUAL INSTALL PWA

@@ -89,11 +89,7 @@ app.get('/', async (req, res) => {
 // ==========================================
 app.get('/kerja', async (req, res) => {
     try {
-<<<<<<< Updated upstream
-        const { month, year, status } = req.query;
-=======
         const { month, year, status, saved } = req.query;
->>>>>>> Stashed changes
         let whereClause = {};
 
         if (month && year) {
@@ -103,10 +99,6 @@ app.get('/kerja', async (req, res) => {
             whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
         }
 
-<<<<<<< Updated upstream
-        // Add status filter if specified
-=======
->>>>>>> Stashed changes
         if (status && status !== '') {
             whereClause.status = status;
         }
@@ -255,6 +247,39 @@ app.get('/export', async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
         await workbook.xlsx.write(res); res.end();
     } catch (error) { console.error(error); res.status(500).send("Gagal Export."); }
+});
+
+// ==========================================
+// 9. NOTES MANAGEMENT
+// ==========================================
+app.get('/api/notes', async (req, res) => {
+    try {
+        const notes = await prisma.note.findMany({ orderBy: { createdAt: 'desc' } });
+        res.json(notes);
+    } catch (error) { res.status(500).json({ error: "Gagal ambil notes" }); }
+});
+
+app.post('/api/notes', async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        const note = await prisma.note.create({ data: { title, content } });
+        res.json(note);
+    } catch (error) { res.status(500).json({ error: "Gagal tambah notes" }); }
+});
+
+app.put('/api/notes/:id', async (req, res) => {
+    try {
+        const { title, content } = req.body;
+        const note = await prisma.note.update({ where: { id: parseInt(req.params.id) }, data: { title, content } });
+        res.json(note);
+    } catch (error) { res.status(500).json({ error: "Gagal update notes" }); }
+});
+
+app.delete('/api/notes/:id', async (req, res) => {
+    try {
+        await prisma.note.delete({ where: { id: parseInt(req.params.id) } });
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ error: "Gagal hapus notes" }); }
 });
 
 app.listen(3001, '0.0.0.0', () => console.log('🚀 SYSTEM READY AT PORT 3001'));
