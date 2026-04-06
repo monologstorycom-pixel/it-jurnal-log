@@ -43,17 +43,26 @@ function getYearOptions() {
 }
 
 // ==========================================
-// 1. VIEWER MODE (AUTO FILTER BULAN BERJALAN)
+// 1. VIEWER MODE (AUTO FILTER HARI INI)
 // ==========================================
 app.get('/', async (req, res) => {
     try {
-        const { month, year } = req.query;
+        const { date } = req.query;
         const now = new Date();
-        const currentMonth = month ? parseInt(month) : now.getMonth() + 1;
-        const currentYear = year ? parseInt(year) : now.getFullYear();
-
-        const startDate = new Date(currentYear, currentMonth - 1, 1, 0, 0, 0);
-        const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+        
+        // Default to today if no date provided
+        let selectedDate;
+        if (date) {
+            // Parse the date string correctly as local date (not UTC)
+            const [year, month, day] = date.split('-');
+            selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else {
+            selectedDate = now;
+        }
+        
+        // Get start and end of day in local timezone
+        const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
+        const endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
 
         const whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
 
@@ -61,9 +70,15 @@ app.get('/', async (req, res) => {
             where: whereClause, orderBy: { tanggalManual: 'desc' } 
         });
 
+        // Format date for display and input
+        const formattedDate = selectedDate.toISOString().split('T')[0];
+        const dateDisplay = selectedDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
         res.render('index', { 
             journals, 
-            filterInfo: { month: currentMonth, year: currentYear },
+            filterInfo: { date: formattedDate, dateDisplay: dateDisplay, month: currentMonth, year: currentYear },
             yearOptions: getYearOptions()
         });
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
@@ -74,7 +89,7 @@ app.get('/', async (req, res) => {
 // ==========================================
 app.get('/kerja', async (req, res) => {
     try {
-        const { month, year } = req.query;
+        const { month, year, status } = req.query;
         let whereClause = {};
 
         if (month && year) {
@@ -82,6 +97,11 @@ app.get('/kerja', async (req, res) => {
             const startDate = new Date(y, m - 1, 1, 0, 0, 0);
             const endDate = new Date(y, m, 0, 23, 59, 59);
             whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
+        }
+
+        // Add status filter if specified
+        if (status && status !== '') {
+            whereClause.status = status;
         }
 
         const journals = await prisma.journal.findMany({ 
@@ -175,14 +195,24 @@ app.post('/delete/:id', async (req, res) => {
 // ==========================================
 app.get('/export', async (req, res) => {
     try {
-        const { month, year } = req.query;
+        const { date, month, year } = req.query;
         let whereClause = {};
+        let fileName = 'Log-IT.xlsx';
 
-        if (month && year) {
+        if (date) {
+            // Export by specific date
+            const selectedDate = new Date(date);
+            const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
+            const endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
+            whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
+            fileName = `Log-IT-${date}.xlsx`;
+        } else if (month && year) {
+            // Backward compatibility: export by month
             const m = parseInt(month); const y = parseInt(year);
             const startDate = new Date(y, m - 1, 1, 0, 0, 0);
             const endDate = new Date(y, m, 0, 23, 59, 59);
             whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
+            fileName = `Log-IT-${month}-${year}.xlsx`;
         }
 
         const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
@@ -199,7 +229,7 @@ app.get('/export', async (req, res) => {
         worksheet.getRow(1).eachCell((cell) => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '161B22' } }; cell.font = { color: { argb: 'FFFFFF' }, bold: true }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; });
 
         if (journals.length === 0) {
-            const emptyRow = worksheet.addRow({ waktu: `TIDAK ADA DATA DI BULAN INI`, divisi: '-', pemesan: '-', aktivitas: '-', deskripsi: '-', status: '-' });
+            const emptyRow = worksheet.addRow({ waktu: `TIDAK ADA DATA`, divisi: '-', pemesan: '-', aktivitas: '-', deskripsi: '-', status: '-' });
             emptyRow.font = { color: { argb: 'FF0000' }, italic: true, bold: true };
         } else {
             journals.forEach((item, index) => {
@@ -214,7 +244,6 @@ app.get('/export', async (req, res) => {
 
         worksheet.eachRow((row) => { row.eachCell((cell) => cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} }); });
 
-        const fileName = month ? `Log-IT-${month}-${year}.xlsx` : `Log-IT-All.xlsx`;
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
         await workbook.xlsx.write(res); res.end();

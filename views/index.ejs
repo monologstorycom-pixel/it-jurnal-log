@@ -37,11 +37,34 @@
     </nav>
     
     <div class="container-fluid p-4" style="max-width: 1600px;">
-        <div class="p-3 mb-4" style="background:#161b22; border-radius:8px; border:1px solid #333;">
+        <!-- DAILY LOG SECTION -->
+        <div class="p-3 mb-3" style="background:#161b22; border-radius:8px; border:1px solid #333;">
+            <div style="color: #fff; font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">📅 DAILY LOG</div>
             <form action="/" method="GET" class="row g-2 align-items-center m-0 filter-form">
-                <div class="col-auto"><span class="small fw-bold text-secondary d-block mb-1">FILTER BULAN:</span></div>
                 <div class="col-auto">
-                    <select name="month" class="form-select bg-dark text-white border-secondary">
+                    <input type="date" name="date" value="<%= filterInfo.date %>" class="form-control bg-dark text-white border-secondary" style="width: 160px;">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary fw-bold">LIHAT</button>
+                </div>
+                <div class="col-auto">
+                    <a href="/" class="btn btn-outline-secondary fw-bold text-white">HARI INI</a>
+                </div>
+                <div class="col-auto ms-md-auto">
+                    <a href="/export?date=<%= filterInfo.date %>" class="btn btn-success fw-bold">DOWNLOAD</a>
+                </div>
+            </form>
+            <div class="mt-2" style="color: #aaa; font-size: 0.75rem;">
+                📋 Menampilkan: <strong><%= filterInfo.dateDisplay %></strong>
+            </div>
+        </div>
+
+        <!-- MONTHLY REPORT SECTION -->
+        <div class="p-3 mb-4" style="background:#161b22; border-radius:8px; border:1px solid #333;">
+            <div style="color: #fff; font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">📊 MONTHLY REPORT</div>
+            <form action="/export" method="GET" class="row g-2 align-items-center m-0 filter-form">
+                <div class="col-auto">
+                    <select name="month" class="form-select form-select-sm bg-dark text-white border-secondary">
                         <% const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]; %>
                         <% months.forEach((m, i) => { %>
                             <option value="<%= i + 1 %>" <%= filterInfo.month == (i + 1) ? 'selected' : '' %>><%= m %></option>
@@ -49,18 +72,14 @@
                     </select>
                 </div>
                 <div class="col-auto">
-                    <!-- DROPDOWN TAHUN DINAMIS — otomatis nambah tiap tahun baru -->
-                    <select name="year" class="form-select bg-dark text-white border-secondary">
+                    <select name="year" class="form-select form-select-sm bg-dark text-white border-secondary">
                         <% yearOptions.forEach(y => { %>
                             <option value="<%= y %>" <%= filterInfo.year == y ? 'selected' : '' %>><%= y %></option>
                         <% }) %>
                     </select>
                 </div>
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-primary fw-bold">TAMPILKAN</button>
-                </div>
-                <div class="col-auto ms-md-auto">
-                    <a href="/export?month=<%= filterInfo.month %>&year=<%= filterInfo.year %>" class="btn btn-success fw-bold">DOWNLOAD</a>
+                    <button type="submit" class="btn btn-sm btn-success fw-bold">📥 DOWNLOAD LAPORAN</button>
                 </div>
             </form>
         </div>
@@ -78,7 +97,7 @@
                 </thead>
                 <tbody>
                     <% if(journals.length === 0) { %>
-                        <tr><td colspan="5" class="text-center py-5 text-muted">Belum ada log kerja untuk bulan ini.</td></tr>
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Belum ada log kerja untuk hari ini.</td></tr>
                     <% } else { %>
                         <% journals.forEach(item => { %>
                             <tr>
