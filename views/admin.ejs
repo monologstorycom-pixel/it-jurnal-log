@@ -44,7 +44,12 @@
     </style>
 </head>
 <body>
-    <nav class="app-nav"><div style="font-weight: 700;">>_ IT SUPPORT LOG | DASHBOARD</div></nav>
+   <nav class="app-nav" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-weight: 700;">>_ IT SUPPORT LOG | DASHBOARD</div>
+        <button id="btnInstallPwa" class="btn btn-sm btn-outline-warning fw-bold" style="display: none;">
+            📲 INSTAL APLIKASI
+        </button>
+    </nav>
     <div class="container-fluid p-4">
         <div class="row">
             <div class="col-md-3 form-sidebar">
@@ -58,12 +63,14 @@
                     <span class="label-text">Divisi</span>
                     <select name="divisi" class="input-custom">
                         <option value="IT & IC">IT & IC</option>
+                         <option value="HRGA">HRGA</option>
                         <option value="Accounting">Accounting</option>
                         <option value="Exim & Pembelian">Exim & Pembelian</option>
                         <option value="Operasional">Operasional</option>
                         <option value="Finance">Finance</option>
                         <option value="Produksi">Produksi</option>
                         <option value="Bahanbaku">Bahanbaku</option>
+                        <option value="MAINTENANCE">MAINTENANCE</option>
                         <option value="Admin Sales">Admin Sales</option>
                     </select>
                     <span class="label-text">Deskripsi</span>
@@ -73,7 +80,7 @@
                         <option value="Solved">SOLVED</option>
                         <option value="Pending">PENDING</option>
                     </select>
-                    <span class="label-text">Upload Foto (Auto Compress)</span>
+                    <span class="label-text">Upload Foto</span>
                     <input type="file" name="foto" class="input-custom file-compress" accept="image/*" capture="environment">
                     <small class="text-success fw-bold d-none compress-msg">✅ Foto berhasil dikompres!</small>
                     <button type="submit" class="btn btn-light w-100 fw-bold mt-2">SIMPAN DATA</button>
@@ -202,7 +209,7 @@
                 </div>
                 <form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
-                        <span class="label-text">Pilih File Foto (Auto Compress)</span>
+                        <span class="label-text">Pilih File Foto</span>
                         <input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment">
                         <small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto berhasil dikompres!</small>
                     </div>
@@ -238,6 +245,7 @@
                                 <span class="label-text">Divisi</span>
                                 <select name="divisi" id="edit_divisi" class="input-custom">
                                     <option value="IT & IC">IT & IC</option>
+                                    <option value="HRGA">HRGA</option>
                                     <option value="Accounting">Accounting</option>
                                     <option value="Exim & Pembelian">Exim & Pembelian</option>
                                     <option value="Operasional">Operasional</option>
@@ -379,6 +387,49 @@
                     .catch(err => console.log('SW Gagal', err));
             });
         }
+
+// ==========================================
+        // SCRIPT MANUAL INSTALL PWA
+        // ==========================================
+        let deferredPrompt;
+        const installBtn = document.getElementById('btnInstallPwa');
+
+        // Chrome menembakkan event ini kalau web memenuhi syarat PWA
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Cegah Chrome nampilin banner default yang kadang error
+            e.preventDefault();
+            // Simpan event-nya
+            deferredPrompt = e;
+            // Munculkan tombol Instal yang tadi kita sembunyikan
+            installBtn.style.display = 'block';
+            console.log("PWA Install Prompt siap ditarik!");
+        });
+
+        // Kalau tombol instal diklik
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt !== null) {
+                // Tampilkan prompt bawaan HP
+                deferredPrompt.prompt();
+                // Tunggu respon user (pilih Install atau Cancel)
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('Mantap, Jurnal IT diinstal!');
+                } else {
+                    console.log('User batal instal.');
+                }
+                // Kosongkan prompt agar tidak nembak 2x
+                deferredPrompt = null;
+                // Sembunyikan lagi tombolnya
+                installBtn.style.display = 'none';
+            }
+        });
+
+        // Deteksi kalau ternyata aplikasi sudah berhasil diinstal
+        window.addEventListener('appinstalled', () => {
+            installBtn.style.display = 'none';
+            console.log('PWA berhasil terpasang di Android.');
+        });
+        
     </script>
 </body>
 </html>
