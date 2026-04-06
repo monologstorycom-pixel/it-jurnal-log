@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Journal {
+  id            Int      @id @default(autoincrement())
+  tanggalManual DateTime // Kolom baru untuk backdate
+  aktivitas     String   
+  divisi        String   
+  pemesan       String   // Kolom baru untuk user yang minta
+  deskripsi     String   @db.Text
+  status        String   
+  fotoUrl       String?  
+  createdAt     DateTime @default(now()) 
+}
