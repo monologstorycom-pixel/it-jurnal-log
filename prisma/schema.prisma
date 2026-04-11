@@ -10,12 +10,16 @@ datasource db {
 model Journal {
   id            Int      @id @default(autoincrement())
   tanggalManual DateTime
+  jamMulai      String?
+  jamSelesai    String?
+  durasiMenit   Int?
   aktivitas     String
   divisi        String
   pemesan       String
   deskripsi     String   @db.Text
   status        String
   fotoUrl       String?
+  fotoAwalUrl   String?
   createdAt     DateTime @default(now())
 }
 
