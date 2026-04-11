@@ -10,122 +10,141 @@ const app = express();
 const prisma = new PrismaClient();
 const uploadDir = path.join(__dirname, 'public/uploads');
 
-// Bikin folder uploads otomatis kalau belum ada
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// --- BUKA AKSES FOLDER UNTUK FOTO & PWA ---
 app.use('/uploads', express.static(uploadDir));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Konfigurasi Upload File
+// Upload config — support multiple fields (fotoAwal + foto)
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadDir),
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'IT-LOG-' + uniqueSuffix + path.extname(file.originalname));
+        const prefix = file.fieldname === 'fotoAwal' ? 'IT-AWAL-' : 'IT-LOG-';
+        cb(null, prefix + uniqueSuffix + path.extname(file.originalname));
     }
 });
 const upload = multer({ storage: storage });
+const uploadFields = upload.fields([
+    { name: 'fotoAwal', maxCount: 1 },
+    { name: 'foto', maxCount: 1 }
+]);
 
-// Helper: generate array tahun dari 2024 sampai tahun sekarang
+// ==========================================
+// HELPER: Hitung durasi dari jamMulai & jamSelesai
+// ==========================================
+function hitungDurasi(jamMulai, jamSelesai) {
+    if (!jamMulai || !jamSelesai) return null;
+    const [hM, mM] = jamMulai.split(':').map(Number);
+    const [hS, mS] = jamSelesai.split(':').map(Number);
+    let totalMulai = hM * 60 + mM;
+    let totalSelesai = hS * 60 + mS;
+    // Handle lintas tengah malam
+    if (totalSelesai < totalMulai) totalSelesai += 24 * 60;
+    const diff = totalSelesai - totalMulai;
+    return diff > 0 ? diff : null;
+}
+
+// ==========================================
+// HELPER: Format durasi menit → string tampil
+// ==========================================
+function formatDurasi(menit) {
+    if (!menit || menit <= 0) return null;
+    if (menit < 60) return `${menit} menit`;
+    const jam = Math.floor(menit / 60);
+    const sisa = menit % 60;
+    return sisa > 0 ? `${jam} jam ${sisa} menit` : `${jam} jam`;
+}
+
+// ==========================================
+// HELPER: Tahun options
+// ==========================================
 function getYearOptions() {
     const startYear = 2024;
     const currentYear = new Date().getFullYear();
     const years = [];
-    for (let y = currentYear; y >= startYear; y--) {
-        years.push(y);
-    }
+    for (let y = currentYear; y >= startYear; y--) years.push(y);
     return years;
 }
 
 // ==========================================
-// 1. VIEWER MODE (AUTO FILTER HARI INI)
+// 1. VIEWER MODE
 // ==========================================
 app.get('/', async (req, res) => {
     try {
         const { date } = req.query;
         const now = new Date();
-        
-        // Default to today if no date provided
         let selectedDate;
         if (date) {
-            // Parse the date string correctly as local date (not UTC)
             const [year, month, day] = date.split('-');
             selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
         } else {
             selectedDate = now;
         }
-        
-        // Get start and end of day in local timezone
         const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
         const endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
-
         const whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
-
-        const journals = await prisma.journal.findMany({ 
-            where: whereClause, orderBy: { tanggalManual: 'desc' } 
-        });
-
-        // Format date for display and input
+        const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
         const formattedDate = selectedDate.toISOString().split('T')[0];
         const dateDisplay = selectedDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const currentMonth = now.getMonth() + 1;
         const currentYear = now.getFullYear();
-
-        res.render('index', { 
-            journals, 
-            filterInfo: { date: formattedDate, dateDisplay: dateDisplay, month: currentMonth, year: currentYear },
-            yearOptions: getYearOptions()
+        res.render('index', {
+            journals,
+            filterInfo: { date: formattedDate, dateDisplay, month: currentMonth, year: currentYear },
+            yearOptions: getYearOptions(),
+            formatDurasi
         });
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
 });
 
 // ==========================================
-// 2. ADMIN MODE (KERJA MODE)
+// 2. ADMIN MODE
 // ==========================================
 app.get('/kerja', async (req, res) => {
     try {
         const { month, year, status, saved } = req.query;
         let whereClause = {};
-
         if (month && year) {
             const m = parseInt(month); const y = parseInt(year);
-            const startDate = new Date(y, m - 1, 1, 0, 0, 0);
-            const endDate = new Date(y, m, 0, 23, 59, 59);
-            whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
+            whereClause = { tanggalManual: { gte: new Date(y, m - 1, 1), lte: new Date(y, m, 0, 23, 59, 59) } };
         }
-
-        if (status && status !== '') {
-            whereClause.status = status;
-        }
-
-        const journals = await prisma.journal.findMany({ 
-            where: whereClause, orderBy: { tanggalManual: 'desc' } 
-        });
-
-        res.render('admin', { journals, yearOptions: getYearOptions(), saved: saved === '1' });
+        if (status && status !== '') whereClause.status = status;
+        const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
+        res.render('admin', { journals, yearOptions: getYearOptions(), saved: saved === '1', formatDurasi });
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
 });
 
 // ==========================================
 // 3. SIMPAN DATA
 // ==========================================
-app.post('/save', upload.single('foto'), async (req, res) => {
+app.post('/save', uploadFields, async (req, res) => {
     try {
-        const { aktivitas, divisi, deskripsi, status, pemesan, tanggalManual } = req.body;
+        const { aktivitas, divisi, deskripsi, status, pemesan, tanggalManual, jamMulai, jamSelesai } = req.body;
+        const durasiMenit = hitungDurasi(jamMulai, jamSelesai);
+        const fotoFile = req.files?.foto?.[0];
+        const fotoAwalFile = req.files?.fotoAwal?.[0];
         await prisma.journal.create({
-            data: { aktivitas, divisi, pemesan, deskripsi, status, tanggalManual: new Date(tanggalManual), fotoUrl: req.file ? '/uploads/' + req.file.filename : null }
+            data: {
+                aktivitas, divisi, pemesan, deskripsi, status,
+                tanggalManual: new Date(tanggalManual),
+                jamMulai: jamMulai || null,
+                jamSelesai: jamSelesai || null,
+                durasiMenit: durasiMenit,
+                fotoUrl: fotoFile ? '/uploads/' + fotoFile.filename : null,
+                fotoAwalUrl: fotoAwalFile ? '/uploads/' + fotoAwalFile.filename : null
+            }
         });
         res.redirect('/kerja?saved=1');
     } catch (error) { console.error(error); res.status(500).send("Gagal Simpan."); }
 });
 
 // ==========================================
-// 4. UPDATE STATUS (PENDING -> SOLVED)
+// 4. UPDATE STATUS
 // ==========================================
 app.post('/update-status/:id', async (req, res) => {
     try {
@@ -135,7 +154,7 @@ app.post('/update-status/:id', async (req, res) => {
 });
 
 // ==========================================
-// 5. UPLOAD FOTO SUSULAN
+// 5. UPLOAD FOTO SUSULAN (tetap support single foto sesudah)
 // ==========================================
 app.post('/upload-foto/:id', upload.single('foto'), async (req, res) => {
     try {
@@ -147,41 +166,56 @@ app.post('/upload-foto/:id', upload.single('foto'), async (req, res) => {
 });
 
 // ==========================================
-// 6. EDIT DATA JURNAL
+// 5b. UPLOAD FOTO AWAL SUSULAN
 // ==========================================
-app.post('/edit/:id', upload.single('foto'), async (req, res) => {
+app.post('/upload-foto-awal/:id', upload.single('fotoAwal'), async (req, res) => {
     try {
-        const { aktivitas, divisi, deskripsi, status, pemesan, tanggalManual } = req.body;
-        const updateData = {
-            aktivitas,
-            divisi,
-            pemesan,
-            deskripsi,
-            status,
-            tanggalManual: new Date(tanggalManual)
-        };
         if (req.file) {
-            updateData.fotoUrl = '/uploads/' + req.file.filename;
+            await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoAwalUrl: '/uploads/' + req.file.filename } });
         }
-        await prisma.journal.update({
-            where: { id: parseInt(req.params.id) },
-            data: updateData
-        });
+        res.redirect('/kerja');
+    } catch (error) { console.error(error); res.status(500).send("Gagal Upload Foto Awal."); }
+});
+
+// ==========================================
+// 6. EDIT DATA
+// ==========================================
+app.post('/edit/:id', uploadFields, async (req, res) => {
+    try {
+        const { aktivitas, divisi, deskripsi, status, pemesan, tanggalManual, jamMulai, jamSelesai } = req.body;
+        const durasiMenit = hitungDurasi(jamMulai, jamSelesai);
+        const fotoFile = req.files?.foto?.[0];
+        const fotoAwalFile = req.files?.fotoAwal?.[0];
+        const updateData = {
+            aktivitas, divisi, pemesan, deskripsi, status,
+            tanggalManual: new Date(tanggalManual),
+            jamMulai: jamMulai || null,
+            jamSelesai: jamSelesai || null,
+            durasiMenit: durasiMenit
+        };
+        if (fotoFile) updateData.fotoUrl = '/uploads/' + fotoFile.filename;
+        if (fotoAwalFile) updateData.fotoAwalUrl = '/uploads/' + fotoAwalFile.filename;
+        await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: updateData });
         res.redirect('/kerja');
     } catch (error) { console.error(error); res.status(500).send("Gagal Edit Data."); }
 });
 
 // ==========================================
-// 7. DELETE DATA JURNAL
+// 7. DELETE DATA
 // ==========================================
 app.post('/delete/:id', async (req, res) => {
     try {
-        // Ambil data dulu buat hapus foto fisiknya sekalian kalau ada
         const item = await prisma.journal.findUnique({ where: { id: parseInt(req.params.id) } });
-        if (item && item.fotoUrl) {
-            const fotoPath = path.join(__dirname, 'public', item.fotoUrl);
-            if (fs.existsSync(fotoPath)) {
-                fs.unlinkSync(fotoPath);
+        if (item) {
+            // Hapus foto sesudah
+            if (item.fotoUrl) {
+                const p = path.join(__dirname, 'public', item.fotoUrl);
+                if (fs.existsSync(p)) fs.unlinkSync(p);
+            }
+            // Hapus foto awal
+            if (item.fotoAwalUrl) {
+                const p = path.join(__dirname, 'public', item.fotoAwalUrl);
+                if (fs.existsSync(p)) fs.unlinkSync(p);
             }
         }
         await prisma.journal.delete({ where: { id: parseInt(req.params.id) } });
@@ -199,53 +233,80 @@ app.get('/export', async (req, res) => {
         let fileName = 'Log-IT.xlsx';
 
         if (date) {
-            // Export by specific date
             const selectedDate = new Date(date);
             const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
             const endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
             whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
             fileName = `Log-IT-${date}.xlsx`;
         } else if (month && year) {
-            // Backward compatibility: export by month
             const m = parseInt(month); const y = parseInt(year);
-            const startDate = new Date(y, m - 1, 1, 0, 0, 0);
-            const endDate = new Date(y, m, 0, 23, 59, 59);
-            whereClause = { tanggalManual: { gte: startDate, lte: endDate } };
+            whereClause = { tanggalManual: { gte: new Date(y, m - 1, 1), lte: new Date(y, m, 0, 23, 59, 59) } };
             fileName = `Log-IT-${month}-${year}.xlsx`;
         }
 
         const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
-
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('IT Support Log');
 
         worksheet.columns = [
-            { header: 'TANGGAL & JAM', key: 'waktu', width: 25 }, { header: 'DIVISI', key: 'divisi', width: 20 },
-            { header: 'USER / PEMESAN', key: 'pemesan', width: 25 }, { header: 'AKTIVITAS', key: 'aktivitas', width: 30 },
-            { header: 'DESKRIPSI', key: 'deskripsi', width: 45 }, { header: 'STATUS', key: 'status', width: 15 }, { header: 'DOKUMENTASI', key: 'foto', width: 15 },
+            { header: 'TANGGAL', key: 'tanggal', width: 18 },
+            { header: 'JAM MULAI', key: 'jamMulai', width: 12 },
+            { header: 'JAM SELESAI', key: 'jamSelesai', width: 12 },
+            { header: 'DURASI', key: 'durasi', width: 16 },
+            { header: 'DIVISI', key: 'divisi', width: 20 },
+            { header: 'USER / PEMESAN', key: 'pemesan', width: 25 },
+            { header: 'AKTIVITAS', key: 'aktivitas', width: 30 },
+            { header: 'DESKRIPSI', key: 'deskripsi', width: 45 },
+            { header: 'STATUS', key: 'status', width: 12 },
+            { header: 'FOTO AWAL', key: 'fotoAwal', width: 15 },
+            { header: 'FOTO SESUDAH', key: 'foto', width: 15 },
         ];
 
-        worksheet.getRow(1).eachCell((cell) => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '161B22' } }; cell.font = { color: { argb: 'FFFFFF' }, bold: true }; cell.alignment = { vertical: 'middle', horizontal: 'center' }; });
+        worksheet.getRow(1).eachCell((cell) => {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '161B22' } };
+            cell.font = { color: { argb: 'FFFFFF' }, bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
 
         if (journals.length === 0) {
-            const emptyRow = worksheet.addRow({ waktu: `TIDAK ADA DATA`, divisi: '-', pemesan: '-', aktivitas: '-', deskripsi: '-', status: '-' });
+            const emptyRow = worksheet.addRow({ tanggal: 'TIDAK ADA DATA', jamMulai: '-', jamSelesai: '-', durasi: '-', divisi: '-', pemesan: '-', aktivitas: '-', deskripsi: '-', status: '-' });
             emptyRow.font = { color: { argb: 'FF0000' }, italic: true, bold: true };
         } else {
             journals.forEach((item, index) => {
                 const row = worksheet.addRow({
-                    waktu: new Date(item.tanggalManual).toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}).replace(/\./g, ':'),
-                    divisi: item.divisi, pemesan: item.pemesan, aktivitas: item.aktivitas, deskripsi: item.deskripsi, status: item.status
+                    tanggal: new Date(item.tanggalManual).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+                    jamMulai: item.jamMulai || '-',
+                    jamSelesai: item.jamSelesai || '-',
+                    durasi: item.durasiMenit ? formatDurasi(item.durasiMenit) : '-',
+                    divisi: item.divisi,
+                    pemesan: item.pemesan,
+                    aktivitas: item.aktivitas,
+                    deskripsi: item.deskripsi,
+                    status: item.status
                 });
-                if (index % 2 !== 0) { row.eachCell((cell) => cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9F9F9' } }); }
-                if (item.fotoUrl) { row.getCell('foto').value = { text: 'LIHAT FOTO', hyperlink: `http://server.rsby.cloud:3001${item.fotoUrl}` }; row.getCell('foto').font = { color: { argb: '0000FF' }, underline: true }; }
+                if (index % 2 !== 0) {
+                    row.eachCell((cell) => cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9F9F9' } });
+                }
+                const base = 'http://server.rsby.cloud:3001';
+                if (item.fotoAwalUrl) {
+                    row.getCell('fotoAwal').value = { text: 'LIHAT FOTO AWAL', hyperlink: `${base}${item.fotoAwalUrl}` };
+                    row.getCell('fotoAwal').font = { color: { argb: '0000FF' }, underline: true };
+                }
+                if (item.fotoUrl) {
+                    row.getCell('foto').value = { text: 'LIHAT FOTO SESUDAH', hyperlink: `${base}${item.fotoUrl}` };
+                    row.getCell('foto').font = { color: { argb: '0000FF' }, underline: true };
+                }
             });
         }
 
-        worksheet.eachRow((row) => { row.eachCell((cell) => cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} }); });
+        worksheet.eachRow((row) => {
+            row.eachCell((cell) => cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } });
+        });
 
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-        await workbook.xlsx.write(res); res.end();
+        await workbook.xlsx.write(res);
+        res.end();
     } catch (error) { console.error(error); res.status(500).send("Gagal Export."); }
 });
 
