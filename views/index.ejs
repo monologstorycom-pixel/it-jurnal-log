@@ -17,40 +17,26 @@
         .app-nav { border-bottom: 2px solid #262626; padding: 1rem 1.5rem; background: #161b22; display: flex; justify-content: space-between; align-items: center; }
         .table-container { background: #ffffff !important; border-radius: 10px; border: 1px solid #333; margin-top: 12px; }
         .table { min-width: 100%; margin: 0; }
-        .table th, .table td { padding: 0.85rem 0.85rem; vertical-align: middle; color: #000000 !important; font-size: 0.82rem; border-bottom: 1px solid #eee; }
-        .table th { font-size: 0.82rem; }
+        .table th, .table td { padding: 0.85rem; vertical-align: middle; color: #000000 !important; font-size: 0.82rem; border-bottom: 1px solid #eee; }
         .txt-bold { font-weight: 700; color: #000; font-size: 0.9rem; }
         .status-solved { color: #008000 !important; font-weight: 800; font-size: 0.72rem; text-transform: uppercase; }
         .status-pending { color: #8b6508 !important; font-weight: 800; font-size: 0.72rem; text-transform: uppercase; }
-        .btn-lihat { background: #000; color: #fff !important; padding: 4px 10px; border-radius: 4px; border: none; font-size: 0.72rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-        .compact-card { background:#161b22; border-radius:8px; border:1px solid #333; padding: 1rem; }
-        .compact-card .section-title { color: #fff; font-weight: 700; margin-bottom: 10px; font-size: 0.88rem; }
-        .note-entry { background: #0d0d0d; padding: 10px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #0d6efd; }
-        .note-entry strong { font-size: 0.92rem; }
-        .note-entry p { color: #aaa; margin: 4px 0 0 0; font-size: 0.82rem; }
-        .note-entry small { color: #666; font-size: 0.72rem; }
+        .btn-lihat { background: #000; color: #fff !important; padding: 4px 10px; border-radius: 4px; border: none; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; display: block; margin-bottom: 4px; width: 100%; }
+        .btn-lihat-awal { background: #5a3e00; color: #ffc107 !important; padding: 4px 10px; border-radius: 4px; border: 1px solid #ffc107; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; display: block; margin-bottom: 4px; width: 100%; }
+        .durasi-badge { display: inline-block; background: #e8f4fd; color: #0066aa; border: 1px solid #b3d7f0; border-radius: 4px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-top: 3px; white-space: nowrap; }
+        .jam-info { font-size: 0.72rem; color: #444; margin-top: 2px; }
         .floating-notes { position: fixed; top: 110px; right: 20px; width: 320px; max-height: 75vh; overflow-y: auto; background: #161b22; border: 1px solid #333; border-radius: 12px; box-shadow: 0 24px 60px rgba(0,0,0,0.35); padding: 1rem; z-index: 1050; }
         .floating-notes .notes-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-        .floating-notes .section-title { margin: 0; font-size: 0.95rem; }
+        .floating-notes .section-title { margin: 0; font-size: 0.95rem; color: #fff; font-weight: 700; }
         .floating-notes .close-notes { margin-left: auto; border: none; background: transparent; color: #fff; font-size: 1.1rem; cursor: pointer; opacity: 0.8; }
         .floating-notes .close-notes:hover { opacity: 1; }
-        .floating-notes #notesList { color: #aaa; font-size: 0.85rem; }
-        .floating-notes .note-entry { margin-bottom: 10px; }
-        .accordion-button { padding: 0.85rem 1rem; font-size: 0.9rem; }
-        .accordion-button:not(.collapsed) { color: #fff; background: #1a1f28; }
-        .accordion-button.collapsed { color: #fff; background: #161b22; }
-        .accordion-body { padding: 1rem 1rem 0.5rem; }
 
         @media (max-width: 1200px) {
             .floating-notes { position: static; width: 100%; max-height: none; box-shadow: none; border-radius: 8px; margin-top: 1rem; }
         }
-
         @media (max-width: 768px) {
             .app-nav { flex-direction: column; text-align: center; gap: 15px; padding: 1rem; }
             .container-fluid { padding: 1rem !important; }
-            .filter-form .col-auto { width: 100%; margin-bottom: 10px; }
-            .filter-form select, .filter-form button, .filter-form a { width: 100%; text-align: center; }
-            .compact-card { padding: 0.85rem; }
         }
     </style>
 </head>
@@ -60,10 +46,10 @@
     </nav>
     
     <div class="container-fluid p-4" style="max-width: 1600px;">
-        <!-- DAILY LOG SECTION -->
+        <!-- DAILY LOG FILTER -->
         <div class="p-3 mb-3" style="background:#161b22; border-radius:8px; border:1px solid #333;">
             <div style="color: #fff; font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">📅 DAILY LOG</div>
-            <form action="/" method="GET" class="row g-2 align-items-center m-0 filter-form">
+            <form action="/" method="GET" class="row g-2 align-items-center m-0">
                 <div class="col-auto">
                     <input type="date" name="date" value="<%= filterInfo.date %>" class="form-control bg-dark text-white border-secondary" style="width: 160px;">
                 </div>
@@ -73,39 +59,35 @@
                 <div class="col-auto">
                     <a href="/" class="btn btn-outline-secondary fw-bold text-white">HARI INI</a>
                 </div>
-
             </form>
             <div class="mt-2" style="color: #aaa; font-size: 0.75rem;">
                 📋 Menampilkan: <strong><%= filterInfo.dateDisplay %></strong>
             </div>
         </div>
 
-        <!-- MONTHLY REPORT SECTION -->
+        <!-- MONTHLY REPORT / EXPORT -->
         <div class="p-3 mb-4" style="background:#161b22; border-radius:8px; border:1px solid #333;">
             <div style="color: #fff; font-weight: 700; margin-bottom: 12px; font-size: 0.9rem;">📊 MONTHLY REPORT</div>
-            <form action="/export" method="GET" class="row g-2 align-items-center m-0 filter-form">
+            <form action="/export" method="GET" class="row g-2 align-items-center m-0">
                 <div class="col-auto">
                     <select name="month" class="form-select form-select-sm bg-dark text-white border-secondary">
-                        <% const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]; %>
-                        <% months.forEach((m, i) => { %>
-                            <option value="<%= i + 1 %>" <%= filterInfo.month == (i + 1) ? 'selected' : '' %>><%= m %></option>
+                        <% ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].forEach((m, i) => { %>
+                            <option value="<%= i+1 %>" <%= filterInfo.month == (i+1) ? 'selected' : '' %>><%= m %></option>
                         <% }) %>
                     </select>
                 </div>
                 <div class="col-auto">
                     <select name="year" class="form-select form-select-sm bg-dark text-white border-secondary">
-                        <% yearOptions.forEach(y => { %>
-                            <option value="<%= y %>" <%= filterInfo.year == y ? 'selected' : '' %>><%= y %></option>
-                        <% }) %>
+                        <% yearOptions.forEach(y => { %><option value="<%= y %>" <%= filterInfo.year == y ? 'selected' : '' %>><%= y %></option><% }) %>
                     </select>
                 </div>
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-sm btn-success fw-bold">DOWNLOAD</button>
+                    <button type="submit" class="btn btn-sm btn-success fw-bold">DOWNLOAD EXCEL</button>
                 </div>
             </form>
         </div>
 
-        <!-- NOTES SECTION -->
+        <!-- FLOATING NOTES -->
         <div class="floating-notes" id="floatingNotes">
             <div class="notes-header">
                 <div class="section-title">📝 CATATAN</div>
@@ -114,15 +96,16 @@
             <div id="notesList">Loading notes...</div>
         </div>
 
+        <!-- TABLE -->
         <div class="table-container table-responsive">
             <table class="table">
                 <thead>
                     <tr style="background:#1f242b; color:#fff;">
-                        <th style="padding: 1rem;">WAKTU</th>
-                        <th style="padding: 1rem;">UNIT</th>
-                        <th style="padding: 1rem; width: 40%;">AKTIVITAS & DESKRIPSI</th>
-                        <th style="padding: 1rem;">STATUS</th>
-                        <th style="padding: 1rem;" class="text-center">DOKUMENTASI</th>
+                        <th>WAKTU & DURASI</th>
+                        <th>UNIT</th>
+                        <th style="width: 38%;">AKTIVITAS & DESKRIPSI</th>
+                        <th>STATUS</th>
+                        <th class="text-center">DOKUMENTASI</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,8 +114,19 @@
                     <% } else { %>
                         <% journals.forEach(item => { %>
                             <tr>
-                                <td style="font-family: 'JetBrains Mono'; font-size: 0.85rem; color: #006666 !important; font-weight: 600; white-space: nowrap;">
-                                    <%= new Date(item.tanggalManual).toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}).replace(/\./g, ':') %>
+                                <td style="white-space: nowrap; min-width: 130px;">
+                                    <div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #006666; font-weight: 600;">
+                                        <%= new Date(item.tanggalManual).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) %>
+                                    </div>
+                                    <% if (item.jamMulai) { %>
+                                        <div class="jam-info">🕐 Mulai: <strong><%= item.jamMulai %></strong></div>
+                                    <% } %>
+                                    <% if (item.jamSelesai) { %>
+                                        <div class="jam-info">🕔 Selesai: <strong><%= item.jamSelesai %></strong></div>
+                                    <% } %>
+                                    <% if (item.durasiMenit) { %>
+                                        <span class="durasi-badge">⏱ <%= formatDurasi(item.durasiMenit) %></span>
+                                    <% } %>
                                 </td>
                                 <td style="white-space: nowrap;">
                                     <div class="txt-bold"><%= item.divisi %></div>
@@ -145,10 +139,14 @@
                                 <td>
                                     <span class="<%= item.status === 'Solved' ? 'status-solved' : 'status-pending' %>"><%= item.status %></span>
                                 </td>
-                                <td class="text-center">
+                                <td class="text-center" style="min-width: 110px;">
+                                    <% if(item.fotoAwalUrl) { %>
+                                        <button type="button" class="btn-lihat-awal" onclick="showFoto('<%= item.fotoAwalUrl %>', 'Kondisi AWAL')">📷 AWAL</button>
+                                    <% } %>
                                     <% if(item.fotoUrl) { %>
-                                        <button type="button" class="btn-lihat" onclick="showFoto('<%= item.fotoUrl %>')">LIHAT FOTO</button>
-                                    <% } else { %>
+                                        <button type="button" class="btn-lihat" onclick="showFoto('<%= item.fotoUrl %>', 'Kondisi SESUDAH')">📷 SESUDAH</button>
+                                    <% } %>
+                                    <% if(!item.fotoAwalUrl && !item.fotoUrl) { %>
                                         <span style="color:#999; font-size:0.75rem; font-style: italic;">No Photo</span>
                                     <% } %>
                                 </td>
@@ -160,11 +158,12 @@
         </div>
     </div>
 
+    <!-- MODAL FOTO -->
     <div class="modal fade" id="fotoModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-dark border-secondary">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title text-white">Dokumentasi Jurnal</h5>
+                    <h5 class="modal-title text-white" id="fotoModalLabel">Dokumentasi Jurnal</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center p-3">
@@ -176,59 +175,37 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function showFoto(url) {
+        function showFoto(url, judul) {
             document.getElementById('popupImage').src = url;
+            document.getElementById('fotoModalLabel').textContent = '📷 ' + (judul || 'Dokumentasi');
             new bootstrap.Modal(document.getElementById('fotoModal')).show();
         }
 
-        // ========== NOTES MANAGEMENT (VIEW ONLY) ==========
         async function loadNotes() {
             try {
                 const res = await fetch('/api/notes');
                 const notes = await res.json();
-                const notesList = document.getElementById('notesList');
-                
-                if (notes.length === 0) {
-                    notesList.innerHTML = '<p style="color: #666;">Belum ada catatan.</p>';
-                    return;
-                }
-                
-                let html = '';
-                notes.forEach(note => {
+                const el = document.getElementById('notesList');
+                if (notes.length === 0) { el.innerHTML = '<p style="color:#666;">Belum ada catatan.</p>'; return; }
+                el.innerHTML = notes.map(note => {
                     const date = new Date(note.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
-                    html += `
-                        <div style="background: #0d0d0d; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #0d6efd;">
-                            <div style="flex: 1;">
-                                <strong style="color: #fff; font-size: 0.95rem;">${note.title}</strong>
-                                <p style="color: #aaa; margin: 4px 0 0 0; font-size: 0.85rem;">${note.content}</p>
-                                <small style="color: #666;">${date}</small>
-                            </div>
-                        </div>
-                    `;
-                });
-                notesList.innerHTML = html;
-            } catch (err) {
-                console.error('Error loading notes:', err);
-                document.getElementById('notesList').innerHTML = '<p style="color: #f00;">Error loading notes</p>';
-            }
+                    return `<div style="background:#0d0d0d;padding:12px;border-radius:6px;margin-bottom:8px;border-left:3px solid #0d6efd;">
+                        <strong style="color:#fff;font-size:0.95rem;">${note.title}</strong>
+                        <p style="color:#aaa;margin:4px 0 0 0;font-size:0.85rem;">${note.content}</p>
+                        <small style="color:#666;">${date}</small></div>`;
+                }).join('');
+            } catch (err) { document.getElementById('notesList').innerHTML = '<p style="color:#f00;">Error loading notes</p>'; }
         }
 
         function hideNotesPanel() {
             document.getElementById('floatingNotes').style.display = 'none';
         }
 
-        // Load notes on page load
-        window.addEventListener('load', () => {
-            loadNotes();
-        });
+        window.addEventListener('load', () => { loadNotes(); });
 
-        // ========== PWA SETUP ==========
-        // REGISTER PWA SERVICE WORKER
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW OK'))
-                    .catch(err => console.log('SW Gagal', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW Gagal', err));
             });
         }
     </script>
