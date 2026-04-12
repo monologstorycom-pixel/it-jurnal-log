@@ -432,6 +432,22 @@ app.delete('/api/notes/:id', async (req, res) => {
 app.listen(3001, '0.0.0.0', () => console.log('🚀 SYSTEM READY AT PORT 3001'));
 
 // ==========================================
+// ASET — EXPORT PDF (print-ready HTML)
+// ==========================================
+app.get('/aset/export-pdf', async (req, res) => {
+    try {
+        const aset = await prisma.aset.findMany({
+            orderBy: { nama: 'asc' },
+            include: {
+                penggunaan: { orderBy: { tanggal: 'desc' } },
+                pinjaman:   { orderBy: { tanggalPinjam: 'desc' } }
+            }
+        });
+        res.render('aset-export', { aset });
+    } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
+});
+
+// ==========================================
 // ASET — MASTER LIST
 // ==========================================
 app.get('/aset', async (req, res) => {
