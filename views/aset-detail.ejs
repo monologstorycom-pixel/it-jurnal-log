@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Aset — <%= aset.nama %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #0d0d0d !important; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
+        .app-nav { border-bottom: 2px solid #262626; padding: 1rem 2rem; background: #161b22; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .nav-links a { color: #aaa; text-decoration: none; font-size: 0.85rem; font-weight: 600; margin-left: 1.5rem; }
+        .nav-links a:hover { color: #fff; }
+        .section-card { background: #161b22; border: 1px solid #2a2a2a; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.5rem; }
+        .riwayat-row { background: #fff; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 8px; font-size: 0.85rem; color: #000; }
+        .badge-status-pinjam { background: #1a0d3d; color: #c9aaff; border: 1px solid #6b3dbf; border-radius: 3px; padding: 2px 7px; font-size: 0.65rem; font-weight: 700; }
+        .badge-status-kembali { background: #0d2a0d; color: #4caf50; border: 1px solid #1a5c1a; border-radius: 3px; padding: 2px 7px; font-size: 0.65rem; font-weight: 700; }
+        .btn-sm-act { border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+        .stok-big { font-size: 3rem; font-weight: 900; line-height: 1; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 1rem; }
+        .info-item { background: #0d0d0d; border-radius: 6px; padding: 10px; text-align: center; }
+        .info-val { font-size: 1.4rem; font-weight: 800; }
+        .info-lbl { font-size: 0.65rem; color: #666; text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+    </style>
+</head>
+<body>
+<nav class="app-nav">
+    <div style="font-weight:700;">>_ IT SUPPORT LOG</div>
+    <div class="nav-links">
+        <a href="/kerja">Dashboard</a>
+        <a href="/aset">← Kembali ke Aset</a>
+    </div>
+</nav>
+
+<div class="container-fluid p-4">
+    <%
+        var totalPakai  = aset.penggunaan.reduce((s, p) => s + p.jumlah, 0);
+        var totalPinjamAktif = aset.pinjaman.filter(p => p.status === 'Dipinjam').reduce((s, p) => s + p.jumlah, 0);
+        var totalPinjamSemua = aset.pinjaman.reduce((s, p) => s + p.jumlah, 0);
+        var pct = aset.stokAwal > 0 ? Math.round((aset.stok / aset.stokAwal) * 100) : 0;
+        var barColor = pct > 50 ? '#4caf50' : pct > 20 ? '#ff9800' : '#f44336';
+    %>
+
+    <!-- INFO ASET -->
+    <div class="section-card">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h4 style="font-weight:800;margin:0;"><%= aset.nama %></h4>
+                <div style="color:#666;font-size:0.85rem;margin-top:4px;"><%= aset.kategori %> &bull; Kondisi: <span style="color:<%= aset.kondisi === 'Baik' ? '#4caf50' : aset.kondisi === 'Rusak' ? '#f44336' : '#ff9800' %>"><%= aset.kondisi %></span></div>
+                <% if(aset.keterangan) { %><div style="color:#555;font-size:0.8rem;margin-top:4px;"><%= aset.keterangan %></div><% } %>
+            </div>
+            <div style="text-align:right;">
+                <div class="stok-big" style="color:<%= barColor %>"><%= aset.stok %></div>
+                <div style="color:#555;font-size:0.8rem;">dari <%= aset.stokAwal %> <%= aset.satuan %></div>
+                <div style="background:#222;height:6px;border-radius:3px;margin-top:6px;width:120px;margin-left:auto;overflow:hidden;">
+                    <div style="height:100%;width:<%= pct %>%;background:<%= barColor %>;border-radius:3px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="info-grid">
+            <div class="info-item"><div class="info-val" style="color:#4caf50;"><%= aset.stok %></div><div class="info-lbl">Stok Sisa</div></div>
+            <div class="info-item"><div class="info-val" style="color:#64b5f6;"><%= totalPakai %></div><div class="info-lbl">Total Dipasang</div></div>
+            <div class="info-item"><div class="info-val" style="color:#c9aaff;"><%= totalPinjamAktif %></div><div class="info-lbl">Sedang Dipinjam</div></div>
+            <div class="info-item"><div class="info-val" style="color:#ff9800;"><%= aset.pinjaman.length %></div><div class="info-lbl">Total Transaksi Pinjam</div></div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- RIWAYAT PENGGUNAAN -->
+        <div class="col-md-6">
+            <div class="section-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 style="font-weight:700;margin:0;color:#64b5f6;">🔧 Riwayat Penggunaan/Pemasangan</h6>
+                    <span style="font-size:0.75rem;color:#555;"><%= aset.penggunaan.length %> catatan</span>
+                </div>
+
+                <% if(aset.penggunaan.length === 0) { %>
+                    <p style="color:#555;font-size:0.85rem;text-align:center;padding:1rem 0;">Belum ada catatan penggunaan.</p>
+                <% } else { %>
+                    <% aset.penggunaan.forEach(p => { %>
+                    <div class="riwayat-row">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex:1;">
+                                <div style="font-weight:700;font-size:0.9rem;">
+                                    <span style="color:#0d6efd;"><%= p.jumlah %> <%= aset.satuan %></span>
+                                    &rarr; <span><%= p.divisi %></span>
+                                </div>
+                                <div style="color:#444;font-size:0.78rem;margin-top:2px;">📍 <%= p.lokasi %></div>
+                                <% if(p.keterangan) { %><div style="color:#666;font-size:0.75rem;margin-top:2px;"><%= p.keterangan %></div><% } %>
+                                <div style="color:#999;font-size:0.72rem;margin-top:3px;">
+                                    <%= new Date(p.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                                </div>
+                            </div>
+                            <form action="/aset/pakai-hapus/<%= p.id %>" method="POST" style="margin-left:8px;">
+                                <button type="submit" class="btn-sm-act" style="background:#2a0d0d;color:#f44336;border:1px solid #5c1a1a;"
+                                    onclick="return confirm('Hapus catatan ini? Stok akan dikembalikan.')">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    <% }) %>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- RIWAYAT PINJAMAN -->
+        <div class="col-md-6">
+            <div class="section-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 style="font-weight:700;margin:0;color:#c9aaff;">📤 Riwayat Pinjaman</h6>
+                    <span style="font-size:0.75rem;color:#555;"><%= aset.pinjaman.length %> catatan</span>
+                </div>
+
+                <% if(aset.pinjaman.length === 0) { %>
+                    <p style="color:#555;font-size:0.85rem;text-align:center;padding:1rem 0;">Belum ada catatan pinjaman.</p>
+                <% } else { %>
+                    <% aset.pinjaman.forEach(p => { %>
+                    <div class="riwayat-row" style="<%= p.status === 'Dipinjam' ? 'border-left:3px solid #c9aaff;' : 'border-left:3px solid #4caf50;opacity:0.85;' %>">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex:1;">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span style="font-weight:700;font-size:0.9rem;"><%= p.peminjam %></span>
+                                    <span class="<%= p.status === 'Dipinjam' ? 'badge-status-pinjam' : 'badge-status-kembali' %>"><%= p.status %></span>
+                                </div>
+                                <div style="color:#444;font-size:0.78rem;margin-top:2px;">
+                                    <span style="color:#0d6efd;font-weight:700;"><%= p.jumlah %> <%= aset.satuan %></span>
+                                    &bull; <%= p.divisi %>
+                                </div>
+                                <% if(p.keperluan) { %><div style="color:#666;font-size:0.75rem;margin-top:2px;"><%= p.keperluan %></div><% } %>
+                                <div style="color:#999;font-size:0.72rem;margin-top:3px;">
+                                    Pinjam: <%= new Date(p.tanggalPinjam).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                                    <% if(p.tanggalKembali) { %>
+                                        &bull; Kembali: <%= new Date(p.tanggalKembali).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column gap-1" style="margin-left:8px;">
+                                <% if(p.status === 'Dipinjam') { %>
+                                <form action="/aset/kembali/<%= p.id %>" method="POST">
+                                    <button type="submit" class="btn-sm-act" style="background:#0d2a0d;color:#4caf50;border:1px solid #1a5c1a;white-space:nowrap;"
+                                        onclick="return confirm('Konfirmasi: <%= p.peminjam %> sudah mengembalikan?')">✅ Kembali</button>
+                                </form>
+                                <% } %>
+                                <form action="/aset/pinjam-hapus/<%= p.id %>" method="POST">
+                                    <button type="submit" class="btn-sm-act" style="background:#2a0d0d;color:#f44336;border:1px solid #5c1a1a;"
+                                        onclick="return confirm('Hapus catatan pinjaman ini?')">🗑️</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <% }) %>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

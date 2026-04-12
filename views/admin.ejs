@@ -23,24 +23,24 @@
         .status-solved { color: #008000 !important; font-weight: 800; font-size: 0.7rem; }
         .status-pending { color: #8b6508 !important; font-weight: 800; font-size: 0.7rem; }
         .durasi-badge { display: inline-block; background: #e8f4fd; color: #0066aa; border: 1px solid #b3d7f0; border-radius: 4px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-top: 3px; }
+        .durasi-badge-multi { background: #f0e8fd; color: #6600aa; border-color: #d0b0f0; }
         .jam-info { font-size: 0.72rem; color: #444; margin-top: 2px; }
         .durasi-preview { background: #0d2a0d; border: 1px solid #1a5c1a; border-radius: 6px; padding: 8px 12px; margin-bottom: 0.75rem; font-size: 0.82rem; color: #4caf50; font-weight: 700; text-align: center; display: none; }
         .btn-action { border: none; padding: 3px 8px; font-size: 0.65rem; border-radius: 4px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 4px; }
-        .btn-solved  { background: #198754; color: #fff; }
-        .btn-solved:hover { background: #157347; }
-        .btn-edit-   { background: #0d6efd; color: #fff; }
-        .btn-edit-:hover { background: #0b5ed7; }
-        .btn-del     { background: #dc3545; color: #fff; }
-        .btn-del:hover { background: #bb2d3b; }
         .btn-foto { display: block; width: 100%; padding: 4px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; cursor: pointer; margin-bottom: 3px; white-space: nowrap; }
         .btn-foto-sesudah  { background: #111; color: #fff; border: none; }
-        .btn-foto-sesudah:hover { background: #333; }
         .btn-foto-awal     { background: #5a3e00; color: #ffc107; border: 1px solid #ffc107; }
-        .btn-foto-awal:hover { background: #ffc107; color: #000; }
         .btn-tambah-sesudah { background: transparent; color: #198754; border: 1px solid #198754; }
-        .btn-tambah-sesudah:hover { background: #198754; color: #fff; }
         .btn-tambah-awal    { background: transparent; color: #ffc107; border: 1px solid #ffc107; }
-        .btn-tambah-awal:hover { background: #ffc107; color: #000; }
+
+        /* Toggle TIPE INPUT */
+        .tipe-toggle { display: flex; gap: 6px; margin-bottom: 0.75rem; }
+        .tipe-btn { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #888; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .tipe-btn.active-harian  { background: #0d3d0d; border-color: #2d8c2d; color: #4caf50; }
+        .tipe-btn.active-multi   { background: #1a0d3d; border-color: #6b3dbf; color: #9b6dff; }
+        .multi-badge { display: inline-block; background: #1a0d3d; color: #9b6dff; border: 1px solid #6b3dbf; border-radius: 3px; padding: 1px 5px; font-size: 0.6rem; font-weight: 700; margin-left: 4px; vertical-align: middle; }
+        .separator-line { border: none; border-top: 1px dashed #333; margin: 0.5rem 0 0.75rem; }
+
         @media (max-width: 768px) {
             .app-nav { padding: 1rem; text-align: center; }
             .container-fluid { padding: 1rem !important; }
@@ -60,30 +60,67 @@
     <!-- ===== FORM SIDEBAR ===== -->
     <div class="col-md-3 form-sidebar">
       <form action="/save" method="POST" enctype="multipart/form-data" id="mainForm">
+        <input type="hidden" name="tipeInput" id="tipeInputVal" value="harian">
 
-        <span class="label-text">Tanggal</span>
-        <input type="date" name="tanggalManual" id="tanggalInput" class="input-custom" required>
-
-        <div class="row g-2">
-          <div class="col-6">
-            <span class="label-text">Jam Mulai</span>
-            <input type="time" name="jamMulai" id="jamMulaiInput" class="input-custom" style="margin-bottom:0;">
-          </div>
-          <div class="col-6">
-            <span class="label-text">Jam Selesai</span>
-            <input type="time" name="jamSelesai" id="jamSelesaiInput" class="input-custom" style="margin-bottom:0;">
-          </div>
+        <!-- TOGGLE TIPE -->
+        <span class="label-text">Tipe Pekerjaan</span>
+        <div class="tipe-toggle">
+          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')">📅 HARIAN</div>
+          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')">📆 MULTI-HARI</div>
         </div>
-        <div style="margin-bottom:0.75rem;"></div>
 
-        <div class="durasi-preview" id="durasiPreview">⏱ Durasi: <strong id="durasiText">-</strong></div>
+        <!-- FORM HARIAN -->
+        <div id="formHarian">
+          <span class="label-text">Tanggal</span>
+          <input type="date" name="tanggalManual" id="tanggalInput" class="input-custom" required>
+          <div class="row g-2">
+            <div class="col-6">
+              <span class="label-text">Jam Mulai</span>
+              <input type="time" name="jamMulai" id="jamMulaiInput" class="input-custom" style="margin-bottom:0;">
+            </div>
+            <div class="col-6">
+              <span class="label-text">Jam Selesai</span>
+              <input type="time" name="jamSelesai" id="jamSelesaiInput" class="input-custom" style="margin-bottom:0;">
+            </div>
+          </div>
+          <div style="margin-bottom:0.75rem;"></div>
+          <div class="durasi-preview" id="durasiPreview">⏱ Durasi: <strong id="durasiText">-</strong></div>
+        </div>
+
+        <!-- FORM MULTI-HARI -->
+        <div id="formMultihari" style="display:none;">
+          <div style="background:#1a0d3d;border:1px solid #6b3dbf;border-radius:6px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#c9aaff;">
+            💡 Untuk pekerjaan yang berlangsung lebih dari 1 hari (vendor, instalasi, dll)
+          </div>
+          <span class="label-text" style="color:#9b6dff;">📅 Tanggal & Jam MULAI</span>
+          <div class="row g-2">
+            <div class="col-7">
+              <input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="input-custom" style="margin-bottom:0;">
+            </div>
+            <div class="col-5">
+              <input type="time" name="jamMulaiMulti" id="jamMulaiMulti" class="input-custom" style="margin-bottom:0;">
+            </div>
+          </div>
+          <div style="margin-bottom:0.5rem;"></div>
+          <span class="label-text" style="color:#9b6dff;">🏁 Tanggal & Jam SELESAI</span>
+          <div class="row g-2">
+            <div class="col-7">
+              <input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="input-custom" style="margin-bottom:0;">
+            </div>
+            <div class="col-5">
+              <input type="time" name="jamSelesaiMulti" id="jamSelesaiMulti" class="input-custom" style="margin-bottom:0;">
+            </div>
+          </div>
+          <div style="margin-bottom:0.5rem;"></div>
+          <div class="durasi-preview" id="durasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;">⏱ Durasi: <strong id="durasiTextMulti">-</strong></div>
+        </div>
+
+        <hr class="separator-line">
 
         <span class="label-text">Pemesan (User)</span>
         <input type="text" name="pemesan" class="input-custom" required>
-
         <span class="label-text">Aktivitas</span>
         <input type="text" name="aktivitas" class="input-custom" required>
-
         <span class="label-text">Divisi</span>
         <select name="divisi" class="input-custom">
           <option value="IT & IC">IT &amp; IC</option>
@@ -97,29 +134,24 @@
           <option value="MAINTENANCE">MAINTENANCE</option>
           <option value="Admin Sales">Admin Sales</option>
         </select>
-
         <span class="label-text">Deskripsi</span>
         <textarea name="deskripsi" class="input-custom" rows="3" required></textarea>
-
         <span class="label-text">Status</span>
         <select name="status" class="input-custom">
           <option value="Solved">SOLVED</option>
           <option value="Pending">PENDING</option>
         </select>
-
-        <span class="label-text" style="color:#ffc107;">📷 Foto Kondisi AWAL (Sebelum)</span>
+        <span class="label-text" style="color:#ffc107;">📷 Foto AWAL (Sebelum)</span>
         <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*" capture="environment">
         <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
-
-        <span class="label-text" style="color:#90ee90;">📷 Foto Kondisi SESUDAH (Solved)</span>
+        <span class="label-text" style="color:#90ee90;">📷 Foto SESUDAH (Solved)</span>
         <input type="file" name="foto" class="input-custom file-compress" accept="image/*" capture="environment">
         <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
-
         <button type="submit" class="btn btn-light w-100 fw-bold mt-2">SIMPAN DATA</button>
       </form>
     </div>
 
-    <!-- ===== TABEL AREA ===== -->
+    <!-- ===== TABEL ===== -->
     <div class="col-md-9">
 
       <% if (saved) { %>
@@ -186,14 +218,29 @@
           </thead>
           <tbody>
             <% journals.forEach(item => { %>
-            <tr>
-              <td style="min-width:140px;">
-                <div style="font-family:monospace;font-size:0.8rem;color:#006666;font-weight:600;">
-                  <%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
-                </div>
-                <% if(item.jamMulai) { %><div class="jam-info">🕐 Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
-                <% if(item.jamSelesai) { %><div class="jam-info">🕔 Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
-                <% if(item.durasiMenit) { %><span class="durasi-badge">⏱ <%= formatDurasi(item.durasiMenit) %></span><% } %>
+            <% var isMulti = item.tipeInput === 'multihari'; %>
+            <tr style="<%= isMulti ? 'background: #fffbf0 !important;' : '' %>">
+              <td style="min-width:145px;">
+                <% if (isMulti && item.tanggalMulai && item.tanggalSelesai) { %>
+                  <span class="multi-badge">📆 MULTI-HARI</span>
+                  <div style="font-size:0.78rem;color:#6600aa;font-weight:600;margin-top:3px;">
+                    🗓 <%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                    <% if(item.jamMulai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamMulai %></span><% } %>
+                  </div>
+                  <div style="font-size:0.7rem;color:#888;margin:1px 0;">  ↓</div>
+                  <div style="font-size:0.78rem;color:#6600aa;font-weight:600;">
+                    🏁 <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                    <% if(item.jamSelesai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamSelesai %></span><% } %>
+                  </div>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge durasi-badge-multi">⏱ <%= formatDurasi(item.durasiMenit) %></span><% } %>
+                <% } else { %>
+                  <div style="font-family:monospace;font-size:0.8rem;color:#006666;font-weight:600;">
+                    <%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                  </div>
+                  <% if(item.jamMulai) { %><div class="jam-info">🕐 Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
+                  <% if(item.jamSelesai) { %><div class="jam-info">🕔 Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge">⏱ <%= formatDurasi(item.durasiMenit) %></span><% } %>
+                <% } %>
               </td>
               <td style="white-space:nowrap;">
                 <div class="txt-bold"><%= item.divisi %></div>
@@ -220,21 +267,24 @@
                 <% if(item.status==='Pending') { %>
                   <form action="/update-status/<%= item.id %>" method="POST">
                     <input type="hidden" name="newStatus" value="Solved">
-                    <button type="submit" class="btn-action btn-solved">SET SOLVED</button>
+                    <button type="submit" class="btn-action" style="background:#198754;color:#fff;">SET SOLVED</button>
                   </form>
                 <% } %>
-                <button type="button" class="btn-action btn-edit-" style="background:#0d6efd;color:#fff;" onclick="openEditModal(
+                <button type="button" class="btn-action" style="background:#0d6efd;color:#fff;margin-bottom:4px;" onclick="openEditModal(
                   <%= item.id %>,
                   `<%- item.aktivitas.replace(/`/g,'\\`') %>`,
                   `<%= item.divisi %>`,
                   `<%- item.pemesan.replace(/`/g,'\\`') %>`,
                   `<%- item.deskripsi.replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,
                   `<%= item.status %>`,
+                  `<%= item.tipeInput || 'harian' %>`,
                   `<%= new Date(item.tanggalManual).toISOString().slice(0,10) %>`,
                   `<%= item.jamMulai || '' %>`,
-                  `<%= item.jamSelesai || '' %>`
+                  `<%= item.jamSelesai || '' %>`,
+                  `<%= item.tanggalMulai ? new Date(item.tanggalMulai).toISOString().slice(0,10) : '' %>`,
+                  `<%= item.tanggalSelesai ? new Date(item.tanggalSelesai).toISOString().slice(0,10) : '' %>`
                 )">EDIT</button>
-                <button type="button" class="btn-action btn-del" onclick="confirmDelete(<%= item.id %>,`<%- item.aktivitas.replace(/`/g,'\\`') %>`)">HAPUS</button>
+                <button type="button" class="btn-action" style="background:#dc3545;color:#fff;" onclick="confirmDelete(<%= item.id %>,`<%- item.aktivitas.replace(/`/g,'\\`') %>`)">HAPUS</button>
               </td>
             </tr>
             <% }) %>
@@ -260,17 +310,16 @@
   </div>
 </div>
 
-<!-- MODAL UPLOAD FOTO SESUDAH SUSULAN -->
+<!-- MODAL UPLOAD SESUDAH -->
 <div class="modal fade" id="uploadSusulanModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark border-secondary">
       <div class="modal-header border-secondary">
-        <h5 class="modal-title text-white">📷 Upload Foto SESUDAH (Susulan)</h5>
+        <h5 class="modal-title text-white">📷 Upload Foto SESUDAH</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
-          <span class="label-text">Foto Kondisi Sesudah Diperbaiki</span>
           <input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment">
           <small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto dikompres!</small>
         </div>
@@ -283,17 +332,16 @@
   </div>
 </div>
 
-<!-- MODAL UPLOAD FOTO AWAL SUSULAN -->
+<!-- MODAL UPLOAD AWAL -->
 <div class="modal fade" id="uploadAwalModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark border-warning">
       <div class="modal-header border-warning">
-        <h5 class="modal-title text-white">📷 Upload Foto AWAL (Susulan)</h5>
+        <h5 class="modal-title text-white">📷 Upload Foto AWAL</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formUploadAwal" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
-          <span class="label-text">Foto Kondisi Sebelum Diperbaiki</span>
           <input type="file" name="fotoAwal" class="input-custom m-0 file-compress" required accept="image/*" capture="environment">
           <small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto dikompres!</small>
         </div>
@@ -315,12 +363,21 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="tipeInput" id="editTipeInputVal" value="harian">
         <div class="modal-body">
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-12 mb-2">
+              <span class="label-text">Tipe Pekerjaan</span>
+              <div class="tipe-toggle">
+                <div class="tipe-btn active-harian" id="editBtnHarian" onclick="setEditTipe('harian')">📅 HARIAN</div>
+                <div class="tipe-btn" id="editBtnMulti" onclick="setEditTipe('multihari')">📆 MULTI-HARI</div>
+              </div>
+            </div>
+
+            <!-- EDIT HARIAN -->
+            <div class="col-md-6" id="editFormHarian">
               <span class="label-text">Tanggal</span>
               <input type="date" name="tanggalManual" id="edit_tanggal" class="input-custom" required>
-
               <div class="row g-2">
                 <div class="col-6">
                   <span class="label-text">Jam Mulai</span>
@@ -331,15 +388,32 @@
                   <input type="time" name="jamSelesai" id="edit_jamSelesai" class="input-custom" style="margin-bottom:0;">
                 </div>
               </div>
-              <div style="margin-bottom:0.75rem;"></div>
+              <div style="margin-bottom:0.5rem;"></div>
               <div class="durasi-preview" id="editDurasiPreview">⏱ Durasi: <strong id="editDurasiText">-</strong></div>
+            </div>
 
+            <!-- EDIT MULTI-HARI -->
+            <div class="col-md-6" id="editFormMultihari" style="display:none;">
+              <span class="label-text" style="color:#9b6dff;">📅 Tgl &amp; Jam MULAI</span>
+              <div class="row g-2">
+                <div class="col-7"><input type="date" name="tanggalMulaiDate" id="edit_tanggalMulai" class="input-custom" style="margin-bottom:0;"></div>
+                <div class="col-5"><input type="time" name="jamMulaiMulti" id="edit_jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+              </div>
+              <div style="margin-bottom:0.5rem;"></div>
+              <span class="label-text" style="color:#9b6dff;">🏁 Tgl &amp; Jam SELESAI</span>
+              <div class="row g-2">
+                <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="edit_tanggalSelesai" class="input-custom" style="margin-bottom:0;"></div>
+                <div class="col-5"><input type="time" name="jamSelesaiMulti" id="edit_jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+              </div>
+              <div style="margin-bottom:0.5rem;"></div>
+              <div class="durasi-preview" id="editDurasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;display:none;">⏱ Durasi: <strong id="editDurasiTextMulti">-</strong></div>
+            </div>
+
+            <div class="col-md-6">
               <span class="label-text">Pemesan (User)</span>
               <input type="text" name="pemesan" id="edit_pemesan" class="input-custom" required>
               <span class="label-text">Aktivitas</span>
               <input type="text" name="aktivitas" id="edit_aktivitas" class="input-custom" required>
-            </div>
-            <div class="col-md-6">
               <span class="label-text">Divisi</span>
               <select name="divisi" id="edit_divisi" class="input-custom">
                 <option value="IT & IC">IT &amp; IC</option>
@@ -357,6 +431,8 @@
                 <option value="Solved">SOLVED</option>
                 <option value="Pending">PENDING</option>
               </select>
+            </div>
+            <div class="col-md-6">
               <span class="label-text" style="color:#ffc107;">📷 Ganti Foto AWAL (Opsional)</span>
               <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*">
               <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
@@ -390,7 +466,7 @@
       <div class="modal-body">
         <p class="text-white mb-1">Yakin mau hapus data ini?</p>
         <p id="deleteItemName" class="fw-bold" style="color:#ff6b6b;font-size:0.9rem;"></p>
-        <p class="text-secondary" style="font-size:0.8rem;">⚠️ Data yang dihapus tidak bisa dikembalikan, termasuk semua foto dokumentasinya.</p>
+        <p class="text-secondary" style="font-size:0.8rem;">⚠️ Data yang dihapus tidak bisa dikembalikan.</p>
       </div>
       <div class="modal-footer border-danger">
         <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
@@ -404,39 +480,97 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// ========== TIPE TOGGLE ==========
+function setTipe(tipe) {
+    document.getElementById('tipeInputVal').value = tipe;
+    var isMulti = tipe === 'multihari';
+    document.getElementById('formHarian').style.display    = isMulti ? 'none' : 'block';
+    document.getElementById('formMultihari').style.display = isMulti ? 'block' : 'none';
+    document.getElementById('btnHarian').className = 'tipe-btn' + (!isMulti ? ' active-harian' : '');
+    document.getElementById('btnMulti').className  = 'tipe-btn' + (isMulti ? ' active-multi' : '');
+}
+function setEditTipe(tipe) {
+    document.getElementById('editTipeInputVal').value = tipe;
+    var isMulti = tipe === 'multihari';
+    document.getElementById('editFormHarian').style.display    = isMulti ? 'none' : 'block';
+    document.getElementById('editFormMultihari').style.display = isMulti ? 'block' : 'none';
+    document.getElementById('editBtnHarian').className = 'tipe-btn' + (!isMulti ? ' active-harian' : '');
+    document.getElementById('editBtnMulti').className  = 'tipe-btn' + (isMulti ? ' active-multi' : '');
+    if (isMulti) updatePreviewMultiEdit();
+    else updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText');
+}
+
 // ========== DURASI HITUNG ==========
-function hitungDurasi(a, b) {
-    if (!a || !b) return null;
-    var aP = a.split(':').map(Number), bP = b.split(':').map(Number);
+function hitungMenit(jamA, jamB) {
+    if (!jamA || !jamB) return null;
+    var aP = jamA.split(':').map(Number), bP = jamB.split(':').map(Number);
     var mA = aP[0]*60+aP[1], mB = bP[0]*60+bP[1];
     if (mB < mA) mB += 1440;
     return mB - mA > 0 ? mB - mA : null;
 }
+function hitungMenitDateTime(tglA, jamA, tglB, jamB) {
+    if (!tglA || !tglB) return null;
+    var dtA = new Date(tglA + 'T' + (jamA || '00:00') + ':00');
+    var dtB = new Date(tglB + 'T' + (jamB || '00:00') + ':00');
+    var diff = Math.floor((dtB - dtA) / 60000);
+    return diff > 0 ? diff : null;
+}
 function formatDurasi(m) {
     if (!m || m <= 0) return null;
-    if (m < 60) return m + ' menit';
-    var j = Math.floor(m/60), s = m%60;
-    return s > 0 ? j + ' jam ' + s + ' menit' : j + ' jam';
+    var hari = Math.floor(m / 1440), sisa1 = m % 1440;
+    var jam = Math.floor(sisa1 / 60), menit = sisa1 % 60;
+    var parts = [];
+    if (hari > 0) parts.push(hari + ' hari');
+    if (jam > 0) parts.push(jam + ' jam');
+    if (menit > 0) parts.push(menit + ' menit');
+    return parts.length > 0 ? parts.join(' ') : '0 menit';
 }
-function updatePreview(mId, sId, previewId, textId) {
-    var d = hitungDurasi(document.getElementById(mId).value, document.getElementById(sId).value);
+function updatePreviewHarian(mId, sId, previewId, textId) {
+    var d = hitungMenit(document.getElementById(mId).value, document.getElementById(sId).value);
     var el = document.getElementById(previewId);
     if (d) { document.getElementById(textId).textContent = formatDurasi(d); el.style.display = 'block'; }
-    else { el.style.display = 'none'; }
+    else el.style.display = 'none';
+}
+function updatePreviewMulti() {
+    var d = hitungMenitDateTime(
+        document.getElementById('tanggalMulaiDate').value, document.getElementById('jamMulaiMulti').value,
+        document.getElementById('tanggalSelesaiDate').value, document.getElementById('jamSelesaiMulti').value
+    );
+    var el = document.getElementById('durasiPreviewMulti');
+    if (d) { document.getElementById('durasiTextMulti').textContent = formatDurasi(d); el.style.display = 'block'; }
+    else el.style.display = 'none';
+}
+function updatePreviewMultiEdit() {
+    var d = hitungMenitDateTime(
+        document.getElementById('edit_tanggalMulai').value, document.getElementById('edit_jamMulaiMulti').value,
+        document.getElementById('edit_tanggalSelesai').value, document.getElementById('edit_jamSelesaiMulti').value
+    );
+    var el = document.getElementById('editDurasiPreviewMulti');
+    if (d) { document.getElementById('editDurasiTextMulti').textContent = formatDurasi(d); el.style.display = 'block'; }
+    else el.style.display = 'none';
 }
 
-document.getElementById('jamMulaiInput').addEventListener('change',  function(){ updatePreview('jamMulaiInput','jamSelesaiInput','durasiPreview','durasiText'); });
-document.getElementById('jamSelesaiInput').addEventListener('change', function(){ updatePreview('jamMulaiInput','jamSelesaiInput','durasiPreview','durasiText'); });
-document.getElementById('edit_jamMulai').addEventListener('change',   function(){ updatePreview('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText'); });
-document.getElementById('edit_jamSelesai').addEventListener('change', function(){ updatePreview('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText'); });
+// Event listeners
+['jamMulaiInput','jamSelesaiInput'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', function(){ updatePreviewHarian('jamMulaiInput','jamSelesaiInput','durasiPreview','durasiText'); });
+});
+['tanggalMulaiDate','jamMulaiMulti','tanggalSelesaiDate','jamSelesaiMulti'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', updatePreviewMulti);
+});
+['edit_jamMulai','edit_jamSelesai'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', function(){ updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText'); });
+});
+['edit_tanggalMulai','edit_jamMulaiMulti','edit_tanggalSelesai','edit_jamSelesaiMulti'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', updatePreviewMultiEdit);
+});
 
-// Set default tanggal hari ini
+// Default tanggal hari ini
 document.getElementById('tanggalInput').value = new Date().toISOString().split('T')[0];
 
-// ========== FOTO MODAL ==========
+// ========== FOTO & MODAL ==========
 function showFoto(url, judul) {
     document.getElementById('popupImageAdmin').src = url;
-    document.getElementById('fotoModalTitle').textContent = '📷 ' + (judul || 'Dokumentasi');
+    document.getElementById('fotoModalTitle').textContent = '📷 ' + (judul||'Dokumentasi');
     new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show();
 }
 function openUploadModal(id) {
@@ -447,17 +581,27 @@ function openUploadAwalModal(id) {
     document.getElementById('formUploadAwal').action = '/upload-foto-awal/' + id;
     new bootstrap.Modal(document.getElementById('uploadAwalModal')).show();
 }
-function openEditModal(id, aktivitas, divisi, pemesan, deskripsi, status, tanggal, jamMulai, jamSelesai) {
+function openEditModal(id, aktivitas, divisi, pemesan, deskripsi, status, tipe, tanggal, jamMulai, jamSelesai, tglMulai, tglSelesai) {
     document.getElementById('formEdit').action = '/edit/' + id;
-    document.getElementById('edit_tanggal').value   = tanggal;
     document.getElementById('edit_aktivitas').value = aktivitas;
     document.getElementById('edit_pemesan').value   = pemesan;
     document.getElementById('edit_deskripsi').value = deskripsi.replace(/\\n/g, '\n');
     document.getElementById('edit_divisi').value    = divisi;
     document.getElementById('edit_status').value    = status;
-    document.getElementById('edit_jamMulai').value  = jamMulai;
-    document.getElementById('edit_jamSelesai').value= jamSelesai;
-    updatePreview('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText');
+    if (tipe === 'multihari') {
+        setEditTipe('multihari');
+        document.getElementById('edit_tanggalMulai').value   = tglMulai;
+        document.getElementById('edit_tanggalSelesai').value = tglSelesai;
+        document.getElementById('edit_jamMulaiMulti').value  = jamMulai;
+        document.getElementById('edit_jamSelesaiMulti').value= jamSelesai;
+        updatePreviewMultiEdit();
+    } else {
+        setEditTipe('harian');
+        document.getElementById('edit_tanggal').value    = tanggal;
+        document.getElementById('edit_jamMulai').value   = jamMulai;
+        document.getElementById('edit_jamSelesai').value = jamSelesai;
+        updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText');
+    }
     new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 function confirmDelete(id, aktivitas) {
@@ -468,12 +612,11 @@ function confirmDelete(id, aktivitas) {
 
 // ========== COMPRESS IMAGE ==========
 async function compressImage(file) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function(resolve, reject) {
         var reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = function(e) {
-            var img = new Image();
-            img.src = e.target.result;
+            var img = new Image(); img.src = e.target.result;
             img.onload = function() {
                 var w = img.width, h = img.height, max = 1000;
                 if (w > h) { if (w > max) { h = Math.round(h*max/w); w = max; } }
@@ -495,65 +638,47 @@ document.querySelectorAll('.file-compress').forEach(function(input) {
         if (!file || !file.type.startsWith('image/')) return;
         var msg = e.target.nextElementSibling;
         try {
-            var compressed = await compressImage(file);
-            var dt = new DataTransfer(); dt.items.add(compressed);
-            e.target.files = dt.files;
+            var c = await compressImage(file);
+            var dt = new DataTransfer(); dt.items.add(c); e.target.files = dt.files;
             if (msg && msg.classList.contains('compress-msg')) msg.classList.remove('d-none');
         } catch(err) { console.error('Gagal kompres:', err); }
     });
 });
 
 // ========== PWA ==========
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); });
-}
+if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); }); }
 var saveToastEl = document.getElementById('saveToast');
 if (saveToastEl) new bootstrap.Toast(saveToastEl, { delay: 4000 }).show();
 
 // ========== NOTES ==========
 async function loadAdminNotes() {
     try {
-        var res = await fetch('/api/notes');
-        var notes = await res.json();
-        var el = document.getElementById('adminNotesList');
+        var res = await fetch('/api/notes'), notes = await res.json(), el = document.getElementById('adminNotesList');
         if (notes.length === 0) { el.innerHTML = '<p style="color:#666;">Belum ada catatan.</p>'; return; }
-        el.innerHTML = notes.map(function(note) {
-            var date = new Date(note.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
-            return '<div style="background:#0d0d0d;padding:10px;border-radius:4px;margin-bottom:6px;border-left:2px solid #0d6efd;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:start;">' +
-                '<div style="flex:1;"><strong style="color:#fff;font-size:0.9rem;">' + note.title + '</strong>' +
-                '<p style="color:#999;margin:2px 0 0 0;font-size:0.8rem;">' + note.content + '</p>' +
-                '<small style="color:#666;">' + date + '</small></div>' +
-                '<button onclick="deleteAdminNote(' + note.id + ')" class="btn btn-sm btn-danger fw-bold" style="padding:2px 6px;font-size:0.7rem;">🗑️</button>' +
-                '</div></div>';
+        el.innerHTML = notes.map(function(n) {
+            var d = new Date(n.createdAt).toLocaleString('id-ID', { dateStyle:'short', timeStyle:'short' });
+            return '<div style="background:#0d0d0d;padding:10px;border-radius:4px;margin-bottom:6px;border-left:2px solid #0d6efd;display:flex;justify-content:space-between;align-items:start;">' +
+                '<div><strong style="color:#fff;font-size:0.9rem;">' + n.title + '</strong><p style="color:#999;margin:2px 0 0 0;font-size:0.8rem;">' + n.content + '</p><small style="color:#666;">' + d + '</small></div>' +
+                '<button onclick="deleteAdminNote(' + n.id + ')" class="btn btn-sm btn-danger fw-bold" style="padding:2px 6px;font-size:0.7rem;">🗑️</button></div>';
         }).join('');
-    } catch(err) { document.getElementById('adminNotesList').innerHTML = '<p style="color:#f00;">Error loading notes</p>'; }
+    } catch(e) { document.getElementById('adminNotesList').innerHTML = '<p style="color:#f00;">Error</p>'; }
 }
 async function addNoteAdmin() {
-    var title = document.getElementById('noteTitle').value.trim();
-    var content = document.getElementById('noteContent').value.trim();
-    if (!title || !content) { alert('Judul dan isi catatan harus diisi!'); return; }
-    try {
-        var res = await fetch('/api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, content }) });
-        if (res.ok) { document.getElementById('noteTitle').value = ''; document.getElementById('noteContent').value = ''; loadAdminNotes(); }
-    } catch(err) { alert('Gagal menambah catatan'); }
+    var title = document.getElementById('noteTitle').value.trim(), content = document.getElementById('noteContent').value.trim();
+    if (!title || !content) { alert('Judul dan isi harus diisi!'); return; }
+    await fetch('/api/notes', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title,content}) });
+    document.getElementById('noteTitle').value = ''; document.getElementById('noteContent').value = ''; loadAdminNotes();
 }
 async function deleteAdminNote(id) {
     if (!confirm('Yakin hapus catatan ini?')) return;
-    try { var res = await fetch('/api/notes/' + id, { method: 'DELETE' }); if (res.ok) loadAdminNotes(); }
-    catch(err) { alert('Gagal menghapus catatan'); }
+    await fetch('/api/notes/' + id, { method:'DELETE' }); loadAdminNotes();
 }
 window.addEventListener('load', function() { loadAdminNotes(); });
 
-// ========== PWA INSTALL ==========
-var deferredPrompt;
-var installBtn = document.getElementById('btnInstallPwa');
-window.addEventListener('beforeinstallprompt', function(e) {
-    e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block';
-});
-installBtn.addEventListener('click', async function() {
-    if (deferredPrompt) { deferredPrompt.prompt(); var r = await deferredPrompt.userChoice; deferredPrompt = null; installBtn.style.display = 'none'; }
-});
+// PWA Install
+var deferredPrompt, installBtn = document.getElementById('btnInstallPwa');
+window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block'; });
+installBtn.addEventListener('click', async function() { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; installBtn.style.display = 'none'; } });
 window.addEventListener('appinstalled', function() { installBtn.style.display = 'none'; });
 </script>
 </body>

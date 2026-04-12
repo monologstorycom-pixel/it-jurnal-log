@@ -8,19 +8,22 @@ datasource db {
 }
 
 model Journal {
-  id            Int      @id @default(autoincrement())
-  tanggalManual DateTime
-  jamMulai      String?
-  jamSelesai    String?
-  durasiMenit   Int?
-  aktivitas     String
-  divisi        String
-  pemesan       String
-  deskripsi     String   @db.Text
-  status        String
-  fotoUrl       String?
-  fotoAwalUrl   String?
-  createdAt     DateTime @default(now())
+  id             Int       @id @default(autoincrement())
+  tipeInput      String?   @default("harian")
+  tanggalMulai   DateTime?
+  tanggalSelesai DateTime?
+  tanggalManual  DateTime
+  jamMulai       String?
+  jamSelesai     String?
+  durasiMenit    Int?
+  aktivitas      String
+  divisi         String
+  pemesan        String
+  deskripsi      String    @db.Text
+  status         String
+  fotoUrl        String?
+  fotoAwalUrl    String?
+  createdAt      DateTime  @default(now())
 }
 
 model Note {
@@ -29,4 +32,44 @@ model Note {
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Aset {
+  id          Int              @id @default(autoincrement())
+  nama        String
+  kategori    String           @default("Umum")
+  satuan      String           @default("unit")
+  stokAwal    Int              @default(0)
+  stok        Int              @default(0)
+  kondisi     String           @default("Baik")
+  keterangan  String?          @db.Text
+  createdAt   DateTime         @default(now())
+  penggunaan  AsetPenggunaan[]
+  pinjaman    AsetPinjam[]
+}
+
+model AsetPenggunaan {
+  id          Int      @id @default(autoincrement())
+  asetId      Int
+  aset        Aset     @relation(fields: [asetId], references: [id], onDelete: Cascade)
+  jumlah      Int      @default(1)
+  divisi      String
+  lokasi      String
+  keterangan  String?  @db.Text
+  tanggal     DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model AsetPinjam {
+  id              Int       @id @default(autoincrement())
+  asetId          Int
+  aset            Aset      @relation(fields: [asetId], references: [id], onDelete: Cascade)
+  jumlah          Int       @default(1)
+  peminjam        String
+  divisi          String
+  keperluan       String?   @db.Text
+  tanggalPinjam   DateTime  @default(now())
+  tanggalKembali  DateTime?
+  status          String    @default("Dipinjam")
+  createdAt       DateTime  @default(now())
 }
