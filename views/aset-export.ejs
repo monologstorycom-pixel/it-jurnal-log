@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Inventaris Aset IT — PT. AURI STEEL METALINDO</title>
+    <style>
+        @page { size: A4; margin: 18mm 15mm 18mm 15mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 9.5pt; color: #1a1a2e; background: #fff; }
+
+        /* HEADER */
+        .doc-header { border-bottom: 2px solid #1a1a2e; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .doc-title { font-size: 15pt; font-weight: 700; color: #1a1a2e; letter-spacing: -0.02em; }
+        .doc-subtitle { font-size: 9pt; color: #666; margin-top: 3px; }
+        .doc-meta { text-align: right; font-size: 8.5pt; color: #666; line-height: 1.6; }
+        .doc-meta strong { color: #1a1a2e; font-size: 9pt; }
+
+        /* SECTION */
+        .section { margin-bottom: 22px; }
+        .section-title { font-size: 9pt; font-weight: 700; color: #fff; background: #1a1a2e; padding: 5px 10px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0; }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; }
+        thead tr { background: #f0f2f8; }
+        th { padding: 6px 8px; text-align: left; font-size: 7.5pt; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1.5px solid #dde0ee; }
+        td { padding: 6px 8px; font-size: 8.5pt; color: #1a1a2e; border-bottom: 0.5px solid #eef0f8; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        tr:nth-child(even) td { background: #fafbff; }
+
+        /* STOK */
+        .stok-ok   { color: #15803d; font-weight: 700; }
+        .stok-warn { color: #b45309; font-weight: 700; }
+        .stok-empty{ color: #b91c1c; font-weight: 700; }
+
+        /* STATUS BADGE */
+        .b-pinjam  { background: #ede9fe; color: #5b21b6; padding: 1px 6px; border-radius: 3px; font-size: 7pt; font-weight: 700; }
+        .b-kembali { background: #dcfce7; color: #15803d; padding: 1px 6px; border-radius: 3px; font-size: 7pt; font-weight: 700; }
+
+        /* FOOTER */
+        .doc-footer { margin-top: 30px; border-top: 1px solid #dde0ee; padding-top: 20px; display: flex; justify-content: space-between; }
+        .sign-block { text-align: center; width: 200px; }
+        .sign-line { border-top: 1px solid #1a1a2e; margin-top: 50px; padding-top: 6px; font-size: 8.5pt; font-weight: 700; }
+        .sign-role { font-size: 8pt; color: #666; margin-top: 2px; }
+
+        /* SUMMARY CARDS */
+        .summary-row { display: flex; gap: 10px; margin-bottom: 18px; }
+        .sum-card { flex: 1; border: 1px solid #dde0ee; border-radius: 6px; padding: 10px 12px; }
+        .sum-val { font-size: 18pt; font-weight: 800; color: #1a1a2e; line-height: 1; }
+        .sum-lbl { font-size: 7.5pt; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; font-weight: 700; }
+
+        /* PAGE BREAK */
+        .pb { page-break-before: always; }
+
+        /* PRINT BUTTON - only on screen */
+        .print-bar { background: #1a1a2e; color: #fff; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .print-btn { background: #4ade80; color: #1a1a2e; border: none; padding: 7px 18px; border-radius: 5px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+        @media print { .print-bar { display: none !important; } }
+    </style>
+</head>
+<body>
+
+<!-- PRINT BAR (screen only) -->
+<div class="print-bar">
+    <span style="font-size:0.85rem;font-family:monospace;">&gt;_ IT Support Log — Export Laporan Aset</span>
+    <button class="print-btn" onclick="window.print()">🖨 Print / Save PDF</button>
+</div>
+
+<div style="padding: 0 2mm;">
+
+<!-- HEADER -->
+<div class="doc-header">
+    <div>
+        <div class="doc-title">LAPORAN INVENTARIS ASET IT</div>
+        <div class="doc-subtitle">PT. AURI STEEL METALINDO</div>
+    </div>
+    <div class="doc-meta">
+        <div>Tanggal Cetak: <strong><%= new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}) %></strong></div>
+        <div>Total Item: <strong><%= aset.length %> aset</strong></div>
+        <div>Dibuat oleh: <strong>IT Support</strong></div>
+    </div>
+</div>
+
+<!-- SUMMARY -->
+<%
+    var totalAset = aset.length;
+    var stokHabis = aset.filter(a => a.stok <= 0).length;
+    var totalPinjamAktif = aset.reduce((s, a) => s + a.pinjaman.filter(p => p.status==='Dipinjam').reduce((ss, p) => ss+p.jumlah, 0), 0);
+    var totalPenggunaan  = aset.reduce((s, a) => s + a.penggunaan.length, 0);
+%>
+<div class="summary-row">
+    <div class="sum-card"><div class="sum-val"><%= totalAset %></div><div class="sum-lbl">Total Aset</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:#b91c1c"><%= stokHabis %></div><div class="sum-lbl">Stok Habis</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:#5b21b6"><%= totalPinjamAktif %></div><div class="sum-lbl">Item Dipinjam</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:#1d4ed8"><%= totalPenggunaan %></div><div class="sum-lbl">Total Catatan Pakai</div></div>
+</div>
+
+<!-- SECTION 1: MASTER STOK -->
+<div class="section">
+    <div class="section-title">A. Master Data &amp; Sisa Stok</div>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28px;">No</th>
+                <th>Nama Aset</th>
+                <th>Kategori</th>
+                <th>Satuan</th>
+                <th style="text-align:center;">Stok Awal</th>
+                <th style="text-align:center;">Dipasang</th>
+                <th style="text-align:center;">Dipinjam</th>
+                <th style="text-align:center;">Sisa Stok</th>
+                <th>Kondisi</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% aset.forEach((item, i) => {
+            var dipasang = item.penggunaan.reduce((s,p) => s+p.jumlah, 0);
+            var dipinjam = item.pinjaman.filter(p => p.status==='Dipinjam').reduce((s,p) => s+p.jumlah, 0);
+            var stokClass = item.stok > (item.stokAwal * 0.5) ? 'stok-ok' : item.stok > 0 ? 'stok-warn' : 'stok-empty';
+        %>
+        <tr>
+            <td style="color:#aaa;text-align:center;"><%= i+1 %></td>
+            <td style="font-weight:600;"><%= item.nama %></td>
+            <td style="color:#666;"><%= item.kategori || '—' %></td>
+            <td style="color:#666;"><%= item.satuan %></td>
+            <td style="text-align:center;color:#555;"><%= item.stokAwal %></td>
+            <td style="text-align:center;color:#1d4ed8;font-weight:600;"><%= dipasang > 0 ? dipasang : '—' %></td>
+            <td style="text-align:center;color:#5b21b6;font-weight:600;"><%= dipinjam > 0 ? dipinjam : '—' %></td>
+            <td style="text-align:center;" class="<%= stokClass %>"><%= item.stok %></td>
+            <td style="color:<%= item.kondisi==='Baik'?'#15803d':item.kondisi==='Rusak'?'#b91c1c':'#b45309' %>;font-weight:700;font-size:7.5pt;"><%= item.kondisi %></td>
+        </tr>
+        <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<!-- SECTION 2: RIWAYAT PENGGUNAAN -->
+<div class="section pb">
+    <div class="section-title">B. Riwayat Penggunaan / Pemasangan</div>
+    <%
+        var allPakai = [];
+        aset.forEach(function(item) {
+            item.penggunaan.forEach(function(p) {
+                allPakai.push({ asetNama: item.nama, satuan: item.satuan, jumlah: p.jumlah, divisi: p.divisi, lokasi: p.lokasi, keterangan: p.keterangan, tanggal: p.tanggal });
+            });
+        });
+        allPakai.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+    %>
+    <% if(allPakai.length === 0) { %>
+        <div style="padding:16px;color:#aaa;font-size:8.5pt;text-align:center;">Belum ada catatan penggunaan.</div>
+    <% } else { %>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28px;">No</th>
+                <th>Tanggal</th>
+                <th>Nama Aset</th>
+                <th style="text-align:center;">Jumlah</th>
+                <th>Divisi</th>
+                <th>Lokasi Pemasangan</th>
+                <th>Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% allPakai.forEach((p, i) => { %>
+        <tr>
+            <td style="color:#aaa;text-align:center;"><%= i+1 %></td>
+            <td style="white-space:nowrap;color:#555;"><%= new Date(p.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+            <td style="font-weight:600;"><%= p.asetNama %></td>
+            <td style="text-align:center;color:#1d4ed8;font-weight:700;"><%= p.jumlah %> <%= p.satuan %></td>
+            <td><%= p.divisi %></td>
+            <td><%= p.lokasi %></td>
+            <td style="color:#666;"><%= p.keterangan || '—' %></td>
+        </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    <% } %>
+</div>
+
+<!-- SECTION 3: RIWAYAT PINJAMAN -->
+<div class="section">
+    <div class="section-title">C. Riwayat Peminjaman Aset</div>
+    <%
+        var allPinjam = [];
+        aset.forEach(function(item) {
+            item.pinjaman.forEach(function(p) {
+                allPinjam.push({ asetNama: item.nama, satuan: item.satuan, jumlah: p.jumlah, peminjam: p.peminjam, divisi: p.divisi, keperluan: p.keperluan, tanggalPinjam: p.tanggalPinjam, tanggalKembali: p.tanggalKembali, status: p.status });
+            });
+        });
+        allPinjam.sort((a,b) => new Date(b.tanggalPinjam) - new Date(a.tanggalPinjam));
+    %>
+    <% if(allPinjam.length === 0) { %>
+        <div style="padding:16px;color:#aaa;font-size:8.5pt;text-align:center;">Belum ada catatan pinjaman.</div>
+    <% } else { %>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:28px;">No</th>
+                <th>Nama Aset</th>
+                <th style="text-align:center;">Jumlah</th>
+                <th>Peminjam</th>
+                <th>Divisi</th>
+                <th>Keperluan</th>
+                <th>Tgl Pinjam</th>
+                <th>Tgl Kembali</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% allPinjam.forEach((p, i) => { %>
+        <tr>
+            <td style="color:#aaa;text-align:center;"><%= i+1 %></td>
+            <td style="font-weight:600;"><%= p.asetNama %></td>
+            <td style="text-align:center;color:#5b21b6;font-weight:700;"><%= p.jumlah %> <%= p.satuan %></td>
+            <td style="font-weight:600;"><%= p.peminjam %></td>
+            <td><%= p.divisi %></td>
+            <td style="color:#666;"><%= p.keperluan || '—' %></td>
+            <td style="white-space:nowrap;color:#555;"><%= new Date(p.tanggalPinjam).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+            <td style="white-space:nowrap;color:#15803d;"><%= p.tanggalKembali ? new Date(p.tanggalKembali).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—' %></td>
+            <td><span class="<%= p.status==='Dipinjam'?'b-pinjam':'b-kembali' %>"><%= p.status %></span></td>
+        </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    <% } %>
+</div>
+
+<!-- FOOTER / TTD -->
+<div class="doc-footer">
+    <div style="font-size:8pt;color:#666;">
+        <div>Dokumen ini digenerate secara otomatis oleh sistem IT Support Log</div>
+        <div>PT. Auri Steel Metalindo</div>
+    </div>
+    <div style="display:flex;gap:60px;">
+        <div class="sign-block">
+            <div class="sign-line">___________________________</div>
+            <div style="font-size:8.5pt;font-weight:700;margin-top:4px;">Kepala Departemen</div>
+            <div class="sign-role">( ________________________ )</div>
+        </div>
+        <div class="sign-block">
+            <div class="sign-line">___________________________</div>
+            <div style="font-size:8.5pt;font-weight:700;margin-top:4px;">Dibuat oleh</div>
+            <div class="sign-role">( Rizqi Subagyo )</div>
+            <div class="sign-role">IT Support</div>
+        </div>
+    </div>
+</div>
+
+</div>
+</body>
+</html>
