@@ -1,60 +1,138 @@
 <style>
-  .it-nav { position: sticky; top: 0; z-index: 999; background: #0f1117; border-bottom: 1px solid #1e2130; }
-  .it-nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 52px; max-width: 1600px; margin: 0 auto; }
-  .it-nav-brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.9rem; color: #fff; letter-spacing: 0.02em; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+  .it-nav { position: sticky; top: 0; z-index: 999; background: var(--nav-bg, #0f1117); border-bottom: 1px solid var(--nav-border, #1e2130); transition: background 0.25s, border-color 0.2s; }
+  .it-nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 52px; max-width: 1800px; margin: 0 auto; }
+  .it-nav-brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.88rem; color: var(--nav-text, #fff); text-decoration: none; display: flex; align-items: center; gap: 6px; letter-spacing: 0.02em; }
   .it-nav-brand span { color: #4ade80; }
   .it-nav-links { display: flex; align-items: center; gap: 2px; }
-  .it-nav-link { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; color: #8b8fa8; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
-  .it-nav-link:hover { background: #1a1d2e; color: #c9d1e0; }
-  .it-nav-link.active { background: #1a1d2e; color: #fff; }
-  .it-nav-link .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.5; }
-  .it-nav-link.active .dot { opacity: 1; background: #4ade80; }
-  .it-nav-link .icon { font-size: 14px; opacity: 0.7; }
-  .it-nav-link.active .icon { opacity: 1; }
-  .it-nav-hamburger { display: none; background: none; border: 1px solid #2a2d3e; border-radius: 6px; padding: 6px 10px; color: #8b8fa8; cursor: pointer; font-size: 16px; }
-  .it-nav-hamburger:hover { color: #fff; border-color: #444; }
-  .it-nav-mobile { display: none; background: #0f1117; border-top: 1px solid #1e2130; padding: 0.75rem 1rem; }
+  .it-nav-link { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 6px; color: var(--nav-link, #8b8fa8); font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
+  .it-nav-link:hover { background: var(--nav-hover, #1a1d2e); color: var(--nav-text, #fff); }
+  .it-nav-link.active { background: var(--nav-hover, #1a1d2e); color: var(--nav-text, #fff); }
+
+  .it-nav-right { display: flex; align-items: center; gap: 10px; }
+
+  /* THEME TOGGLE */
+  .nav-theme-btn { background: none; border: 1px solid var(--nav-border, #1e2130); border-radius: 20px; padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: var(--nav-link, #8b8fa8); transition: all 0.15s; }
+  .nav-theme-btn:hover { border-color: #4ade80; color: var(--nav-text, #fff); }
+  .t-track { width: 28px; height: 15px; background: var(--nav-border, #1e2130); border-radius: 8px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .t-thumb { position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; background: var(--nav-link, #8b8fa8); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+
+  /* USER CHIP */
+  .nav-user { display: flex; align-items: center; gap: 7px; padding: 4px 10px; background: var(--nav-hover, #1a1d2e); border-radius: 20px; font-size: 0.75rem; }
+  .nav-user-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
+  .nav-user-name { color: var(--nav-text, #e2e8f0); font-weight: 600; }
+  .nav-user-role { color: var(--nav-link, #8b8fa8); font-size: 0.68rem; }
+
+  /* LOGOUT */
+  .nav-logout { background: none; border: 1px solid var(--nav-border, #1e2130); border-radius: 6px; padding: 4px 10px; color: var(--nav-link, #8b8fa8); font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+  .nav-logout:hover { border-color: #f87171; color: #f87171; background: #2a0d0d; }
+
+  /* HAMBURGER */
+  .it-nav-hamburger { display: none; background: none; border: 1px solid var(--nav-border, #1e2130); border-radius: 6px; padding: 5px 9px; color: var(--nav-link, #8b8fa8); cursor: pointer; font-size: 15px; }
+  .it-nav-hamburger:hover { color: var(--nav-text, #fff); border-color: #444; }
+
+  /* MOBILE */
+  .it-nav-mobile { display: none; background: var(--nav-bg, #0f1117); border-top: 1px solid var(--nav-border, #1e2130); padding: 0.75rem 1rem; }
   .it-nav-mobile.open { display: block; }
-  .it-nav-mobile a { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; color: #8b8fa8; font-size: 0.85rem; font-weight: 600; text-decoration: none; margin-bottom: 4px; }
-  .it-nav-mobile a:hover, .it-nav-mobile a.active { background: #1a1d2e; color: #fff; }
-  .it-nav-mobile a .m-icon { font-size: 16px; width: 22px; text-align: center; }
-  @media (max-width: 640px) {
-    .it-nav-links { display: none; }
-    .it-nav-hamburger { display: block; }
+  .it-nav-mobile a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: var(--nav-link, #8b8fa8); font-size: 0.83rem; font-weight: 600; text-decoration: none; margin-bottom: 3px; transition: all 0.15s; }
+  .it-nav-mobile a:hover, .it-nav-mobile a.active { background: var(--nav-hover, #1a1d2e); color: var(--nav-text, #fff); }
+  .it-nav-mobile .m-sep { border-top: 1px solid var(--nav-border, #1e2130); margin: 8px 0; }
+  .it-nav-mobile .m-user { padding: 8px 12px; font-size: 0.75rem; color: var(--nav-link, #8b8fa8); display: flex; align-items: center; gap: 8px; }
+  .it-nav-mobile .m-user-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+
+  @media (max-width: 768px) {
+    .it-nav-links, .it-nav-right { display: none; }
+    .it-nav-hamburger { display: flex; align-items: center; }
   }
 </style>
 
-<nav class="it-nav">
+<nav class="it-nav" id="mainNav">
   <div class="it-nav-inner">
     <a href="/kerja" class="it-nav-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
+
     <div class="it-nav-links">
-      <a href="/"       class="it-nav-link <%= activePage === 'view' ? 'active' : '' %>">
-        <span class="icon">◉</span> Home
-      </a>   
-      <a href="/aset"   class="it-nav-link <%= activePage === 'aset' ? 'active' : '' %>">
-        <span class="icon">▦</span> Aset IT
-      </a>
-      <a href="/kerja"  class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
-        <span class="icon">⚙</span> Dashboard
-      </a>
+      <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">⚙ Dashboard</a>
+      <a href="/"      class="it-nav-link <%= activePage === 'view'      ? 'active' : '' %>">◉ View Harian</a>
+      <a href="/aset"  class="it-nav-link <%= activePage === 'aset'      ? 'active' : '' %>">▦ Aset IT</a>
     </div>
-    <button class="it-nav-hamburger" onclick="toggleMobileNav()" id="navHamburger">☰</button>
+
+    <div class="it-nav-right">
+      <!-- THEME TOGGLE -->
+      <button class="nav-theme-btn" onclick="toggleTheme()" id="navThemeBtn">
+        <div class="t-track" id="navTrack"><div class="t-thumb" id="navThumb"></div></div>
+        <span id="navThemeLabel">Light</span>
+      </button>
+
+      <!-- USER INFO -->
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+      <div class="nav-user">
+        <div class="nav-user-dot"></div>
+        <div>
+          <div class="nav-user-name"><%= currentUser.nama %></div>
+          <div class="nav-user-role"><%= currentUser.role %></div>
+        </div>
+      </div>
+      <a href="/logout" class="nav-logout">Keluar</a>
+      <% } %>
+    </div>
+
+    <button class="it-nav-hamburger" onclick="toggleMobileNav()">☰</button>
   </div>
+
   <div class="it-nav-mobile" id="mobileNav">
-    <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>">
-      <span class="m-icon">◉</span> Home
-    </a>  
-    <a href="/aset" class="<%= activePage === 'aset' ? 'active' : '' %>">
-      <span class="m-icon">▦</span> Aset IT
-    </a>
-    <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
-      <span class="m-icon">⚙</span> Dashboard
-    </a>
+    <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">⚙ Dashboard</a>
+    <a href="/"      class="<%= activePage === 'view'      ? 'active' : '' %>">◉ View Harian</a>
+    <a href="/aset"  class="<%= activePage === 'aset'      ? 'active' : '' %>">▦ Aset IT</a>
+    <div class="m-sep"></div>
+    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <div class="m-user"><div class="m-user-dot"></div><span><%= currentUser.nama %> (<%= currentUser.role %>)</span></div>
+    <a href="/logout" style="color:#f87171;">Keluar</a>
+    <% } %>
   </div>
 </nav>
+
 <script>
+// ===== THEME SYSTEM =====
+(function() {
+  var DARK = {
+    '--nav-bg': '#0f1117', '--nav-border': '#1e2130',
+    '--nav-text': '#e2e8f0', '--nav-link': '#8b8fa8', '--nav-hover': '#1a1d2e'
+  };
+  var LIGHT = {
+    '--nav-bg': '#ffffff', '--nav-border': '#dde0ee',
+    '--nav-text': '#1a1a2e', '--nav-link': '#5a5f7a', '--nav-hover': '#f0f2f8'
+  };
+  var BODY_DARK  = { '--body-bg': '#080a10', '--body-bg2': '#0f1117', '--body-text': '#c9d1e0', '--body-border': '#1e2130', '--body-card': '#0f1117', '--body-input': '#080a10', '--body-input-border': '#1e2130', '--body-input-focus': '#3b4263', '--body-text2': '#8b8fa8', '--body-text3': '#3b4263' };
+  var BODY_LIGHT = { '--body-bg': '#f0f2f8', '--body-bg2': '#ffffff', '--body-text': '#1a1a2e', '--body-border': '#dde0ee', '--body-card': '#ffffff', '--body-input': '#f8faff', '--body-input-border': '#c4c8dd', '--body-input-focus': '#6366f1', '--body-text2': '#5a5f7a', '--body-text3': '#aab0cc' };
+
+  function applyVars(obj) {
+    Object.keys(obj).forEach(function(k) { document.documentElement.style.setProperty(k, obj[k]); });
+  }
+
+  window.applyThemeVars = function(theme) {
+    if (theme === 'light') { applyVars(LIGHT); applyVars(BODY_LIGHT); }
+    else                   { applyVars(DARK);  applyVars(BODY_DARK); }
+    var lbl   = document.getElementById('navThemeLabel');
+    var thumb = document.getElementById('navThumb');
+    var track = document.getElementById('navTrack');
+    if (lbl) lbl.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    if (thumb) thumb.style.transform = theme === 'light' ? 'translateX(13px)' : '';
+    if (thumb) thumb.style.background = theme === 'light' ? '#fff' : '';
+    if (track) track.style.background = theme === 'light' ? '#4ade80' : '';
+    document.body.setAttribute('data-theme', theme);
+  };
+
+  window.toggleTheme = function() {
+    var cur = localStorage.getItem('itlog-theme') || 'dark';
+    var next = cur === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('itlog-theme', next);
+    applyThemeVars(next);
+  };
+
+  // Apply saved theme immediately
+  applyThemeVars(localStorage.getItem('itlog-theme') || 'dark');
+})();
+
 function toggleMobileNav() {
-  var nav = document.getElementById('mobileNav');
-  nav.classList.toggle('open');
+  document.getElementById('mobileNav').classList.toggle('open');
 }
 </script>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — IT Support Log</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        :root[data-theme="dark"] {
+            --bg:        #080a10;
+            --bg2:       #0f1117;
+            --bg3:       #13161f;
+            --border:    #1e2130;
+            --border2:   #2a2d3e;
+            --text:      #e2e8f0;
+            --text2:     #8b8fa8;
+            --text3:     #3b4263;
+            --accent:    #4ade80;
+            --accent-bg: #0d2a18;
+            --input-bg:  #080a10;
+            --card-bg:   #0f1117;
+            --err-bg:    #2a0d0d;
+            --err-text:  #f87171;
+            --err-border:#5c1a1a;
+            --brand:     #4ade80;
+        }
+        :root[data-theme="light"] {
+            --bg:        #f0f2f8;
+            --bg2:       #ffffff;
+            --bg3:       #e8ecf5;
+            --border:    #dde0ee;
+            --border2:   #c4c8dd;
+            --text:      #1a1a2e;
+            --text2:     #5a5f7a;
+            --text3:     #aab0cc;
+            --accent:    #1d6b3b;
+            --accent-bg: #dcfce7;
+            --input-bg:  #f8faff;
+            --card-bg:   #ffffff;
+            --err-bg:    #fff0f0;
+            --err-text:  #b91c1c;
+            --err-border:#fca5a5;
+            --brand:     #1d6b3b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: background 0.25s, color 0.25s, border-color 0.2s; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* BACKGROUND GRID */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.4;
+        }
+        [data-theme="light"] .bg-grid { opacity: 0.6; }
+
+        /* GLOW */
+        .bg-glow {
+            position: fixed; z-index: 0;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+        }
+        .glow-1 { top: -200px; left: -200px; background: radial-gradient(circle, rgba(74,222,128,0.08) 0%, transparent 70%); }
+        .glow-2 { bottom: -200px; right: -200px; background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%); }
+        [data-theme="light"] .glow-1 { background: radial-gradient(circle, rgba(29,107,59,0.06) 0%, transparent 70%); }
+        [data-theme="light"] .glow-2 { background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%); }
+
+        /* THEME TOGGLE */
+        .theme-toggle {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            background: var(--card-bg); border: 1px solid var(--border2);
+            border-radius: 50px; padding: 6px 14px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.78rem; font-weight: 600; color: var(--text2);
+            transition: all 0.2s;
+        }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+        .toggle-track {
+            width: 34px; height: 18px; background: var(--border2); border-radius: 10px;
+            position: relative; transition: background 0.2s;
+        }
+        [data-theme="light"] .toggle-track { background: var(--accent); }
+        .toggle-thumb {
+            position: absolute; top: 2px; left: 2px;
+            width: 14px; height: 14px; background: var(--text2); border-radius: 50%;
+            transition: transform 0.2s, background 0.2s;
+        }
+        [data-theme="light"] .toggle-thumb { transform: translateX(16px); background: #fff; }
+
+        /* CARD */
+        .login-card {
+            position: relative; z-index: 10;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            width: 100%; max-width: 400px;
+            margin: 1rem;
+        }
+
+        /* BRAND */
+        .brand {
+            text-align: center; margin-bottom: 2rem;
+        }
+        .brand-logo {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 52px; height: 52px; background: var(--accent-bg);
+            border: 1px solid var(--accent); border-radius: 12px;
+            margin-bottom: 14px;
+        }
+        .brand-logo svg { width: 26px; height: 26px; fill: var(--accent); }
+        .brand-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem; font-weight: 700; color: var(--text);
+            letter-spacing: 0.02em;
+        }
+        .brand-title span { color: var(--accent); }
+        .brand-sub { font-size: 0.75rem; color: var(--text3); margin-top: 4px; }
+
+        /* FORM */
+        .form-group { margin-bottom: 1.1rem; }
+        .f-label {
+            display: block; font-size: 0.68rem; font-weight: 700;
+            color: var(--text2); text-transform: uppercase;
+            letter-spacing: 0.07em; margin-bottom: 6px;
+        }
+        .f-input-wrap { position: relative; }
+        .f-input {
+            width: 100%; background: var(--input-bg);
+            border: 1px solid var(--border2); border-radius: 8px;
+            color: var(--text); padding: 10px 12px 10px 40px;
+            font-size: 0.88rem; outline: none;
+            transition: border-color 0.15s;
+        }
+        .f-input:focus { border-color: var(--accent); }
+        .f-input::placeholder { color: var(--text3); }
+        .f-icon {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--text3); font-size: 15px; pointer-events: none;
+        }
+        .f-eye {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--text3); cursor: pointer; font-size: 15px;
+            background: none; border: none; padding: 0;
+            transition: color 0.15s;
+        }
+        .f-eye:hover { color: var(--text2); }
+        .f-input-pass { padding-right: 40px; }
+
+        /* ERROR */
+        .alert-err {
+            background: var(--err-bg); border: 1px solid var(--err-border);
+            border-radius: 8px; padding: 10px 14px; margin-bottom: 1.2rem;
+            font-size: 0.82rem; color: var(--err-text); font-weight: 600;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* SUBMIT */
+        .btn-login {
+            width: 100%; padding: 11px;
+            background: var(--accent); color: var(--bg2);
+            border: none; border-radius: 8px;
+            font-size: 0.88rem; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.03em;
+            transition: opacity 0.15s, transform 0.1s;
+            margin-top: 0.5rem;
+        }
+        .btn-login:hover { opacity: 0.88; }
+        .btn-login:active { transform: scale(0.99); }
+
+        /* FOOTER */
+        .card-footer {
+            text-align: center; margin-top: 1.5rem;
+            padding-top: 1.2rem; border-top: 1px solid var(--border);
+            font-size: 0.72rem; color: var(--text3);
+        }
+        .card-footer strong { color: var(--text2); }
+
+        /* DIVIDER */
+        .divider {
+            display: flex; align-items: center; gap: 10px;
+            margin: 1rem 0; color: var(--text3); font-size: 0.72rem;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+
+    <!-- THEME TOGGLE -->
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span id="themeLabel">Light Mode</span>
+    </button>
+
+    <!-- LOGIN CARD -->
+    <div class="login-card">
+        <div class="brand">
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12V11c0 4.52-3.02 8.79-7 10.09C8.02 19.79 5 15.52 5 11V6.3l7-3.12zM11 7v2H9v2h2v2h2v-2h2v-2h-2V7h-2z"/>
+                </svg>
+            </div>
+            <div class="brand-title">&gt;_ IT <span>SUPPORT</span> LOG</div>
+            <div class="brand-sub">PT. Auri Steel Metalindo</div>
+        </div>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+        <div class="alert-err">
+            <span>⚠</span> <%= error %>
+        </div>
+        <% } %>
+
+        <form action="/login" method="POST" autocomplete="off">
+            <div class="form-group">
+                <label class="f-label">Username</label>
+                <div class="f-input-wrap">
+                    <span class="f-icon">👤</span>
+                    <input
+                        type="text"
+                        name="username"
+                        class="f-input"
+                        placeholder="Masukkan username"
+                        value="<%= typeof username !== 'undefined' ? username : '' %>"
+                        required autocomplete="username"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="f-label">Password</label>
+                <div class="f-input-wrap">
+                    <span class="f-icon">🔒</span>
+                    <input
+                        type="password"
+                        name="password"
+                        id="passInput"
+                        class="f-input f-input-pass"
+                        placeholder="Masukkan password"
+                        required autocomplete="current-password"
+                    >
+                    <button type="button" class="f-eye" onclick="togglePass()" id="eyeBtn">👁</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">MASUK</button>
+        </form>
+
+        <div class="card-footer">
+            IT Support Log &bull; <strong>v2.0</strong> &bull; Internal Use Only
+        </div>
+    </div>
+
+    <script>
+    // ===== THEME =====
+    function getTheme() { return localStorage.getItem('itlog-theme') || 'dark'; }
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        document.getElementById('themeLabel').textContent = t === 'dark' ? 'Light Mode' : 'Dark Mode';
+        localStorage.setItem('itlog-theme', t);
+    }
+    function toggleTheme() {
+        applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    }
+    applyTheme(getTheme());
+
+    // ===== SHOW/HIDE PASSWORD =====
+    function togglePass() {
+        var inp = document.getElementById('passInput');
+        var btn = document.getElementById('eyeBtn');
+        if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+        else { inp.type = 'password'; btn.textContent = '👁'; }
+    }
+    </script>
+</body>
+</html>

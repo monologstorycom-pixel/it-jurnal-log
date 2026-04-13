@@ -5,6 +5,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
+const bcrypt = require('bcrypt');
+const session = require('express-session');
 
 const app = express();
 const prisma = new PrismaClient();
@@ -17,6 +19,30 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use('/uploads', express.static(uploadDir));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ==========================================
+// SESSION
+// ==========================================
+app.use(session({
+    secret: 'itlog-rsby-secret-2026',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 8 * 60 * 60 * 1000 } // 8 jam
+}));
+
+// ==========================================
+// AUTH MIDDLEWARE
+// ==========================================
+function requireLogin(req, res, next) {
+    if (req.session && req.session.user) return next();
+    res.redirect('/login');
+}
+
+// Inject user ke semua views
+app.use((req, res, next) => {
+    res.locals.currentUser = req.session.user || null;
+    next();
+});
 
 // ==========================================
 // MULTER
@@ -91,9 +117,43 @@ function getYearOptions() {
 }
 
 // ==========================================
+// LOGIN / LOGOUT
+// ==========================================
+app.get('/login', (req, res) => {
+    if (req.session && req.session.user) return res.redirect('/kerja');
+    res.render('login', { error: null, username: '' });
+});
+
+app.post('/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.render('login', { error: 'Username dan password harus diisi.', username: username || '' });
+        }
+        const user = await prisma.user.findUnique({ where: { username: username.trim().toLowerCase() } });
+        if (!user) {
+            return res.render('login', { error: 'Username atau password salah.', username: username });
+        }
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.render('login', { error: 'Username atau password salah.', username: username });
+        }
+        req.session.user = { id: user.id, username: user.username, nama: user.nama, role: user.role };
+        res.redirect('/kerja');
+    } catch (error) {
+        console.error('[LOGIN ERROR]', error.message);
+        res.render('login', { error: 'Terjadi kesalahan server. Coba lagi.', username: req.body.username || '' });
+    }
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy(() => res.redirect('/login'));
+});
+
+// ==========================================
 // 1. VIEWER MODE
 // ==========================================
-app.get('/', async (req, res) => {
+app.get('/', requireLogin, async (req, res) => {
     try {
         const { date } = req.query;
         const now = new Date();
@@ -134,7 +194,7 @@ app.get('/', async (req, res) => {
 // ==========================================
 // 2. ADMIN MODE
 // ==========================================
-app.get('/kerja', async (req, res) => {
+app.get('/kerja', requireLogin, async (req, res) => {
     try {
         const { month, year, status, saved } = req.query;
         let whereClause = {};
@@ -164,7 +224,7 @@ app.get('/kerja', async (req, res) => {
 // ==========================================
 // 3. SIMPAN DATA BARU
 // ==========================================
-app.post('/save', uploadFields, async (req, res) => {
+app.post('/save', requireLogin, uploadFields, async (req, res) => {
     try {
         // Ambil semua field dengan fallback kosong
         const aktivitas          = req.body.aktivitas          || '';
@@ -225,7 +285,7 @@ app.post('/save', uploadFields, async (req, res) => {
 // ==========================================
 // 4. UPDATE STATUS
 // ==========================================
-app.post('/update-status/:id', async (req, res) => {
+app.post('/update-status/:id', requireLogin, async (req, res) => {
     try {
         await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { status: req.body.newStatus } });
         res.redirect('/kerja');
@@ -235,7 +295,7 @@ app.post('/update-status/:id', async (req, res) => {
 // ==========================================
 // 5a. UPLOAD FOTO SESUDAH SUSULAN
 // ==========================================
-app.post('/upload-foto/:id', upload.single('foto'), async (req, res) => {
+app.post('/upload-foto/:id', requireLogin, upload.single('foto'), async (req, res) => {
     try {
         if (req.file) await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoUrl: '/uploads/' + req.file.filename } });
         res.redirect('/kerja');
@@ -245,7 +305,7 @@ app.post('/upload-foto/:id', upload.single('foto'), async (req, res) => {
 // ==========================================
 // 5b. UPLOAD FOTO AWAL SUSULAN
 // ==========================================
-app.post('/upload-foto-awal/:id', upload.single('fotoAwal'), async (req, res) => {
+app.post('/upload-foto-awal/:id', requireLogin, upload.single('fotoAwal'), async (req, res) => {
     try {
         if (req.file) await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoAwalUrl: '/uploads/' + req.file.filename } });
         res.redirect('/kerja');
@@ -255,7 +315,7 @@ app.post('/upload-foto-awal/:id', upload.single('fotoAwal'), async (req, res) =>
 // ==========================================
 // 6. EDIT DATA
 // ==========================================
-app.post('/edit/:id', uploadFields, async (req, res) => {
+app.post('/edit/:id', requireLogin, uploadFields, async (req, res) => {
     try {
         const aktivitas          = req.body.aktivitas          || '';
         const divisi             = req.body.divisi             || '';
@@ -314,7 +374,7 @@ app.post('/edit/:id', uploadFields, async (req, res) => {
 // ==========================================
 // 7. DELETE DATA
 // ==========================================
-app.post('/delete/:id', async (req, res) => {
+app.post('/delete/:id', requireLogin, async (req, res) => {
     try {
         const item = await prisma.journal.findUnique({ where: { id: parseInt(req.params.id) } });
         if (item) {
@@ -330,7 +390,7 @@ app.post('/delete/:id', async (req, res) => {
 // ==========================================
 // 8. EXPORT EXCEL
 // ==========================================
-app.get('/export', async (req, res) => {
+app.get('/export', requireLogin, async (req, res) => {
     try {
         const { date, month, year } = req.query;
         let whereClause = {}, fileName = 'Log-IT.xlsx';
@@ -412,19 +472,19 @@ app.get('/export', async (req, res) => {
 // ==========================================
 // 9. NOTES
 // ==========================================
-app.get('/api/notes', async (req, res) => {
+app.get('/api/notes', requireLogin, async (req, res) => {
     try { res.json(await prisma.note.findMany({ orderBy: { createdAt: 'desc' } })); }
     catch (e) { res.status(500).json({ error: "Gagal ambil notes" }); }
 });
-app.post('/api/notes', async (req, res) => {
+app.post('/api/notes', requireLogin, async (req, res) => {
     try { res.json(await prisma.note.create({ data: { title: req.body.title, content: req.body.content } })); }
     catch (e) { res.status(500).json({ error: "Gagal tambah notes" }); }
 });
-app.put('/api/notes/:id', async (req, res) => {
+app.put('/api/notes/:id', requireLogin, async (req, res) => {
     try { res.json(await prisma.note.update({ where: { id: parseInt(req.params.id) }, data: { title: req.body.title, content: req.body.content } })); }
     catch (e) { res.status(500).json({ error: "Gagal update notes" }); }
 });
-app.delete('/api/notes/:id', async (req, res) => {
+app.delete('/api/notes/:id', requireLogin, async (req, res) => {
     try { await prisma.note.delete({ where: { id: parseInt(req.params.id) } }); res.json({ success: true }); }
     catch (e) { res.status(500).json({ error: "Gagal hapus notes" }); }
 });
@@ -434,7 +494,7 @@ app.listen(3001, '0.0.0.0', () => console.log('🚀 SYSTEM READY AT PORT 3001'))
 // ==========================================
 // ASET — EXPORT PDF (print-ready HTML)
 // ==========================================
-app.get('/aset/export-pdf', async (req, res) => {
+app.get('/aset/export-pdf', requireLogin, async (req, res) => {
     try {
         const aset = await prisma.aset.findMany({
             orderBy: { nama: 'asc' },
@@ -450,7 +510,7 @@ app.get('/aset/export-pdf', async (req, res) => {
 // ==========================================
 // ASET — MASTER LIST
 // ==========================================
-app.get('/aset', async (req, res) => {
+app.get('/aset', requireLogin, async (req, res) => {
     try {
         const { q, kategori } = req.query;
         let where = {};
@@ -475,7 +535,7 @@ app.get('/aset', async (req, res) => {
 // ==========================================
 // ASET — DETAIL & RIWAYAT
 // ==========================================
-app.get('/aset/:id', async (req, res) => {
+app.get('/aset/:id', requireLogin, async (req, res) => {
     try {
         const aset = await prisma.aset.findUnique({
             where: { id: parseInt(req.params.id) },
@@ -492,7 +552,7 @@ app.get('/aset/:id', async (req, res) => {
 // ==========================================
 // ASET — TAMBAH MASTER
 // ==========================================
-app.post('/aset/tambah', async (req, res) => {
+app.post('/aset/tambah', requireLogin, async (req, res) => {
     try {
         const { nama, kategori, satuan, stok, kondisi, keterangan } = req.body;
         const stokNum = parseInt(stok) || 0;
@@ -506,7 +566,7 @@ app.post('/aset/tambah', async (req, res) => {
 // ==========================================
 // ASET — EDIT MASTER
 // ==========================================
-app.post('/aset/edit/:id', async (req, res) => {
+app.post('/aset/edit/:id', requireLogin, async (req, res) => {
     try {
         const { nama, kategori, satuan, stokAwal, kondisi, keterangan } = req.body;
         const stokAwalNum = parseInt(stokAwal) || 0;
@@ -525,7 +585,7 @@ app.post('/aset/edit/:id', async (req, res) => {
 // ==========================================
 // ASET — HAPUS MASTER
 // ==========================================
-app.post('/aset/hapus/:id', async (req, res) => {
+app.post('/aset/hapus/:id', requireLogin, async (req, res) => {
     try {
         await prisma.aset.delete({ where: { id: parseInt(req.params.id) } });
         res.redirect('/aset');
@@ -535,7 +595,7 @@ app.post('/aset/hapus/:id', async (req, res) => {
 // ==========================================
 // ASET — CATAT PENGGUNAAN (potong stok)
 // ==========================================
-app.post('/aset/pakai/:id', async (req, res) => {
+app.post('/aset/pakai/:id', requireLogin, async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, divisi, lokasi, keterangan, tanggal } = req.body;
@@ -562,7 +622,7 @@ app.post('/aset/pakai/:id', async (req, res) => {
 // ==========================================
 // ASET — HAPUS PENGGUNAAN (kembalikan stok)
 // ==========================================
-app.post('/aset/pakai-hapus/:penggunaanId', async (req, res) => {
+app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, async (req, res) => {
     try {
         const penggunaan = await prisma.asetPenggunaan.findUnique({ where: { id: parseInt(req.params.penggunaanId) } });
         if (!penggunaan) return res.status(404).send("Data tidak ditemukan");
@@ -577,7 +637,7 @@ app.post('/aset/pakai-hapus/:penggunaanId', async (req, res) => {
 // ==========================================
 // ASET — CATAT PINJAMAN (potong stok)
 // ==========================================
-app.post('/aset/pinjam/:id', async (req, res) => {
+app.post('/aset/pinjam/:id', requireLogin, async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, peminjam, divisi, keperluan, tanggalPinjam } = req.body;
@@ -605,7 +665,7 @@ app.post('/aset/pinjam/:id', async (req, res) => {
 // ==========================================
 // ASET — KEMBALIKAN PINJAMAN (naikkan stok)
 // ==========================================
-app.post('/aset/kembali/:pinjamId', async (req, res) => {
+app.post('/aset/kembali/:pinjamId', requireLogin, async (req, res) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Data pinjaman tidak ditemukan");
@@ -625,7 +685,7 @@ app.post('/aset/kembali/:pinjamId', async (req, res) => {
 // ==========================================
 // ASET — HAPUS PINJAMAN (batalkan, kembalikan stok)
 // ==========================================
-app.post('/aset/pinjam-hapus/:pinjamId', async (req, res) => {
+app.post('/aset/pinjam-hapus/:pinjamId', requireLogin, async (req, res) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Tidak ditemukan");
