@@ -5,51 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventaris Aset IT</title>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f1117">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        body { background: #080a10 !important; color: #c9d1e0; font-family: 'Inter', -apple-system, sans-serif; margin: 0; }
-        .page-wrap { max-width: 1500px; margin: 0 auto; padding: 1.5rem 1.5rem; }
+        body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', -apple-system, sans-serif; margin: 0; transition: background 0.25s, color 0.25s; }
+        .page-wrap { max-width: 1500px; margin: 0 auto; padding: 1.5rem; }
 
-        /* SIDEBAR FORM */
-        .form-panel { background: #0f1117; border: 1px solid #1e2130; border-radius: 12px; padding: 1.25rem; position: sticky; top: 72px; }
+        /* SIDEBAR */
+        .form-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; padding: 1.25rem; position: sticky; top: 72px; }
         .form-panel h6 { font-size: 0.78rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
-        .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: #5a5f7a; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-        .f-input { background: #080a10 !important; border: 1px solid #1e2130 !important; border-radius: 6px; color: #c9d1e0 !important; padding: 8px 10px; width: 100%; margin-bottom: 0.65rem; font-size: 0.83rem; outline: none; transition: border-color 0.15s; }
-        .f-input:focus { border-color: #3b4263 !important; }
-        .btn-add { background: #1a3a2a; border: 1px solid #2d6a4a; color: #4ade80; width: 100%; padding: 9px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; letter-spacing: 0.03em; transition: all 0.15s; margin-top: 4px; }
+        .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+        .f-input { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; border-radius: 6px; color: var(--body-text) !important; padding: 8px 10px; width: 100%; margin-bottom: 0.65rem; font-size: 0.83rem; outline: none; transition: border-color 0.15s; }
+        .f-input:focus { border-color: var(--body-input-focus) !important; }
+        .btn-add { background: #1a3a2a; border: 1px solid #2d6a4a; color: #4ade80; width: 100%; padding: 9px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
         .btn-add:hover { background: #224a36; }
 
-        /* TABLE */
-        .main-panel { background: #0f1117; border: 1px solid #1e2130; border-radius: 12px; overflow: hidden; }
-        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid #1e2130; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-        .panel-title { font-size: 0.82rem; font-weight: 700; color: #8b8fa8; text-transform: uppercase; letter-spacing: 0.07em; }
-        .panel-count { font-size: 0.78rem; color: #3b4263; }
+        /* MAIN TABLE */
+        .main-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; overflow: hidden; }
+        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--body-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .panel-title { font-size: 0.82rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; }
+        .panel-count { font-size: 0.78rem; color: var(--body-text3); }
         .search-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        .s-input { background: #080a10; border: 1px solid #1e2130; border-radius: 6px; color: #c9d1e0; padding: 6px 10px; font-size: 0.8rem; outline: none; }
-        .s-input:focus { border-color: #3b4263; }
-        .s-btn { background: #1a1d2e; border: 1px solid #2a2d3e; color: #8b8fa8; padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        .s-btn:hover { border-color: #444; color: #c9d1e0; }
+        .s-input { background: var(--body-input); border: 1px solid var(--body-input-border); border-radius: 6px; color: var(--body-text); padding: 6px 10px; font-size: 0.8rem; outline: none; }
+        .s-input:focus { border-color: var(--body-input-focus); }
+        .s-btn { background: var(--body-bg2); border: 1px solid var(--body-border); color: var(--body-text2); padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .s-btn:hover { border-color: var(--body-border2); color: var(--body-text); }
         .s-btn-primary { background: #1a2a4a; border-color: #2a3d6a; color: #7eb8f7; }
         .s-btn-primary:hover { background: #1e3054; }
         .s-btn-export { background: #2a1a0a; border-color: #5a3a1a; color: #f5a623; }
         .s-btn-export:hover { background: #3a2010; }
 
-        /* DATA TABLE */
+        /* TABLE */
         .aset-table { width: 100%; border-collapse: collapse; }
-        .aset-table thead tr { background: #080a10; }
-        .aset-table th { padding: 10px 14px; text-align: left; font-size: 0.67rem; font-weight: 700; color: #3b4263; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid #1e2130; white-space: nowrap; }
-        .aset-table tbody tr { border-bottom: 1px solid #1a1d2e; transition: background 0.1s; }
-        .aset-table tbody tr:hover { background: #12151f; }
-        .aset-table td { padding: 11px 14px; font-size: 0.83rem; color: #c9d1e0; vertical-align: middle; }
-        .aset-name { font-weight: 600; color: #e2e8f0; }
-        .aset-cat { font-size: 0.72rem; color: #5a5f7a; margin-top: 2px; }
+        .aset-table thead tr { background: var(--body-bg); }
+        .aset-table th { padding: 10px 14px; text-align: left; font-size: 0.67rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--body-border); white-space: nowrap; }
+        .aset-table tbody tr { border-bottom: 1px solid var(--body-border); transition: background 0.1s; }
+        .aset-table tbody tr:hover { background: var(--body-bg3); }
+        .aset-table td { padding: 11px 14px; font-size: 0.83rem; color: var(--body-text); vertical-align: middle; }
+        .aset-name { font-weight: 600; color: var(--body-text); }
 
-        /* STOK INDICATOR */
-        .stok-cell { white-space: nowrap; }
+        /* STOK */
         .stok-val { font-weight: 700; font-size: 0.95rem; }
-        .stok-mini-bar { width: 60px; height: 3px; background: #1e2130; border-radius: 2px; margin-top: 4px; overflow: hidden; display: inline-block; }
+        .stok-mini-bar { width: 60px; height: 3px; background: var(--body-border); border-radius: 2px; margin-top: 4px; overflow: hidden; display: inline-block; }
         .stok-mini-fill { height: 100%; border-radius: 2px; }
 
         /* BADGES */
@@ -59,21 +56,21 @@
         .k-service { background: #2a1a0d; color: #fb923c; border: 1px solid #5c3010; }
         .badge-pinjam { display: inline-block; background: #1a0d3d; color: #a78bfa; border: 1px solid #4c3780; border-radius: 3px; padding: 1px 6px; font-size: 0.62rem; font-weight: 700; margin-left: 4px; }
 
-        /* ACTION BUTTONS */
-        .act-btn { background: none; border: 1px solid #1e2130; color: #5a5f7a; padding: 4px 9px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
-        .act-btn:hover { border-color: #3b4263; color: #c9d1e0; }
+        /* ACTION BTNS */
+        .act-btn { background: none; border: 1px solid var(--body-border); color: var(--body-text2); padding: 4px 9px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+        .act-btn:hover { border-color: var(--body-border2); color: var(--body-text); }
         .act-btn.green:hover  { border-color: #2d6a4a; color: #4ade80; background: #0d2a18; }
         .act-btn.blue:hover   { border-color: #2a3d6a; color: #7eb8f7; background: #0d1a38; }
         .act-btn.purple:hover { border-color: #4c3780; color: #a78bfa; background: #1a0d3d; }
         .act-btn.red:hover    { border-color: #5c1a1a; color: #f87171; background: #2a0d0d; }
 
         /* MODAL */
-        .m-content { background: #0f1117; border: 1px solid #1e2130; }
-        .m-header  { border-bottom: 1px solid #1e2130; }
-        .m-footer  { border-top: 1px solid #1e2130; }
+        .m-content { background: var(--body-card) !important; border: 1px solid var(--body-border) !important; }
+        .m-header  { border-bottom: 1px solid var(--body-border) !important; }
+        .m-footer  { border-top: 1px solid var(--body-border) !important; }
+        .m-content .modal-title { color: var(--body-text); }
 
-        /* EMPTY */
-        .empty-row td { text-align: center; padding: 3rem; color: #3b4263; font-size: 0.85rem; }
+        .empty-row td { text-align: center; padding: 3rem; color: var(--body-text3); font-size: 0.85rem; }
 
         @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; } }
     </style>
@@ -99,7 +96,7 @@
             <option value="Telepon"><option value="ATK"><option value="Lainnya">
           </datalist>
           <label class="f-label">Satuan</label>
-          <input type="text" name="satuan" class="f-input" placeholder="pcs / unit / meter / bungkus..." list="satuanList" required>
+          <input type="text" name="satuan" class="f-input" placeholder="pcs / unit / meter..." list="satuanList" required>
           <datalist id="satuanList">
             <option value="pcs"><option value="unit"><option value="meter">
             <option value="bungkus"><option value="roll"><option value="box">
@@ -133,9 +130,7 @@
               <input type="text" name="q" value="<%= q %>" class="s-input" placeholder="Cari nama / kategori..." style="width:180px;">
               <select name="kategori" class="s-input">
                 <option value="">Semua Kategori</option>
-                <% allKategori.forEach(k => { %>
-                  <option value="<%= k %>" <%= kategori === k ? 'selected' : '' %>><%= k %></option>
-                <% }) %>
+                <% allKategori.forEach(k => { %><option value="<%= k %>" <%= kategori === k ? 'selected' : '' %>><%= k %></option><% }) %>
               </select>
               <button type="submit" class="s-btn s-btn-primary">Cari</button>
               <% if (q || kategori) { %><a href="/aset" class="s-btn">Reset</a><% } %>
@@ -168,22 +163,20 @@
                 const kondisiClass = item.kondisi === 'Baik' ? 'k-baik' : item.kondisi === 'Rusak' ? 'k-rusak' : 'k-service';
               %>
               <tr>
-                <td style="color:#3b4263;font-size:0.75rem;"><%= i+1 %></td>
-                <td>
-                  <div class="aset-name"><%= item.nama %></div>
-                </td>
-                <td><span style="font-size:0.75rem;color:#5a5f7a;"><%= item.kategori || '—' %></span></td>
+                <td style="color:var(--body-text3);font-size:0.75rem;"><%= i+1 %></td>
+                <td><div class="aset-name"><%= item.nama %></div></td>
+                <td><span style="font-size:0.75rem;color:var(--body-text2);"><%= item.kategori || '—' %></span></td>
                 <td><span class="badge-kondisi <%= kondisiClass %>"><%= item.kondisi %></span></td>
-                <td style="color:#5a5f7a;font-size:0.82rem;"><%= item.stokAwal %> <span style="color:#3b4263;"><%= item.satuan %></span></td>
-                <td class="stok-cell">
-                  <div class="stok-val" style="color:<%= barColor %>"><%= item.stok %> <span style="font-size:0.72rem;color:#3b4263;font-weight:400;"><%= item.satuan %></span></div>
+                <td style="color:var(--body-text2);font-size:0.82rem;"><%= item.stokAwal %> <span style="color:var(--body-text3);"><%= item.satuan %></span></td>
+                <td>
+                  <div class="stok-val" style="color:<%= barColor %>"><%= item.stok %> <span style="font-size:0.72rem;color:var(--body-text3);font-weight:400;"><%= item.satuan %></span></div>
                   <div><div class="stok-mini-bar"><div class="stok-mini-fill" style="width:<%= pct %>%;background:<%= barColor %>;"></div></div></div>
                 </td>
                 <td>
                   <% if(item._count.pinjaman > 0) { %>
                     <span class="badge-pinjam"><%= item._count.pinjaman %> item</span>
                   <% } else { %>
-                    <span style="color:#2a2d3e;font-size:0.75rem;">—</span>
+                    <span style="color:var(--body-border2);font-size:0.75rem;">—</span>
                   <% } %>
                 </td>
                 <td>
@@ -209,12 +202,11 @@
 <div class="modal fade" id="modalPakai" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
-      <div class="modal-header m-header"><h5 class="modal-title text-white" id="modalPakaiTitle">Catat Penggunaan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header m-header"><h5 class="modal-title" id="modalPakaiTitle">Catat Penggunaan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <form id="formPakai" action="" method="POST">
         <div class="modal-body">
           <div id="pakaiInfo" style="background:#0d2a18;border:1px solid #1a5c30;border-radius:6px;padding:9px 12px;margin-bottom:1rem;font-size:0.82rem;color:#4ade80;font-weight:700;"></div>
-          <label class="f-label">Jumlah</label>
-          <input type="number" name="jumlah" class="f-input" min="1" value="1" required id="pakaiJml">
+          <label class="f-label">Jumlah</label><input type="number" name="jumlah" class="f-input" min="1" value="1" required id="pakaiJml">
           <label class="f-label">Divisi Tujuan</label>
           <select name="divisi" class="f-input">
             <option value="IT & IC">IT & IC</option><option value="HRGA">HRGA</option>
@@ -223,12 +215,9 @@
             <option value="Produksi">Produksi</option><option value="Bahanbaku">Bahanbaku</option>
             <option value="MAINTENANCE">MAINTENANCE</option><option value="Admin Sales">Admin Sales</option>
           </select>
-          <label class="f-label">Lokasi Pemasangan</label>
-          <input type="text" name="lokasi" class="f-input" placeholder="cth: Ruang server lt.1, Meja kepala HRD" required>
-          <label class="f-label">Tanggal</label>
-          <input type="date" name="tanggal" class="f-input" id="pakaiTgl">
-          <label class="f-label">Keterangan</label>
-          <textarea name="keterangan" class="f-input" rows="2"></textarea>
+          <label class="f-label">Lokasi Pemasangan</label><input type="text" name="lokasi" class="f-input" placeholder="cth: Ruang server lt.1" required>
+          <label class="f-label">Tanggal</label><input type="date" name="tanggal" class="f-input" id="pakaiTgl">
+          <label class="f-label">Keterangan</label><textarea name="keterangan" class="f-input" rows="2"></textarea>
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -243,14 +232,12 @@
 <div class="modal fade" id="modalPinjam" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
-      <div class="modal-header m-header"><h5 class="modal-title text-white" id="modalPinjamTitle">Catat Peminjaman</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header m-header"><h5 class="modal-title" id="modalPinjamTitle">Catat Peminjaman</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <form id="formPinjam" action="" method="POST">
         <div class="modal-body">
           <div id="pinjamInfo" style="background:#1a0d3d;border:1px solid #4c3780;border-radius:6px;padding:9px 12px;margin-bottom:1rem;font-size:0.82rem;color:#a78bfa;font-weight:700;"></div>
-          <label class="f-label">Jumlah</label>
-          <input type="number" name="jumlah" class="f-input" min="1" value="1" required>
-          <label class="f-label">Nama Peminjam</label>
-          <input type="text" name="peminjam" class="f-input" placeholder="cth: Roby, Bagyo" required>
+          <label class="f-label">Jumlah</label><input type="number" name="jumlah" class="f-input" min="1" value="1" required>
+          <label class="f-label">Nama Peminjam</label><input type="text" name="peminjam" class="f-input" placeholder="cth: Roby, Bagyo" required>
           <label class="f-label">Divisi</label>
           <select name="divisi" class="f-input">
             <option value="IT & IC">IT & IC</option><option value="HRGA">HRGA</option>
@@ -259,10 +246,8 @@
             <option value="Produksi">Produksi</option><option value="Bahanbaku">Bahanbaku</option>
             <option value="MAINTENANCE">MAINTENANCE</option><option value="Admin Sales">Admin Sales</option>
           </select>
-          <label class="f-label">Keperluan</label>
-          <textarea name="keperluan" class="f-input" rows="2" placeholder="cth: Presentasi jobfair..." required></textarea>
-          <label class="f-label">Tanggal Pinjam</label>
-          <input type="date" name="tanggalPinjam" class="f-input" id="pinjamTgl">
+          <label class="f-label">Keperluan</label><textarea name="keperluan" class="f-input" rows="2" placeholder="cth: Presentasi jobfair..." required></textarea>
+          <label class="f-label">Tanggal Pinjam</label><input type="date" name="tanggalPinjam" class="f-input" id="pinjamTgl">
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -277,18 +262,16 @@
 <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
-      <div class="modal-header m-header"><h5 class="modal-title text-white">Edit Aset</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header m-header"><h5 class="modal-title">Edit Aset</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <form id="formEdit" action="" method="POST">
         <div class="modal-body">
           <label class="f-label">Nama Aset</label><input type="text" name="nama" id="eNama" class="f-input" required>
           <label class="f-label">Kategori</label><input type="text" name="kategori" id="eKat" class="f-input" list="kategoriList">
           <label class="f-label">Satuan</label><input type="text" name="satuan" id="eSat" class="f-input" list="satuanList" required>
-          <label class="f-label">Stok Awal (total yang dimiliki)</label>
-          <input type="number" name="stokAwal" id="eStok" class="f-input" min="0" required>
+          <label class="f-label">Stok Awal</label><input type="number" name="stokAwal" id="eStok" class="f-input" min="0" required>
           <label class="f-label">Kondisi</label>
           <select name="kondisi" id="eKon" class="f-input"><option value="Baik">Baik</option><option value="Perlu Service">Perlu Service</option><option value="Rusak">Rusak</option></select>
-          <label class="f-label">Keterangan</label>
-          <textarea name="keterangan" id="eKet" class="f-input" rows="2"></textarea>
+          <label class="f-label">Keterangan</label><textarea name="keterangan" id="eKet" class="f-input" rows="2"></textarea>
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -302,9 +285,13 @@
 <!-- MODAL HAPUS -->
 <div class="modal fade" id="modalHapus" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content m-content" style="border-color:#5c1a1a;">
-      <div class="modal-header" style="border-color:#5c1a1a;"><h5 class="modal-title text-white">Hapus Aset</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body"><p class="text-white mb-1">Yakin hapus aset ini?</p><p id="hapusNama" style="color:#f87171;font-weight:700;"></p><p style="color:#5a5f7a;font-size:0.8rem;">Semua riwayat penggunaan dan pinjaman ikut terhapus.</p></div>
+    <div class="modal-content m-content" style="border-color:#5c1a1a !important;">
+      <div class="modal-header" style="border-color:#5c1a1a;"><h5 class="modal-title">Hapus Aset</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <p style="color:var(--body-text);" class="mb-1">Yakin hapus aset ini?</p>
+        <p id="hapusNama" style="color:#f87171;font-weight:700;"></p>
+        <p style="color:var(--body-text2);font-size:0.8rem;">Semua riwayat penggunaan dan pinjaman ikut terhapus.</p>
+      </div>
       <div class="modal-footer" style="border-color:#5c1a1a;">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
         <form id="formHapus" action="" method="POST" style="display:inline;"><button type="submit" class="btn btn-danger fw-bold">Ya, Hapus</button></form>
@@ -315,38 +302,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-var today = new Date().toISOString().split('T')[0];
-if(document.getElementById('pakaiTgl')) document.getElementById('pakaiTgl').value = today;
-if(document.getElementById('pinjamTgl')) document.getElementById('pinjamTgl').value = today;
+var today=new Date().toISOString().split('T')[0];
+if(document.getElementById('pakaiTgl'))document.getElementById('pakaiTgl').value=today;
+if(document.getElementById('pinjamTgl'))document.getElementById('pinjamTgl').value=today;
 
-function openModalPakai(id, nama, stok, sat) {
-    document.getElementById('formPakai').action = '/aset/pakai/' + id;
-    document.getElementById('modalPakaiTitle').textContent = 'Catat Penggunaan: ' + nama;
-    document.getElementById('pakaiInfo').textContent = 'Stok tersedia: ' + stok + ' ' + sat;
-    document.getElementById('pakaiJml').max = stok;
-    new bootstrap.Modal(document.getElementById('modalPakai')).show();
-}
-function openModalPinjam(id, nama, stok, sat) {
-    document.getElementById('formPinjam').action = '/aset/pinjam/' + id;
-    document.getElementById('modalPinjamTitle').textContent = 'Catat Peminjaman: ' + nama;
-    document.getElementById('pinjamInfo').textContent = 'Stok tersedia: ' + stok + ' ' + sat;
-    new bootstrap.Modal(document.getElementById('modalPinjam')).show();
-}
-function openModalEdit(id, nama, kat, sat, stok, kon, ket) {
-    document.getElementById('formEdit').action = '/aset/edit/' + id;
-    document.getElementById('eNama').value = nama;
-    document.getElementById('eKat').value = kat;
-    document.getElementById('eSat').value = sat;
-    document.getElementById('eStok').value = stok;
-    document.getElementById('eKon').value = kon;
-    document.getElementById('eKet').value = ket;
-    new bootstrap.Modal(document.getElementById('modalEdit')).show();
-}
-function hapusAset(id, nama) {
-    document.getElementById('formHapus').action = '/aset/hapus/' + id;
-    document.getElementById('hapusNama').textContent = '"' + nama + '"';
-    new bootstrap.Modal(document.getElementById('modalHapus')).show();
-}
+function openModalPakai(id,nama,stok,sat){document.getElementById('formPakai').action='/aset/pakai/'+id;document.getElementById('modalPakaiTitle').textContent='Catat Penggunaan: '+nama;document.getElementById('pakaiInfo').textContent='Stok tersedia: '+stok+' '+sat;document.getElementById('pakaiJml').max=stok;new bootstrap.Modal(document.getElementById('modalPakai')).show();}
+function openModalPinjam(id,nama,stok,sat){document.getElementById('formPinjam').action='/aset/pinjam/'+id;document.getElementById('modalPinjamTitle').textContent='Catat Peminjaman: '+nama;document.getElementById('pinjamInfo').textContent='Stok tersedia: '+stok+' '+sat;new bootstrap.Modal(document.getElementById('modalPinjam')).show();}
+function openModalEdit(id,nama,kat,sat,stok,kon,ket){document.getElementById('formEdit').action='/aset/edit/'+id;document.getElementById('eNama').value=nama;document.getElementById('eKat').value=kat;document.getElementById('eSat').value=sat;document.getElementById('eStok').value=stok;document.getElementById('eKon').value=kon;document.getElementById('eKet').value=ket;new bootstrap.Modal(document.getElementById('modalEdit')).show();}
+function hapusAset(id,nama){document.getElementById('formHapus').action='/aset/hapus/'+id;document.getElementById('hapusNama').textContent='"'+nama+'"';new bootstrap.Modal(document.getElementById('modalHapus')).show();}
 </script>
 </body>
 </html>
