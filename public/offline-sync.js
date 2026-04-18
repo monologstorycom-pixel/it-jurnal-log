@@ -336,7 +336,7 @@
                 color:#fb923c;text-align:center;padding:7px;
                 font-size:0.78rem;font-weight:700;letter-spacing:0.04em;
             `;
-            banner.innerHTML = '📡 OFFLINE MODE — Data form akan disimpan lokal & sync otomatis saat online';
+            banner.innerHTML = '📡 OFFLINE MODE —  sync otomatis saat online';
             document.body.appendChild(banner);
         }
     }
