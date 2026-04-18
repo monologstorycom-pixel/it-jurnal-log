@@ -679,5 +679,6 @@ window.addEventListener('beforeinstallprompt', function(e) { e.preventDefault();
 installBtn.addEventListener('click', async function() { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; installBtn.style.display = 'none'; } });
 window.addEventListener('appinstalled', function() { installBtn.style.display = 'none'; });
 </script>
+<script src="/offline-sync.js"></script>
 </body>
 </html>
