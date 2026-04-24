@@ -181,5 +181,6 @@
         window.addEventListener('load',function(){loadNotes();});
         if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(err){console.log('SW Gagal',err);});});}
     </script>
+    <script src="/offline-sync.js"></script>
 </body>
 </html>

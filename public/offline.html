@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline — IT Support Log</title>
+    <style>
+        :root {
+            --bg: #080a10; --bg2: #0f1117; --border: #1e2130;
+            --text: #e2e8f0; --text2: #8b8fa8; --text3: #3b4263;
+            --accent: #4ade80; --accent-bg: #0d2a18;
+            --warn: #fb923c; --warn-bg: #2a1a0d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 2rem;
+        }
+        .container { max-width: 480px; width: 100%; text-align: center; }
+        .icon { font-size: 4rem; margin-bottom: 1.5rem; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+        .sub { font-size: 0.85rem; color: var(--text2); margin-bottom: 2rem; line-height: 1.6; }
+        .status-box {
+            background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+            padding: 1.25rem; margin-bottom: 1.5rem; text-align: left;
+        }
+        .status-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.82rem; color: var(--text2); }
+        .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .dot-red { background: #f87171; animation: pulse 1.5s infinite; }
+        .dot-green { background: var(--accent); }
+        .dot-yellow { background: var(--warn); animation: pulse 2s infinite; }
+        .pending-info {
+            background: var(--warn-bg); border: 1px solid var(--warn); border-radius: 8px;
+            padding: 1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: var(--warn);
+            display: none;
+        }
+        .pending-info.show { display: block; }
+        .btn {
+            background: var(--accent-bg); border: 1px solid var(--accent);
+            color: var(--accent); padding: 10px 24px; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer;
+            text-decoration: none; display: inline-block;
+            transition: all 0.2s; letter-spacing: 0.04em;
+        }
+        .btn:hover { background: #1a4a2a; }
+        .queue-count { font-size: 1.5rem; font-weight: 800; color: var(--warn); }
+        .auto-msg { font-size: 0.72rem; color: var(--text3); margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>OFFLINE MODE</h1>
+        <p class="sub">Koneksi internet terputus.<br>Halaman sebelumnya masih bisa diakses dari cache.</p>
+
+        <div class="status-box">
+            <div class="status-item">
+                <div class="dot dot-red" id="netDot"></div>
+                <span id="netStatus">Tidak ada koneksi internet</span>
+            </div>
+            <div class="status-item">
+                <div class="dot dot-green"></div>
+                <span>Cache halaman tersedia — bisa akses halaman yang sudah dibuka sebelumnya</span>
+            </div>
+            <div class="status-item">
+                <div class="dot dot-yellow" id="syncDot"></div>
+                <span id="syncStatus">Data offline akan auto-sync saat online</span>
+            </div>
+        </div>
+
+        <div class="pending-info" id="pendingBox">
+            Ada <span class="queue-count" id="queueCount">0</span> data pending di antrian.<br>
+            Akan otomatis dikirim saat koneksi kembali.
+        </div>
+
+        <a href="/kerja" class="btn">COBA BUKA DASHBOARD</a>
+        <div class="auto-msg" id="autoMsg">Memantau koneksi... akan redirect otomatis saat online.</div>
+    </div>
+
+    <script>
+    // Cek pending queue dari IndexedDB
+    async function checkQueue() {
+        try {
+            const db = await openDB();
+            const tx = db.transaction('pendingForms', 'readonly');
+            const store = tx.objectStore('pendingForms');
+            const req = store.getAll();
+            req.onsuccess = function() {
+                const count = (req.result || []).length;
+                if (count > 0) {
+                    document.getElementById('queueCount').textContent = count;
+                    document.getElementById('pendingBox').classList.add('show');
+                }
+            };
+        } catch(e) {}
+    }
+
+    function openDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open('itlog-offline-db', 1);
+            req.onupgradeneeded = e => {
+                e.target.result.createObjectStore('pendingForms', { keyPath: 'id', autoIncrement: true });
+            };
+            req.onsuccess = e => resolve(e.target.result);
+            req.onerror = e => reject(e);
+        });
+    }
+
+    // Monitor koneksi
+    function updateStatus() {
+        const dot = document.getElementById('netDot');
+        const txt = document.getElementById('netStatus');
+        if (navigator.onLine) {
+            dot.className = 'dot dot-green';
+            dot.style.animation = 'none';
+            txt.textContent = 'Koneksi kembali! Mengalihkan...';
+            document.getElementById('autoMsg').textContent = '✅ Online! Redirect dalam 1 detik...';
+            setTimeout(() => { window.location.href = '/kerja'; }, 1000);
+        }
+    }
+
+    window.addEventListener('online', updateStatus);
+    checkQueue();
+    </script>
+</body>
+</html>
