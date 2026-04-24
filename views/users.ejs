@@ -8,49 +8,79 @@
     <style>
         * { box-sizing: border-box; }
         body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', -apple-system, sans-serif; margin: 0; transition: background 0.25s, color 0.25s; }
-        .page-wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+        .page-wrap { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
 
-        /* SIDEBAR FORM */
+        /* FORM PANEL */
         .form-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; padding: 1.25rem; position: sticky; top: 72px; }
         .form-panel h6 { font-size: 0.78rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
         .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
         .f-input { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; border-radius: 6px; color: var(--body-text) !important; padding: 8px 10px; width: 100%; margin-bottom: 0.65rem; font-size: 0.83rem; outline: none; transition: border-color 0.15s; }
         .f-input:focus { border-color: var(--body-input-focus) !important; }
-        .f-input option { background: var(--body-card); }
         .btn-add { background: #1a3a2a; border: 1px solid #2d6a4a; color: #4ade80; width: 100%; padding: 9px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
         .btn-add:hover { background: #224a36; }
+
+        /* PERMISSIONS GRID */
+        .perm-section { margin-bottom: 0.75rem; }
+        .perm-section-title { font-size: 0.65rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+        .perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .perm-check { display: flex; align-items: center; gap: 7px; padding: 6px 9px; background: var(--body-bg); border: 1px solid var(--body-border); border-radius: 6px; cursor: pointer; transition: all 0.15s; user-select: none; }
+        .perm-check:hover { border-color: var(--body-border2); }
+        .perm-check.checked { border-color: #2d6a4a; background: #0d2a18; }
+        .perm-check.checked-delete { border-color: #5c1a1a; background: #2a0d0d; }
+        .perm-check.checked-users { border-color: #4c3780; background: #1a0d3d; }
+        .perm-check input[type="checkbox"] { display: none; }
+        .perm-box { width: 16px; height: 16px; border: 1.5px solid var(--body-border2); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-size: 10px; }
+        .perm-check.checked .perm-box { background: #4ade80; border-color: #4ade80; color: #0d2a18; }
+        .perm-check.checked-delete .perm-box { background: #f87171; border-color: #f87171; color: #2a0d0d; }
+        .perm-check.checked-users .perm-box { background: #a78bfa; border-color: #a78bfa; color: #1a0d3d; }
+        .perm-label-text { font-size: 0.72rem; font-weight: 600; color: var(--body-text2); }
+        .perm-check.checked .perm-label-text { color: #4ade80; }
+        .perm-check.checked-delete .perm-label-text { color: #f87171; }
+        .perm-check.checked-users .perm-label-text { color: #a78bfa; }
+        .perm-icon { font-size: 12px; }
+
+        /* PRESET BUTTONS */
+        .preset-row { display: flex; gap: 5px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .preset-btn { padding: 4px 10px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; cursor: pointer; border: 1px solid; transition: all 0.15s; }
+        .preset-admin  { background: #1a0d3d; color: #a78bfa; border-color: #4c3780; }
+        .preset-admin:hover { background: #250f50; }
+        .preset-user   { background: #0d2a18; color: #4ade80; border-color: #2d6a4a; }
+        .preset-user:hover { background: #0f3020; }
+        .preset-viewer { background: #0d1a38; color: #7eb8f7; border-color: #2a3d6a; }
+        .preset-viewer:hover { background: #0f2040; }
+        .preset-clear  { background: var(--body-bg); color: var(--body-text2); border-color: var(--body-border); }
+        .preset-clear:hover { border-color: var(--body-border2); color: var(--body-text); }
 
         /* MAIN PANEL */
         .main-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; overflow: hidden; }
         .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--body-border); }
         .panel-title { font-size: 0.82rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; }
 
-        /* ROLE BADGES */
-        .role-admin  { display:inline-block;padding:3px 10px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a0d3d;color:#a78bfa;border:1px solid #4c3780; }
-        .role-user   { display:inline-block;padding:3px 10px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#0d2a18;color:#4ade80;border:1px solid #1a5c30; }
-        .role-viewer { display:inline-block;padding:3px 10px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a2a3a;color:#7eb8f7;border:1px solid #2a4a6a; }
-
-        /* PERMISSION MATRIX */
-        .perm-matrix { background: var(--body-bg); border: 1px solid var(--body-border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-        .perm-matrix-title { font-size: 0.7rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.75rem; }
-        .perm-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--body-border); font-size: 0.78rem; }
-        .perm-row:last-child { border-bottom: none; }
-        .perm-label { color: var(--body-text2); }
-        .perm-dots { display: flex; gap: 24px; }
-        .perm-dot { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
-        .perm-yes { background: #0d2a18; color: #4ade80; border: 1px solid #1a5c30; }
-        .perm-no  { background: #1a1a2e; color: #3b4263; border: 1px solid #2a2d3e; }
-        .perm-header { display: flex; justify-content: flex-end; gap: 24px; font-size: 0.65rem; font-weight: 700; color: var(--body-text3); margin-bottom: 4px; padding-right: 0; }
-        .perm-col { width: 16px; text-align: center; }
-
         /* TABLE */
         .user-table { width: 100%; border-collapse: collapse; }
-        .user-table th { padding: 10px 14px; font-size: 0.65rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--body-border); background: var(--body-bg); text-align: left; }
-        .user-table td { padding: 12px 14px; font-size: 0.83rem; color: var(--body-text); border-bottom: 1px solid var(--body-border); vertical-align: middle; }
+        .user-table th { padding: 10px 14px; font-size: 0.65rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--body-border); background: var(--body-bg); text-align: left; white-space: nowrap; }
+        .user-table td { padding: 11px 14px; font-size: 0.83rem; color: var(--body-text); border-bottom: 1px solid var(--body-border); vertical-align: middle; }
         .user-table tr:last-child td { border-bottom: none; }
         .user-table tr:hover td { background: var(--body-bg3); }
 
-        /* ACTION BTNS */
+        /* PERM TAGS inline di tabel */
+        .perm-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+        .pt { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 700; }
+        .pt-view   { background: #0d1a38; color: #7eb8f7; border: 1px solid #1a2d5c; }
+        .pt-add    { background: #0d2a18; color: #4ade80; border: 1px solid #1a5c30; }
+        .pt-edit   { background: #0d2210; color: #86efac; border: 1px solid #145c28; }
+        .pt-delete { background: #2a0d0d; color: #f87171; border: 1px solid #5c1a1a; }
+        .pt-asset  { background: #1a1a0d; color: #fde68a; border: 1px solid #5c4a00; }
+        .pt-export { background: #1a0d2a; color: #d8b4fe; border: 1px solid #4c1a7a; }
+        .pt-users  { background: #1a0d3d; color: #a78bfa; border: 1px solid #4c3780; }
+
+        /* ROLE BADGE */
+        .role-admin  { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a0d3d;color:#a78bfa;border:1px solid #4c3780; }
+        .role-user   { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#0d2a18;color:#4ade80;border:1px solid #1a5c30; }
+        .role-viewer { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a2a3a;color:#7eb8f7;border:1px solid #2a4a6a; }
+        .role-custom { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#2a1a0d;color:#fb923c;border:1px solid #5c3010; }
+
+        /* ACTION BTN */
         .act-btn { background: none; border: 1px solid var(--body-border); color: var(--body-text2); padding: 4px 9px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.12s; }
         .act-btn.blue:hover  { border-color: #2a3d6a; color: #7eb8f7; background: #0d1a38; }
         .act-btn.red:hover   { border-color: #5c1a1a; color: #f87171; background: #2a0d0d; }
@@ -64,15 +94,13 @@
         /* ALERT */
         .alert-success-custom { background: #0d2a18; border: 1px solid #1a5c30; color: #4ade80; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
         .alert-error-custom   { background: #2a0d0d; border: 1px solid #5c1a1a; color: #f87171; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
-
-        /* CURRENT USER INDICATOR */
         .you-badge { display: inline-block; background: #1a2a0d; color: #86efac; border: 1px solid #2d5c1a; border-radius: 3px; padding: 1px 6px; font-size: 0.6rem; font-weight: 700; margin-left: 6px; vertical-align: middle; }
 
         /* PASS STRENGTH */
         .pass-strength { height: 3px; border-radius: 2px; margin-top: 4px; margin-bottom: 0.65rem; background: var(--body-border); overflow: hidden; }
         .pass-strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
 
-        @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; } }
+        @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; } .perm-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -89,47 +117,78 @@
 
     <!-- FORM SIDEBAR -->
     <div class="col-md-4">
-
-      <!-- PERMISSION MATRIX INFO -->
-      <div class="perm-matrix">
-        <div class="perm-matrix-title">📋 Tabel Hak Akses</div>
-        <div class="perm-header">
-          <span class="perm-col" style="color:#a78bfa;">ADM</span>
-          <span class="perm-col" style="color:#4ade80;">USR</span>
-          <span class="perm-col" style="color:#7eb8f7;">VWR</span>
-        </div>
-        <div class="perm-row"><span class="perm-label">Lihat Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div></div></div>
-        <div class="perm-row"><span class="perm-label">Tambah Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
-        <div class="perm-row"><span class="perm-label">Edit Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
-        <div class="perm-row"><span class="perm-label">Hapus Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div><div class="perm-dot perm-no">✗</div></div></div>
-        <div class="perm-row"><span class="perm-label">Kelola Aset</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
-        <div class="perm-row"><span class="perm-label">Export Excel</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
-        <div class="perm-row"><span class="perm-label">Kelola User</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div><div class="perm-dot perm-no">✗</div></div></div>
-      </div>
-
-      <!-- FORM TAMBAH USER -->
       <div class="form-panel">
         <h6>+ Tambah User Baru</h6>
         <form action="/users/tambah" method="POST" id="formTambah">
+
           <label class="f-label">Nama Lengkap</label>
           <input type="text" name="nama" class="f-input" placeholder="cth: Rizqi Subagyo" required>
 
           <label class="f-label">Username</label>
-          <input type="text" name="username" class="f-input" placeholder="cth: rizqi (huruf kecil)" required pattern="[a-z0-9_]+" title="Hanya huruf kecil, angka, underscore">
+          <input type="text" name="username" class="f-input" placeholder="huruf kecil, tanpa spasi" required pattern="[a-z0-9_]+" title="Hanya huruf kecil, angka, underscore">
 
           <label class="f-label">Password</label>
-          <input type="password" name="password" id="newPass" class="f-input" placeholder="Min 6 karakter" required minlength="6" oninput="checkStrength(this.value)">
+          <input type="password" name="password" id="newPass" class="f-input" placeholder="Min 6 karakter" required minlength="6" oninput="checkStrength(this.value, 'passStrengthBar')">
           <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBar"></div></div>
 
-          <label class="f-label">Role / Hak Akses</label>
-          <select name="role" class="f-input" id="roleSelect" onchange="updateRoleDesc(this.value)">
-            <option value="user">User — Bisa input & edit jurnal, kelola aset</option>
-            <option value="viewer">Viewer — Hanya bisa lihat (read-only)</option>
-            <option value="admin">Admin — Akses penuh termasuk kelola user</option>
-          </select>
+          <!-- PERMISSION BUILDER -->
+          <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; margin-bottom: 0.75rem; background: var(--body-bg);">
+            <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">
+              🔐 Hak Akses
+            </div>
 
-          <div id="roleDesc" style="background:#0d1a38;border:1px solid #1a2d5c;border-radius:6px;padding:8px 10px;margin-bottom:0.65rem;font-size:0.75rem;color:#7eb8f7;">
-            💡 <strong>User:</strong> Dapat menambah jurnal, upload foto, kelola aset & pinjaman, export Excel. Tidak bisa hapus jurnal & kelola user.
+            <!-- PRESET BUTTONS -->
+            <div class="preset-row">
+              <button type="button" class="preset-btn preset-admin"  onclick="setPreset('add', 'admin')">Admin</button>
+              <button type="button" class="preset-btn preset-user"   onclick="setPreset('add', 'user')">User</button>
+              <button type="button" class="preset-btn preset-viewer" onclick="setPreset('add', 'viewer')">Viewer</button>
+              <button type="button" class="preset-btn preset-clear"  onclick="setPreset('add', 'clear')">Clear</button>
+            </div>
+
+            <div class="perm-grid" id="permGrid_add">
+              <label class="perm-check" id="lbl_add_canView" onclick="togglePerm('add','canView')">
+                <input type="checkbox" name="canView" id="add_canView">
+                <div class="perm-box" id="box_add_canView"></div>
+                <span class="perm-icon">👁</span>
+                <span class="perm-label-text">Lihat</span>
+              </label>
+              <label class="perm-check" id="lbl_add_canAdd" onclick="togglePerm('add','canAdd')">
+                <input type="checkbox" name="canAdd" id="add_canAdd">
+                <div class="perm-box" id="box_add_canAdd"></div>
+                <span class="perm-icon">➕</span>
+                <span class="perm-label-text">Tambah</span>
+              </label>
+              <label class="perm-check" id="lbl_add_canEdit" onclick="togglePerm('add','canEdit')">
+                <input type="checkbox" name="canEdit" id="add_canEdit">
+                <div class="perm-box" id="box_add_canEdit"></div>
+                <span class="perm-icon">✏️</span>
+                <span class="perm-label-text">Edit</span>
+              </label>
+              <label class="perm-check" id="lbl_add_canDelete" onclick="togglePerm('add','canDelete')">
+                <input type="checkbox" name="canDelete" id="add_canDelete">
+                <div class="perm-box" id="box_add_canDelete"></div>
+                <span class="perm-icon">🗑</span>
+                <span class="perm-label-text">Hapus</span>
+              </label>
+              <label class="perm-check" id="lbl_add_canAsset" onclick="togglePerm('add','canAsset')">
+                <input type="checkbox" name="canAsset" id="add_canAsset">
+                <div class="perm-box" id="box_add_canAsset"></div>
+                <span class="perm-icon">📦</span>
+                <span class="perm-label-text">Aset</span>
+              </label>
+              <label class="perm-check" id="lbl_add_canExport" onclick="togglePerm('add','canExport')">
+                <input type="checkbox" name="canExport" id="add_canExport">
+                <div class="perm-box" id="box_add_canExport"></div>
+                <span class="perm-icon">📊</span>
+                <span class="perm-label-text">Export</span>
+              </label>
+              <label class="perm-check" id="lbl_add_canUsers" onclick="togglePerm('add','canUsers')">
+                <input type="checkbox" name="canUsers" id="add_canUsers">
+                <div class="perm-box" id="box_add_canUsers"></div>
+                <span class="perm-icon">👥</span>
+                <span class="perm-label-text">Kelola User</span>
+              </label>
+            </div>
           </div>
 
           <button type="submit" class="btn-add">SIMPAN USER</button>
@@ -137,7 +196,7 @@
       </div>
     </div>
 
-    <!-- TABLE USER -->
+    <!-- TABLE -->
     <div class="col-md-8">
       <div class="main-panel">
         <div class="panel-header">
@@ -147,39 +206,66 @@
           <table class="user-table">
             <thead>
               <tr>
-                <th style="width:30px;">#</th>
+                <th>#</th>
                 <th>Nama</th>
                 <th>Username</th>
-                <th>Role</th>
+                <th>Hak Akses</th>
                 <th>Dibuat</th>
-                <th style="width:130px;">Aksi</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <% users.forEach((u, i) => { %>
+              <% users.forEach((u, i) => {
+                let perms = {};
+                if (u.permissions) {
+                  try { perms = JSON.parse(u.permissions); } catch(e) {}
+                }
+                if (!Object.keys(perms).length) {
+                  const defaults = {
+                    admin:  { canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true },
+                    user:   { canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false },
+                    viewer: { canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false }
+                  };
+                  perms = defaults[u.role] || defaults.viewer;
+                }
+              %>
               <tr>
-                <td style="color:var(--body-text3);"><%= i+1 %></td>
+                <td style="color:var(--body-text3);font-size:0.75rem;"><%= i+1 %></td>
                 <td>
-                  <strong style="color:var(--body-text);"><%= u.nama %></strong>
+                  <strong><%= u.nama %></strong>
                   <% if (currentUser && u.id === currentUser.id) { %><span class="you-badge">KAMU</span><% } %>
+                  <div style="font-size:0.72rem;color:var(--body-text3);margin-top:2px;">
+                    <span class="role-<%= u.role %>"><%= u.role.toUpperCase() %></span>
+                  </div>
                 </td>
                 <td><code style="color:#4ade80;background:var(--body-bg);padding:2px 6px;border-radius:3px;font-size:0.78rem;"><%= u.username %></code></td>
                 <td>
-                  <span class="role-<%= u.role %>"><%= u.role.toUpperCase() %></span>
+                  <div class="perm-tags">
+                    <% if(perms.canView)   { %><span class="pt pt-view">👁 Lihat</span><% } %>
+                    <% if(perms.canAdd)    { %><span class="pt pt-add">➕ Tambah</span><% } %>
+                    <% if(perms.canEdit)   { %><span class="pt pt-edit">✏️ Edit</span><% } %>
+                    <% if(perms.canDelete) { %><span class="pt pt-delete">🗑 Hapus</span><% } %>
+                    <% if(perms.canAsset)  { %><span class="pt pt-asset">📦 Aset</span><% } %>
+                    <% if(perms.canExport) { %><span class="pt pt-export">📊 Export</span><% } %>
+                    <% if(perms.canUsers)  { %><span class="pt pt-users">👥 User</span><% } %>
+                  </div>
                 </td>
-                <td style="color:var(--body-text2);font-size:0.75rem;"><%= new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+                <td style="color:var(--body-text2);font-size:0.75rem;white-space:nowrap;">
+                  <%= new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                </td>
                 <td>
                   <div style="display:flex;gap:5px;">
                     <button class="act-btn blue" onclick="openEditModal(
                       <%= u.id %>,
-                      `<%= u.nama.replace(/`/g, '\\`') %>`,
+                      `<%= u.nama.replace(/`/g,'\\`') %>`,
                       `<%= u.username %>`,
-                      `<%= u.role %>`
+                      `<%= u.role %>`,
+                      <%= JSON.stringify(perms) %>
                     )">Edit</button>
                     <% if (!currentUser || u.id !== currentUser.id) { %>
-                    <button class="act-btn red" onclick="confirmHapus(<%= u.id %>, `<%= u.nama.replace(/`/g, '\\`') %>`)">Hapus</button>
+                    <button class="act-btn red" onclick="confirmHapus(<%= u.id %>, `<%= u.nama.replace(/`/g,'\\`') %>`)">Hapus</button>
                     <% } else { %>
-                    <button class="act-btn" style="opacity:0.3;cursor:not-allowed;" disabled title="Tidak bisa hapus akun sendiri">Hapus</button>
+                    <button class="act-btn" style="opacity:0.3;cursor:not-allowed;" disabled>Hapus</button>
                     <% } %>
                   </div>
                 </td>
@@ -195,7 +281,7 @@
 
 <!-- MODAL EDIT USER -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
         <h5 class="modal-title">✏️ Edit User</h5>
@@ -203,23 +289,66 @@
       </div>
       <form id="formEdit" action="" method="POST">
         <div class="modal-body">
-          <label class="f-label">Nama Lengkap</label>
-          <input type="text" name="nama" id="edit_nama" class="f-input" required>
-
-          <label class="f-label">Username</label>
-          <input type="text" name="username" id="edit_username" class="f-input" required pattern="[a-z0-9_]+" title="Hanya huruf kecil, angka, underscore">
-
-          <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.65rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
-          <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrengthEdit(this.value)">
-          <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
-
-          <label class="f-label">Role / Hak Akses</label>
-          <select name="role" id="edit_role" class="f-input" onchange="updateRoleDescEdit(this.value)">
-            <option value="user">User — Bisa input & edit jurnal, kelola aset</option>
-            <option value="viewer">Viewer — Hanya bisa lihat (read-only)</option>
-            <option value="admin">Admin — Akses penuh termasuk kelola user</option>
-          </select>
-          <div id="roleDescEdit" style="background:#0d1a38;border:1px solid #1a2d5c;border-radius:6px;padding:8px 10px;font-size:0.75rem;color:#7eb8f7;"></div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="f-label">Nama Lengkap</label>
+              <input type="text" name="nama" id="edit_nama" class="f-input" required>
+              <label class="f-label">Username</label>
+              <input type="text" name="username" id="edit_username" class="f-input" required pattern="[a-z0-9_]+">
+              <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
+              <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrength(this.value, 'passStrengthBarEdit')">
+              <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
+            </div>
+            <div class="col-md-6">
+              <!-- PERMISSION BUILDER EDIT -->
+              <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; background: var(--body-bg); height: 100%;">
+                <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">🔐 Hak Akses</div>
+                <div class="preset-row">
+                  <button type="button" class="preset-btn preset-admin"  onclick="setPreset('edit', 'admin')">Admin</button>
+                  <button type="button" class="preset-btn preset-user"   onclick="setPreset('edit', 'user')">User</button>
+                  <button type="button" class="preset-btn preset-viewer" onclick="setPreset('edit', 'viewer')">Viewer</button>
+                  <button type="button" class="preset-btn preset-clear"  onclick="setPreset('edit', 'clear')">Clear</button>
+                </div>
+                <div class="perm-grid" id="permGrid_edit">
+                  <label class="perm-check" id="lbl_edit_canView" onclick="togglePerm('edit','canView')">
+                    <input type="checkbox" name="canView" id="edit_canView">
+                    <div class="perm-box" id="box_edit_canView"></div>
+                    <span class="perm-icon">👁</span><span class="perm-label-text">Lihat</span>
+                  </label>
+                  <label class="perm-check" id="lbl_edit_canAdd" onclick="togglePerm('edit','canAdd')">
+                    <input type="checkbox" name="canAdd" id="edit_canAdd">
+                    <div class="perm-box" id="box_edit_canAdd"></div>
+                    <span class="perm-icon">➕</span><span class="perm-label-text">Tambah</span>
+                  </label>
+                  <label class="perm-check" id="lbl_edit_canEdit" onclick="togglePerm('edit','canEdit')">
+                    <input type="checkbox" name="canEdit" id="edit_canEdit">
+                    <div class="perm-box" id="box_edit_canEdit"></div>
+                    <span class="perm-icon">✏️</span><span class="perm-label-text">Edit</span>
+                  </label>
+                  <label class="perm-check" id="lbl_edit_canDelete" onclick="togglePerm('edit','canDelete')">
+                    <input type="checkbox" name="canDelete" id="edit_canDelete">
+                    <div class="perm-box" id="box_edit_canDelete"></div>
+                    <span class="perm-icon">🗑</span><span class="perm-label-text">Hapus</span>
+                  </label>
+                  <label class="perm-check" id="lbl_edit_canAsset" onclick="togglePerm('edit','canAsset')">
+                    <input type="checkbox" name="canAsset" id="edit_canAsset">
+                    <div class="perm-box" id="box_edit_canAsset"></div>
+                    <span class="perm-icon">📦</span><span class="perm-label-text">Aset</span>
+                  </label>
+                  <label class="perm-check" id="lbl_edit_canExport" onclick="togglePerm('edit','canExport')">
+                    <input type="checkbox" name="canExport" id="edit_canExport">
+                    <div class="perm-box" id="box_edit_canExport"></div>
+                    <span class="perm-icon">📊</span><span class="perm-label-text">Export</span>
+                  </label>
+                  <label class="perm-check" id="lbl_edit_canUsers" onclick="togglePerm('edit','canUsers')">
+                    <input type="checkbox" name="canUsers" id="edit_canUsers">
+                    <div class="perm-box" id="box_edit_canUsers"></div>
+                    <span class="perm-icon">👥</span><span class="perm-label-text">Kelola User</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -241,12 +370,12 @@
       <div class="modal-body">
         <p style="color:var(--body-text);" class="mb-2">Yakin hapus user ini?</p>
         <p id="hapusNama" style="color:#f87171;font-weight:700;font-size:0.95rem;"></p>
-        <p style="color:var(--body-text2);font-size:0.8rem;">⚠️ User yang dihapus tidak bisa dikembalikan.</p>
+        <p style="color:var(--body-text2);font-size:0.8rem;">⚠️ Tidak bisa dikembalikan.</p>
       </div>
       <div class="modal-footer" style="border-color:#5c1a1a;">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
         <form id="formHapus" action="" method="POST" style="display:inline;">
-          <button type="submit" class="btn btn-danger fw-bold">Ya, Hapus User</button>
+          <button type="submit" class="btn btn-danger fw-bold">Ya, Hapus</button>
         </form>
       </div>
     </div>
@@ -255,60 +384,86 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const roleDescs = {
-  admin:  '🔑 <strong>Admin:</strong> Akses penuh — tambah/edit/hapus jurnal, kelola aset, export, dan kelola user.',
-  user:   '💡 <strong>User:</strong> Dapat menambah jurnal, upload foto, kelola aset & pinjaman, export Excel. Tidak bisa hapus jurnal & kelola user.',
-  viewer: '👁 <strong>Viewer:</strong> Hanya bisa melihat jurnal & aset. Tidak bisa input, edit, hapus, atau export.'
+// ===========================
+// PERMISSION STATE
+// ===========================
+var permState = {
+  add:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false },
+  edit: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false }
 };
-const roleColors = { admin: 'background:#1a0d3d;border-color:#4c3780;color:#c9aaff;', user: 'background:#0d1a38;border-color:#1a2d5c;color:#7eb8f7;', viewer: 'background:#0d2a18;border-color:#1a5c30;color:#86efac;' };
 
-function updateRoleDesc(role) {
-  var el = document.getElementById('roleDesc');
-  el.innerHTML = roleDescs[role] || '';
-  el.style.cssText = roleColors[role] + 'border-radius:6px;padding:8px 10px;margin-bottom:0.65rem;font-size:0.75rem;';
-}
-function updateRoleDescEdit(role) {
-  var el = document.getElementById('roleDescEdit');
-  el.innerHTML = roleDescs[role] || '';
-  el.style.cssText = roleColors[role] + 'border-radius:6px;padding:8px 10px;margin-top:4px;font-size:0.75rem;';
-}
+var PRESETS = {
+  admin:  { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true },
+  user:   { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false },
+  viewer: { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false },
+  clear:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false }
+};
 
-function checkStrength(v) {
-  var el = document.getElementById('passStrengthBar');
-  var score = 0;
-  if (v.length >= 6) score++;
-  if (v.length >= 10) score++;
-  if (/[A-Z]/.test(v)) score++;
-  if (/[0-9]/.test(v)) score++;
-  if (/[^a-zA-Z0-9]/.test(v)) score++;
-  var pct = Math.min(100, score * 20);
-  var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
-  el.style.width = pct + '%';
-  el.style.background = colors[Math.max(0, score-1)] || '#f87171';
-}
-function checkStrengthEdit(v) {
-  if (!v) { document.getElementById('passStrengthBarEdit').style.width = '0%'; return; }
-  var el = document.getElementById('passStrengthBarEdit');
-  var score = 0;
-  if (v.length >= 6) score++;
-  if (v.length >= 10) score++;
-  if (/[A-Z]/.test(v)) score++;
-  if (/[0-9]/.test(v)) score++;
-  if (/[^a-zA-Z0-9]/.test(v)) score++;
-  var pct = Math.min(100, score * 20);
-  var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
-  el.style.width = pct + '%';
-  el.style.background = colors[Math.max(0, score-1)] || '#f87171';
+function togglePerm(form, perm) {
+  // Toggle
+  permState[form][perm] = !permState[form][perm];
+  renderPerms(form);
+  syncCheckboxes(form);
 }
 
-function openEditModal(id, nama, username, role) {
+function setPreset(form, preset) {
+  permState[form] = Object.assign({}, PRESETS[preset]);
+  renderPerms(form);
+  syncCheckboxes(form);
+}
+
+function setPermState(form, obj) {
+  permState[form] = Object.assign({}, PRESETS.clear, obj);
+  renderPerms(form);
+  syncCheckboxes(form);
+}
+
+function renderPerms(form) {
+  var keys = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers'];
+  keys.forEach(function(perm) {
+    var val   = permState[form][perm];
+    var lbl   = document.getElementById('lbl_' + form + '_' + perm);
+    var box   = document.getElementById('box_' + form + '_' + perm);
+    var input = document.getElementById(form + '_' + perm);
+    if (!lbl) return;
+
+    // Reset classes
+    lbl.className = 'perm-check';
+    box.textContent = '';
+
+    if (val) {
+      if (perm === 'canDelete') {
+        lbl.className = 'perm-check checked-delete';
+      } else if (perm === 'canUsers') {
+        lbl.className = 'perm-check checked-users';
+      } else {
+        lbl.className = 'perm-check checked';
+      }
+      box.textContent = '✓';
+    }
+  });
+}
+
+function syncCheckboxes(form) {
+  var keys = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers'];
+  keys.forEach(function(perm) {
+    var input = document.getElementById(form + '_' + perm);
+    if (input) input.checked = permState[form][perm];
+  });
+}
+
+// ===========================
+// MODALS
+// ===========================
+function openEditModal(id, nama, username, role, perms) {
   document.getElementById('formEdit').action = '/users/edit/' + id;
   document.getElementById('edit_nama').value     = nama;
   document.getElementById('edit_username').value = username;
   document.getElementById('edit_pass').value     = '';
-  document.getElementById('edit_role').value     = role;
   document.getElementById('passStrengthBarEdit').style.width = '0%';
-  updateRoleDescEdit(role);
+
+  // Set perms
+  setPermState('edit', perms || {});
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
@@ -318,8 +473,28 @@ function confirmHapus(id, nama) {
   new bootstrap.Modal(document.getElementById('hapusModal')).show();
 }
 
-// Init
-updateRoleDesc('user');
+// ===========================
+// PASSWORD STRENGTH
+// ===========================
+function checkStrength(v, barId) {
+  var el = document.getElementById(barId);
+  if (!v) { el.style.width = '0%'; return; }
+  var score = 0;
+  if (v.length >= 6)  score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^a-zA-Z0-9]/.test(v)) score++;
+  var pct = Math.min(100, score * 20);
+  var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
+  el.style.width = pct + '%';
+  el.style.background = colors[Math.max(0, score-1)] || '#f87171';
+}
+
+// ===========================
+// INIT — set default preset user untuk form tambah
+// ===========================
+setPreset('add', 'user');
 </script>
 </body>
 </html>

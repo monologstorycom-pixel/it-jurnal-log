@@ -10,15 +10,18 @@ const session = require('express-session');
 
 const app = express();
 const prisma = new PrismaClient();
-const uploadDir = path.join(__dirname, 'public/uploads');
 
+// FIX FOTO HILANG: gunakan path.resolve untuk absolute path yang konsisten
+const uploadDir = path.resolve(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// FIX FOTO HILANG: static harus pakai absolute path
 app.use('/uploads', express.static(uploadDir));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.resolve(__dirname, 'public')));
 
 // ==========================================
 // SESSION
@@ -27,8 +30,36 @@ app.use(session({
     secret: 'itlog-rsby-secret-2026',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 8 * 60 * 60 * 1000 } // 8 jam
+    cookie: { maxAge: 8 * 60 * 60 * 1000 }
 }));
+
+// ==========================================
+// PERMISSION HELPERS
+// ==========================================
+// Default permissions per role (untuk backward compatibility)
+const DEFAULT_PERMS = {
+    admin:  { canView: true, canAdd: true, canEdit: true, canDelete: true, canAsset: true, canExport: true, canUsers: true },
+    user:   { canView: true, canAdd: true, canEdit: true, canDelete: false, canAsset: true, canExport: true, canUsers: false },
+    viewer: { canView: true, canAdd: false, canEdit: false, canDelete: false, canAsset: false, canExport: false, canUsers: false }
+};
+
+function getUserPerms(user) {
+    if (!user) return {};
+    // Jika user punya custom permissions, gunakan itu
+    if (user.permissions) {
+        try {
+            return typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+        } catch(e) {}
+    }
+    // Fallback ke default role
+    return DEFAULT_PERMS[user.role] || DEFAULT_PERMS.viewer;
+}
+
+function hasPerm(user, perm) {
+    if (!user) return false;
+    const perms = getUserPerms(user);
+    return perms[perm] === true;
+}
 
 // ==========================================
 // AUTH MIDDLEWARE
@@ -38,39 +69,50 @@ function requireLogin(req, res, next) {
     res.redirect('/login');
 }
 
-// Hanya admin
 function requireAdmin(req, res, next) {
-    if (req.session && req.session.user && req.session.user.role === 'admin') return next();
+    if (req.session && req.session.user && hasPerm(req.session.user, 'canUsers')) return next();
     res.status(403).render('403', { message: 'Halaman ini hanya untuk Admin.' });
 }
 
-// Admin atau user (bukan viewer)
 function requireUser(req, res, next) {
     if (req.session && req.session.user) {
-        const role = req.session.user.role;
-        if (role === 'admin' || role === 'user') return next();
+        const user = req.session.user;
+        // viewer tidak bisa aksi apapun
+        if (hasPerm(user, 'canAdd') || hasPerm(user, 'canEdit') || hasPerm(user, 'canAsset')) return next();
     }
     res.status(403).render('403', { message: 'Anda tidak punya izin untuk aksi ini.' });
 }
 
-// Inject user ke semua views
+// Inject user & perms ke semua views
 app.use((req, res, next) => {
     res.locals.currentUser = req.session.user || null;
+    res.locals.userPerms   = req.session.user ? getUserPerms(req.session.user) : {};
     next();
 });
 
 // ==========================================
-// MULTER
+// MULTER - FIX FOTO HILANG
 // ==========================================
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
+    destination: (req, file, cb) => {
+        // Pastikan folder ada sebelum simpan
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        cb(null, uploadDir);
+    },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const prefix = file.fieldname === 'fotoAwal' ? 'IT-AWAL-' : 'IT-LOG-';
         cb(null, prefix + uniqueSuffix + path.extname(file.originalname));
     }
 });
-const upload = multer({ storage });
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // max 10MB
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('Hanya file gambar yang diizinkan'));
+    }
+});
 const uploadFields = upload.fields([
     { name: 'fotoAwal', maxCount: 1 },
     { name: 'foto', maxCount: 1 }
@@ -116,6 +158,17 @@ function formatDurasi(menit) {
     return parts.length > 0 ? parts.join(' ') : '0 menit';
 }
 
+// FIX FORMAT 24 JAM
+function formatTanggal(dt) {
+    if (!dt) return '-';
+    return new Date(dt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatJamMenit(jamStr) {
+    // Input sudah string "HH:MM", return langsung
+    return jamStr || '';
+}
+
 function getYearOptions() {
     const years = [];
     for (let y = new Date().getFullYear(); y >= 2024; y--) years.push(y);
@@ -144,7 +197,13 @@ app.post('/login', async (req, res) => {
         if (!match) {
             return res.render('login', { error: 'Username atau password salah.', username: username });
         }
-        req.session.user = { id: user.id, username: user.username, nama: user.nama, role: user.role };
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            nama: user.nama,
+            role: user.role,
+            permissions: user.permissions || null
+        };
         res.redirect('/kerja');
     } catch (error) {
         console.error('[LOGIN ERROR]', error.message);
@@ -156,9 +215,6 @@ app.get('/logout', (req, res) => {
     req.session.destroy(() => res.redirect('/login'));
 });
 
-// ==========================================
-// 403 PAGE
-// ==========================================
 app.get('/403', (req, res) => {
     res.status(403).render('403', { message: 'Akses ditolak.' });
 });
@@ -205,7 +261,7 @@ app.get('/', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 2. ADMIN MODE (dashboard)
+// 2. DASHBOARD
 // ==========================================
 app.get('/kerja', requireLogin, async (req, res) => {
     try {
@@ -235,9 +291,14 @@ app.get('/kerja', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 3. SIMPAN DATA BARU — user & admin
+// 3. SIMPAN DATA BARU
 // ==========================================
-app.post('/save', requireLogin, requireUser, uploadFields, async (req, res) => {
+app.post('/save', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAdd')) {
+        return res.status(403).render('403', { message: 'Anda tidak punya izin menambah data.' });
+    }
+    next();
+}, uploadFields, async (req, res) => {
     try {
         const aktivitas          = req.body.aktivitas          || '';
         const divisi             = req.body.divisi             || '';
@@ -255,6 +316,14 @@ app.post('/save', requireLogin, requireUser, uploadFields, async (req, res) => {
 
         const fotoFile     = req.files && req.files['foto']     ? req.files['foto'][0]     : null;
         const fotoAwalFile = req.files && req.files['fotoAwal'] ? req.files['fotoAwal'][0] : null;
+
+        // FIX FOTO: verifikasi file benar-benar tersimpan
+        if (fotoFile) {
+            const fotoPath = path.join(uploadDir, fotoFile.filename);
+            if (!fs.existsSync(fotoPath)) {
+                console.error('[FOTO ERROR] File tidak tersimpan:', fotoPath);
+            }
+        }
 
         let dataToSave = {
             aktivitas, divisi, pemesan, deskripsi, status, tipeInput,
@@ -292,9 +361,12 @@ app.post('/save', requireLogin, requireUser, uploadFields, async (req, res) => {
 });
 
 // ==========================================
-// 4. UPDATE STATUS — user & admin
+// 4. UPDATE STATUS
 // ==========================================
-app.post('/update-status/:id', requireLogin, requireUser, async (req, res) => {
+app.post('/update-status/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { status: req.body.newStatus } });
         res.redirect('/kerja');
@@ -302,9 +374,12 @@ app.post('/update-status/:id', requireLogin, requireUser, async (req, res) => {
 });
 
 // ==========================================
-// 5a. UPLOAD FOTO SESUDAH — user & admin
+// 5a. UPLOAD FOTO SESUDAH
 // ==========================================
-app.post('/upload-foto/:id', requireLogin, requireUser, upload.single('foto'), async (req, res) => {
+app.post('/upload-foto/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, upload.single('foto'), async (req, res) => {
     try {
         if (req.file) await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoUrl: '/uploads/' + req.file.filename } });
         res.redirect('/kerja');
@@ -312,9 +387,12 @@ app.post('/upload-foto/:id', requireLogin, requireUser, upload.single('foto'), a
 });
 
 // ==========================================
-// 5b. UPLOAD FOTO AWAL — user & admin
+// 5b. UPLOAD FOTO AWAL
 // ==========================================
-app.post('/upload-foto-awal/:id', requireLogin, requireUser, upload.single('fotoAwal'), async (req, res) => {
+app.post('/upload-foto-awal/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, upload.single('fotoAwal'), async (req, res) => {
     try {
         if (req.file) await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoAwalUrl: '/uploads/' + req.file.filename } });
         res.redirect('/kerja');
@@ -322,9 +400,12 @@ app.post('/upload-foto-awal/:id', requireLogin, requireUser, upload.single('foto
 });
 
 // ==========================================
-// 6. EDIT DATA — user & admin
+// 6. EDIT DATA
 // ==========================================
-app.post('/edit/:id', requireLogin, requireUser, uploadFields, async (req, res) => {
+app.post('/edit/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, uploadFields, async (req, res) => {
     try {
         const aktivitas          = req.body.aktivitas          || '';
         const divisi             = req.body.divisi             || '';
@@ -378,14 +459,20 @@ app.post('/edit/:id', requireLogin, requireUser, uploadFields, async (req, res) 
 });
 
 // ==========================================
-// 7. DELETE DATA — ADMIN ONLY
+// 7. DELETE DATA
 // ==========================================
-app.post('/delete/:id', requireLogin, requireAdmin, async (req, res) => {
+app.post('/delete/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canDelete')) return res.status(403).render('403', { message: 'Akses ditolak. Hanya yang punya izin hapus.' });
+    next();
+}, async (req, res) => {
     try {
         const item = await prisma.journal.findUnique({ where: { id: parseInt(req.params.id) } });
         if (item) {
             [item.fotoUrl, item.fotoAwalUrl].forEach(u => {
-                if (u) { const p = path.join(__dirname, 'public', u); if (fs.existsSync(p)) fs.unlinkSync(p); }
+                if (u) {
+                    const p = path.join(__dirname, 'public', u);
+                    if (fs.existsSync(p)) fs.unlinkSync(p);
+                }
             });
         }
         await prisma.journal.delete({ where: { id: parseInt(req.params.id) } });
@@ -394,9 +481,12 @@ app.post('/delete/:id', requireLogin, requireAdmin, async (req, res) => {
 });
 
 // ==========================================
-// 8. EXPORT EXCEL — user & admin
+// 8. EXPORT EXCEL
 // ==========================================
-app.get('/export', requireLogin, requireUser, async (req, res) => {
+app.get('/export', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canExport')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const { date, month, year } = req.query;
         let whereClause = {}, fileName = 'Log-IT.xlsx';
@@ -443,10 +533,11 @@ app.get('/export', requireLogin, requireUser, async (req, res) => {
             cell.alignment = { vertical: 'middle', horizontal: 'center' };
         });
 
+        // FIX FORMAT 24 JAM di Excel
         const fmtDate = (dt, jam) => {
             if (!dt) return '-';
             const d = new Date(dt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-            return jam ? d + ' ' + jam : d;
+            return jam ? d + ' ' + jam : d; // jam sudah string HH:MM, tidak perlu konversi
         };
 
         const base = 'http://server.rsby.cloud:3001';
@@ -476,27 +567,36 @@ app.get('/export', requireLogin, requireUser, async (req, res) => {
 });
 
 // ==========================================
-// 9. NOTES — user & admin
+// 9. NOTES
 // ==========================================
 app.get('/api/notes', requireLogin, async (req, res) => {
     try { res.json(await prisma.note.findMany({ orderBy: { createdAt: 'desc' } })); }
     catch (e) { res.status(500).json({ error: "Gagal ambil notes" }); }
 });
-app.post('/api/notes', requireLogin, requireUser, async (req, res) => {
+app.post('/api/notes', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAdd') && !hasPerm(req.session.user, 'canEdit')) return res.status(403).json({ error: 'Akses ditolak' });
+    next();
+}, async (req, res) => {
     try { res.json(await prisma.note.create({ data: { title: req.body.title, content: req.body.content } })); }
     catch (e) { res.status(500).json({ error: "Gagal tambah notes" }); }
 });
-app.put('/api/notes/:id', requireLogin, requireUser, async (req, res) => {
+app.put('/api/notes/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).json({ error: 'Akses ditolak' });
+    next();
+}, async (req, res) => {
     try { res.json(await prisma.note.update({ where: { id: parseInt(req.params.id) }, data: { title: req.body.title, content: req.body.content } })); }
     catch (e) { res.status(500).json({ error: "Gagal update notes" }); }
 });
-app.delete('/api/notes/:id', requireLogin, requireAdmin, async (req, res) => {
+app.delete('/api/notes/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canUsers')) return res.status(403).json({ error: 'Akses ditolak' });
+    next();
+}, async (req, res) => {
     try { await prisma.note.delete({ where: { id: parseInt(req.params.id) } }); res.json({ success: true }); }
     catch (e) { res.status(500).json({ error: "Gagal hapus notes" }); }
 });
 
 // ==========================================
-// 10. USER MANAGEMENT — admin only
+// 10. USER MANAGEMENT
 // ==========================================
 app.get('/users', requireLogin, requireAdmin, async (req, res) => {
     try {
@@ -511,7 +611,7 @@ app.get('/users', requireLogin, requireAdmin, async (req, res) => {
 
 app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
     try {
-        const { nama, username, password, role } = req.body;
+        const { nama, username, password } = req.body;
         if (!nama || !username || !password) {
             return res.redirect('/users?msg=Nama%2C+username%2C+dan+password+wajib+diisi&msgType=error');
         }
@@ -522,11 +622,30 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
         if (existing) {
             return res.redirect('/users?msg=Username+sudah+dipakai%2C+pilih+yang+lain&msgType=error');
         }
-        const validRoles = ['admin', 'user', 'viewer'];
-        const safeRole = validRoles.includes(role) ? role : 'user';
+
+        // Kumpulkan permissions dari checkbox
+        const permissions = {
+            canView:   req.body.canView   === 'on',
+            canAdd:    req.body.canAdd    === 'on',
+            canEdit:   req.body.canEdit   === 'on',
+            canDelete: req.body.canDelete === 'on',
+            canAsset:  req.body.canAsset  === 'on',
+            canExport: req.body.canExport === 'on',
+            canUsers:  req.body.canUsers  === 'on',
+        };
+
+        // Tentukan role berdasarkan permissions
+        const role = permissions.canUsers ? 'admin' : (permissions.canAdd || permissions.canEdit) ? 'user' : 'viewer';
+
         const hashed = await bcrypt.hash(password, 10);
         await prisma.user.create({
-            data: { nama: nama.trim(), username: username.trim().toLowerCase(), password: hashed, role: safeRole }
+            data: {
+                nama: nama.trim(),
+                username: username.trim().toLowerCase(),
+                password: hashed,
+                role,
+                permissions: JSON.stringify(permissions)
+            }
         });
         res.redirect('/users?msg=User+berhasil+ditambahkan&msgType=success');
     } catch (error) {
@@ -538,7 +657,7 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
 app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const { nama, username, password, role } = req.body;
+        const { nama, username, password } = req.body;
         if (!nama || !username) {
             return res.redirect('/users?msg=Nama+dan+username+wajib+diisi&msgType=error');
         }
@@ -548,20 +667,42 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
         if (existing) {
             return res.redirect('/users?msg=Username+sudah+dipakai+user+lain&msgType=error');
         }
-        const validRoles = ['admin', 'user', 'viewer'];
-        const safeRole = validRoles.includes(role) ? role : 'user';
-        const updateData = { nama: nama.trim(), username: username.trim().toLowerCase(), role: safeRole };
+
+        // Kumpulkan permissions dari checkbox
+        const permissions = {
+            canView:   req.body.canView   === 'on',
+            canAdd:    req.body.canAdd    === 'on',
+            canEdit:   req.body.canEdit   === 'on',
+            canDelete: req.body.canDelete === 'on',
+            canAsset:  req.body.canAsset  === 'on',
+            canExport: req.body.canExport === 'on',
+            canUsers:  req.body.canUsers  === 'on',
+        };
+
+        const role = permissions.canUsers ? 'admin' : (permissions.canAdd || permissions.canEdit) ? 'user' : 'viewer';
+
+        const updateData = {
+            nama: nama.trim(),
+            username: username.trim().toLowerCase(),
+            role,
+            permissions: JSON.stringify(permissions)
+        };
+
         if (password && password.trim().length > 0) {
             if (password.length < 6) {
                 return res.redirect('/users?msg=Password+minimal+6+karakter&msgType=error');
             }
             updateData.password = await bcrypt.hash(password, 10);
         }
+
         await prisma.user.update({ where: { id }, data: updateData });
+
+        // Update session jika edit diri sendiri
         if (req.session.user && req.session.user.id === id) {
-            req.session.user.nama     = updateData.nama;
-            req.session.user.username = updateData.username;
-            req.session.user.role     = updateData.role;
+            req.session.user.nama        = updateData.nama;
+            req.session.user.username    = updateData.username;
+            req.session.user.role        = updateData.role;
+            req.session.user.permissions = updateData.permissions;
         }
         res.redirect('/users?msg=User+berhasil+diperbarui&msgType=success');
     } catch (error) {
@@ -584,10 +725,31 @@ app.post('/users/hapus/:id', requireLogin, requireAdmin, async (req, res) => {
     }
 });
 
-app.listen(3001, '0.0.0.0', () => console.log('🚀 SYSTEM READY AT PORT 3001'));
+// ==========================================
+// API: CEK FOTO (debugging helper)
+// ==========================================
+app.get('/api/check-foto/:filename', requireLogin, (req, res) => {
+    const fotoPath = path.join(uploadDir, req.params.filename);
+    if (fs.existsSync(fotoPath)) {
+        const stat = fs.statSync(fotoPath);
+        res.json({ exists: true, size: stat.size, path: fotoPath });
+    } else {
+        res.json({ exists: false, uploadDir, filename: req.params.filename });
+    }
+});
+
+app.listen(3001, '0.0.0.0', () => {
+    console.log('🚀 SYSTEM READY AT PORT 3001');
+    console.log('📁 Upload directory:', uploadDir);
+    // Verifikasi folder upload saat startup
+    if (!fs.existsSync(uploadDir)) {
+        console.warn('⚠️ Upload directory tidak ditemukan, membuat...');
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+});
 
 // ==========================================
-// ASET ROUTES (tidak berubah dari sebelumnya)
+// ASET ROUTES
 // ==========================================
 app.get('/aset/export-pdf', requireLogin, async (req, res) => {
     try {
@@ -629,7 +791,10 @@ app.get('/aset/:id', requireLogin, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 
-app.post('/aset/tambah', requireLogin, requireUser, async (req, res) => {
+app.post('/aset/tambah', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const { nama, kategori, satuan, stok, kondisi, keterangan } = req.body;
         const stokNum = parseInt(stok) || 0;
@@ -638,7 +803,10 @@ app.post('/aset/tambah', requireLogin, requireUser, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal tambah aset: " + error.message); }
 });
 
-app.post('/aset/edit/:id', requireLogin, requireUser, async (req, res) => {
+app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const { nama, kategori, satuan, stokAwal, kondisi, keterangan } = req.body;
         const stokAwalNum = parseInt(stokAwal) || 0;
@@ -650,14 +818,20 @@ app.post('/aset/edit/:id', requireLogin, requireUser, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal edit aset: " + error.message); }
 });
 
-app.post('/aset/hapus/:id', requireLogin, requireAdmin, async (req, res) => {
+app.post('/aset/hapus/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canDelete')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         await prisma.aset.delete({ where: { id: parseInt(req.params.id) } });
         res.redirect('/aset');
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus: " + error.message); }
 });
 
-app.post('/aset/pakai/:id', requireLogin, requireUser, async (req, res) => {
+app.post('/aset/pakai/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, divisi, lokasi, keterangan, tanggal } = req.body;
@@ -673,7 +847,10 @@ app.post('/aset/pakai/:id', requireLogin, requireUser, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal catat penggunaan: " + error.message); }
 });
 
-app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, requireUser, async (req, res) => {
+app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const penggunaan = await prisma.asetPenggunaan.findUnique({ where: { id: parseInt(req.params.penggunaanId) } });
         if (!penggunaan) return res.status(404).send("Data tidak ditemukan");
@@ -685,7 +862,10 @@ app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, requireUser, async (re
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus penggunaan: " + error.message); }
 });
 
-app.post('/aset/pinjam/:id', requireLogin, requireUser, async (req, res) => {
+app.post('/aset/pinjam/:id', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, peminjam, divisi, keperluan, tanggalPinjam } = req.body;
@@ -701,7 +881,10 @@ app.post('/aset/pinjam/:id', requireLogin, requireUser, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal catat pinjaman: " + error.message); }
 });
 
-app.post('/aset/kembali/:pinjamId', requireLogin, requireUser, async (req, res) => {
+app.post('/aset/kembali/:pinjamId', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Data pinjaman tidak ditemukan");
@@ -714,7 +897,10 @@ app.post('/aset/kembali/:pinjamId', requireLogin, requireUser, async (req, res) 
     } catch (error) { console.error(error); res.status(500).send("Gagal proses kembali: " + error.message); }
 });
 
-app.post('/aset/pinjam-hapus/:pinjamId', requireLogin, requireUser, async (req, res) => {
+app.post('/aset/pinjam-hapus/:pinjamId', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Tidak ditemukan");
