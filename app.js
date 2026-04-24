@@ -38,6 +38,21 @@ function requireLogin(req, res, next) {
     res.redirect('/login');
 }
 
+// Hanya admin
+function requireAdmin(req, res, next) {
+    if (req.session && req.session.user && req.session.user.role === 'admin') return next();
+    res.status(403).render('403', { message: 'Halaman ini hanya untuk Admin.' });
+}
+
+// Admin atau user (bukan viewer)
+function requireUser(req, res, next) {
+    if (req.session && req.session.user) {
+        const role = req.session.user.role;
+        if (role === 'admin' || role === 'user') return next();
+    }
+    res.status(403).render('403', { message: 'Anda tidak punya izin untuk aksi ini.' });
+}
+
 // Inject user ke semua views
 app.use((req, res, next) => {
     res.locals.currentUser = req.session.user || null;
@@ -62,7 +77,7 @@ const uploadFields = upload.fields([
 ]);
 
 // ==========================================
-// HELPER: Gabung tanggal (YYYY-MM-DD) + jam (HH:MM) → Date
+// HELPERS
 // ==========================================
 function buildDateTime(tanggal, jam) {
     if (!tanggal || tanggal.trim() === '') return null;
@@ -71,18 +86,12 @@ function buildDateTime(tanggal, jam) {
     return isNaN(dt.getTime()) ? null : dt;
 }
 
-// ==========================================
-// HELPER: Hitung durasi menit antara 2 Date
-// ==========================================
 function hitungDurasiDateTime(dtMulai, dtSelesai) {
     if (!dtMulai || !dtSelesai) return null;
     const diff = Math.floor((dtSelesai - dtMulai) / 60000);
     return diff > 0 ? diff : null;
 }
 
-// ==========================================
-// HELPER: Hitung durasi harian dari string jam "HH:MM"
-// ==========================================
 function hitungDurasiJam(jamMulai, jamSelesai) {
     if (!jamMulai || !jamSelesai) return null;
     const [hM, mM] = jamMulai.split(':').map(Number);
@@ -94,9 +103,6 @@ function hitungDurasiJam(jamMulai, jamSelesai) {
     return diff > 0 ? diff : null;
 }
 
-// ==========================================
-// HELPER: Format menit → "X hari Y jam Z menit"
-// ==========================================
 function formatDurasi(menit) {
     if (!menit || menit <= 0) return null;
     const hari = Math.floor(menit / 1440);
@@ -151,6 +157,13 @@ app.get('/logout', (req, res) => {
 });
 
 // ==========================================
+// 403 PAGE
+// ==========================================
+app.get('/403', (req, res) => {
+    res.status(403).render('403', { message: 'Akses ditolak.' });
+});
+
+// ==========================================
 // 1. VIEWER MODE
 // ==========================================
 app.get('/', requireLogin, async (req, res) => {
@@ -192,7 +205,7 @@ app.get('/', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 2. ADMIN MODE
+// 2. ADMIN MODE (dashboard)
 // ==========================================
 app.get('/kerja', requireLogin, async (req, res) => {
     try {
@@ -222,11 +235,10 @@ app.get('/kerja', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 3. SIMPAN DATA BARU
+// 3. SIMPAN DATA BARU — user & admin
 // ==========================================
-app.post('/save', requireLogin, uploadFields, async (req, res) => {
+app.post('/save', requireLogin, requireUser, uploadFields, async (req, res) => {
     try {
-        // Ambil semua field dengan fallback kosong
         const aktivitas          = req.body.aktivitas          || '';
         const divisi             = req.body.divisi             || '';
         const deskripsi          = req.body.deskripsi          || '';
@@ -253,11 +265,9 @@ app.post('/save', requireLogin, uploadFields, async (req, res) => {
         if (tipeInput === 'multihari') {
             const dtMulai   = buildDateTime(tanggalMulaiDate, jamMulaiMulti);
             const dtSelesai = buildDateTime(tanggalSelesaiDate, jamSelesaiMulti);
-
-            if (!dtMulai)   return res.status(400).send('Gagal: Tanggal Mulai tidak valid. Pastikan format YYYY-MM-DD.');
-            if (!dtSelesai) return res.status(400).send('Gagal: Tanggal Selesai tidak valid. Pastikan format YYYY-MM-DD.');
+            if (!dtMulai)   return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
+            if (!dtSelesai) return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
             if (dtSelesai <= dtMulai) return res.status(400).send('Gagal: Tanggal Selesai harus lebih besar dari Tanggal Mulai.');
-
             dataToSave.tanggalManual  = dtMulai;
             dataToSave.tanggalMulai   = dtMulai;
             dataToSave.tanggalSelesai = dtSelesai;
@@ -266,8 +276,7 @@ app.post('/save', requireLogin, uploadFields, async (req, res) => {
             dataToSave.durasiMenit    = hitungDurasiDateTime(dtMulai, dtSelesai);
         } else {
             const tanggalObj = buildDateTime(tanggalManual, jamMulai);
-            if (!tanggalObj) return res.status(400).send('Gagal: Tanggal tidak valid. Pastikan sudah diisi.');
-
+            if (!tanggalObj) return res.status(400).send('Gagal: Tanggal tidak valid.');
             dataToSave.tanggalManual = tanggalObj;
             dataToSave.jamMulai      = jamMulai   || null;
             dataToSave.jamSelesai    = jamSelesai || null;
@@ -283,9 +292,9 @@ app.post('/save', requireLogin, uploadFields, async (req, res) => {
 });
 
 // ==========================================
-// 4. UPDATE STATUS
+// 4. UPDATE STATUS — user & admin
 // ==========================================
-app.post('/update-status/:id', requireLogin, async (req, res) => {
+app.post('/update-status/:id', requireLogin, requireUser, async (req, res) => {
     try {
         await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { status: req.body.newStatus } });
         res.redirect('/kerja');
@@ -293,9 +302,9 @@ app.post('/update-status/:id', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 5a. UPLOAD FOTO SESUDAH SUSULAN
+// 5a. UPLOAD FOTO SESUDAH — user & admin
 // ==========================================
-app.post('/upload-foto/:id', requireLogin, upload.single('foto'), async (req, res) => {
+app.post('/upload-foto/:id', requireLogin, requireUser, upload.single('foto'), async (req, res) => {
     try {
         if (req.file) await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoUrl: '/uploads/' + req.file.filename } });
         res.redirect('/kerja');
@@ -303,9 +312,9 @@ app.post('/upload-foto/:id', requireLogin, upload.single('foto'), async (req, re
 });
 
 // ==========================================
-// 5b. UPLOAD FOTO AWAL SUSULAN
+// 5b. UPLOAD FOTO AWAL — user & admin
 // ==========================================
-app.post('/upload-foto-awal/:id', requireLogin, upload.single('fotoAwal'), async (req, res) => {
+app.post('/upload-foto-awal/:id', requireLogin, requireUser, upload.single('fotoAwal'), async (req, res) => {
     try {
         if (req.file) await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoAwalUrl: '/uploads/' + req.file.filename } });
         res.redirect('/kerja');
@@ -313,9 +322,9 @@ app.post('/upload-foto-awal/:id', requireLogin, upload.single('fotoAwal'), async
 });
 
 // ==========================================
-// 6. EDIT DATA
+// 6. EDIT DATA — user & admin
 // ==========================================
-app.post('/edit/:id', requireLogin, uploadFields, async (req, res) => {
+app.post('/edit/:id', requireLogin, requireUser, uploadFields, async (req, res) => {
     try {
         const aktivitas          = req.body.aktivitas          || '';
         const divisi             = req.body.divisi             || '';
@@ -341,10 +350,8 @@ app.post('/edit/:id', requireLogin, uploadFields, async (req, res) => {
         if (tipeInput === 'multihari') {
             const dtMulai   = buildDateTime(tanggalMulaiDate, jamMulaiMulti);
             const dtSelesai = buildDateTime(tanggalSelesaiDate, jamSelesaiMulti);
-
             if (!dtMulai)   return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
             if (!dtSelesai) return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
-
             updateData.tanggalManual  = dtMulai;
             updateData.tanggalMulai   = dtMulai;
             updateData.tanggalSelesai = dtSelesai;
@@ -354,7 +361,6 @@ app.post('/edit/:id', requireLogin, uploadFields, async (req, res) => {
         } else {
             const tanggalObj = buildDateTime(tanggalManual, jamMulai);
             if (!tanggalObj) return res.status(400).send('Gagal: Tanggal tidak valid.');
-
             updateData.tanggalManual  = tanggalObj;
             updateData.tanggalMulai   = null;
             updateData.tanggalSelesai = null;
@@ -372,9 +378,9 @@ app.post('/edit/:id', requireLogin, uploadFields, async (req, res) => {
 });
 
 // ==========================================
-// 7. DELETE DATA
+// 7. DELETE DATA — ADMIN ONLY
 // ==========================================
-app.post('/delete/:id', requireLogin, async (req, res) => {
+app.post('/delete/:id', requireLogin, requireAdmin, async (req, res) => {
     try {
         const item = await prisma.journal.findUnique({ where: { id: parseInt(req.params.id) } });
         if (item) {
@@ -388,9 +394,9 @@ app.post('/delete/:id', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 8. EXPORT EXCEL
+// 8. EXPORT EXCEL — user & admin
 // ==========================================
-app.get('/export', requireLogin, async (req, res) => {
+app.get('/export', requireLogin, requireUser, async (req, res) => {
     try {
         const { date, month, year } = req.query;
         let whereClause = {}, fileName = 'Log-IT.xlsx';
@@ -470,29 +476,118 @@ app.get('/export', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 9. NOTES
+// 9. NOTES — user & admin
 // ==========================================
 app.get('/api/notes', requireLogin, async (req, res) => {
     try { res.json(await prisma.note.findMany({ orderBy: { createdAt: 'desc' } })); }
     catch (e) { res.status(500).json({ error: "Gagal ambil notes" }); }
 });
-app.post('/api/notes', requireLogin, async (req, res) => {
+app.post('/api/notes', requireLogin, requireUser, async (req, res) => {
     try { res.json(await prisma.note.create({ data: { title: req.body.title, content: req.body.content } })); }
     catch (e) { res.status(500).json({ error: "Gagal tambah notes" }); }
 });
-app.put('/api/notes/:id', requireLogin, async (req, res) => {
+app.put('/api/notes/:id', requireLogin, requireUser, async (req, res) => {
     try { res.json(await prisma.note.update({ where: { id: parseInt(req.params.id) }, data: { title: req.body.title, content: req.body.content } })); }
     catch (e) { res.status(500).json({ error: "Gagal update notes" }); }
 });
-app.delete('/api/notes/:id', requireLogin, async (req, res) => {
+app.delete('/api/notes/:id', requireLogin, requireAdmin, async (req, res) => {
     try { await prisma.note.delete({ where: { id: parseInt(req.params.id) } }); res.json({ success: true }); }
     catch (e) { res.status(500).json({ error: "Gagal hapus notes" }); }
+});
+
+// ==========================================
+// 10. USER MANAGEMENT — admin only
+// ==========================================
+app.get('/users', requireLogin, requireAdmin, async (req, res) => {
+    try {
+        const { msg, msgType } = req.query;
+        const users = await prisma.user.findMany({ orderBy: { createdAt: 'asc' } });
+        res.render('users', { users, msg: msg || null, msgType: msgType || 'success' });
+    } catch (error) {
+        console.error('[USERS ERROR]', error.message);
+        res.status(500).send('Database Error: ' + error.message);
+    }
+});
+
+app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
+    try {
+        const { nama, username, password, role } = req.body;
+        if (!nama || !username || !password) {
+            return res.redirect('/users?msg=Nama%2C+username%2C+dan+password+wajib+diisi&msgType=error');
+        }
+        if (password.length < 6) {
+            return res.redirect('/users?msg=Password+minimal+6+karakter&msgType=error');
+        }
+        const existing = await prisma.user.findUnique({ where: { username: username.trim().toLowerCase() } });
+        if (existing) {
+            return res.redirect('/users?msg=Username+sudah+dipakai%2C+pilih+yang+lain&msgType=error');
+        }
+        const validRoles = ['admin', 'user', 'viewer'];
+        const safeRole = validRoles.includes(role) ? role : 'user';
+        const hashed = await bcrypt.hash(password, 10);
+        await prisma.user.create({
+            data: { nama: nama.trim(), username: username.trim().toLowerCase(), password: hashed, role: safeRole }
+        });
+        res.redirect('/users?msg=User+berhasil+ditambahkan&msgType=success');
+    } catch (error) {
+        console.error('[USER TAMBAH ERROR]', error.message);
+        res.redirect('/users?msg=Gagal+tambah+user:+' + encodeURIComponent(error.message) + '&msgType=error');
+    }
+});
+
+app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { nama, username, password, role } = req.body;
+        if (!nama || !username) {
+            return res.redirect('/users?msg=Nama+dan+username+wajib+diisi&msgType=error');
+        }
+        const existing = await prisma.user.findFirst({
+            where: { username: username.trim().toLowerCase(), NOT: { id } }
+        });
+        if (existing) {
+            return res.redirect('/users?msg=Username+sudah+dipakai+user+lain&msgType=error');
+        }
+        const validRoles = ['admin', 'user', 'viewer'];
+        const safeRole = validRoles.includes(role) ? role : 'user';
+        const updateData = { nama: nama.trim(), username: username.trim().toLowerCase(), role: safeRole };
+        if (password && password.trim().length > 0) {
+            if (password.length < 6) {
+                return res.redirect('/users?msg=Password+minimal+6+karakter&msgType=error');
+            }
+            updateData.password = await bcrypt.hash(password, 10);
+        }
+        await prisma.user.update({ where: { id }, data: updateData });
+        if (req.session.user && req.session.user.id === id) {
+            req.session.user.nama     = updateData.nama;
+            req.session.user.username = updateData.username;
+            req.session.user.role     = updateData.role;
+        }
+        res.redirect('/users?msg=User+berhasil+diperbarui&msgType=success');
+    } catch (error) {
+        console.error('[USER EDIT ERROR]', error.message);
+        res.redirect('/users?msg=Gagal+edit+user&msgType=error');
+    }
+});
+
+app.post('/users/hapus/:id', requireLogin, requireAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (req.session.user && req.session.user.id === id) {
+            return res.redirect('/users?msg=Tidak+bisa+hapus+akun+sendiri&msgType=error');
+        }
+        await prisma.user.delete({ where: { id } });
+        res.redirect('/users?msg=User+berhasil+dihapus&msgType=success');
+    } catch (error) {
+        console.error('[USER HAPUS ERROR]', error.message);
+        res.redirect('/users?msg=Gagal+hapus+user&msgType=error');
+    }
 });
 
 app.listen(3001, '0.0.0.0', () => console.log('🚀 SYSTEM READY AT PORT 3001'));
 
 // ==========================================
-// ASET — EXPORT PDF (print-ready HTML)
+// ASET ROUTES (tidak berubah dari sebelumnya)
 // ==========================================
 app.get('/aset/export-pdf', requireLogin, async (req, res) => {
     try {
@@ -507,122 +602,78 @@ app.get('/aset/export-pdf', requireLogin, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 
-// ==========================================
-// ASET — MASTER LIST
-// ==========================================
 app.get('/aset', requireLogin, async (req, res) => {
     try {
         const { q, kategori } = req.query;
         let where = {};
         if (q) where.OR = [{ nama: { contains: q } }, { kategori: { contains: q } }];
         if (kategori && kategori !== '') where.kategori = kategori;
-
         const aset = await prisma.aset.findMany({
             where,
             orderBy: { nama: 'asc' },
-            include: {
-                _count: { select: { pinjaman: { where: { status: 'Dipinjam' } } } }
-            }
+            include: { _count: { select: { pinjaman: { where: { status: 'Dipinjam' } } } } }
         });
-
-        // Ambil kategori unik untuk filter dropdown
         const allKategori = await prisma.aset.findMany({ select: { kategori: true }, distinct: ['kategori'] });
-
         res.render('aset', { aset, allKategori: allKategori.map(k => k.kategori), q: q || '', kategori: kategori || '' });
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 
-// ==========================================
-// ASET — DETAIL & RIWAYAT
-// ==========================================
 app.get('/aset/:id', requireLogin, async (req, res) => {
     try {
         const aset = await prisma.aset.findUnique({
             where: { id: parseInt(req.params.id) },
-            include: {
-                penggunaan: { orderBy: { tanggal: 'desc' } },
-                pinjaman:   { orderBy: { tanggalPinjam: 'desc' } }
-            }
+            include: { penggunaan: { orderBy: { tanggal: 'desc' } }, pinjaman: { orderBy: { tanggalPinjam: 'desc' } } }
         });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
         res.render('aset-detail', { aset });
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 
-// ==========================================
-// ASET — TAMBAH MASTER
-// ==========================================
-app.post('/aset/tambah', requireLogin, async (req, res) => {
+app.post('/aset/tambah', requireLogin, requireUser, async (req, res) => {
     try {
         const { nama, kategori, satuan, stok, kondisi, keterangan } = req.body;
         const stokNum = parseInt(stok) || 0;
-        await prisma.aset.create({
-            data: { nama, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan: keterangan || null }
-        });
+        await prisma.aset.create({ data: { nama, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan: keterangan || null } });
         res.redirect('/aset?saved=1');
     } catch (error) { console.error(error); res.status(500).send("Gagal tambah aset: " + error.message); }
 });
 
-// ==========================================
-// ASET — EDIT MASTER
-// ==========================================
-app.post('/aset/edit/:id', requireLogin, async (req, res) => {
+app.post('/aset/edit/:id', requireLogin, requireUser, async (req, res) => {
     try {
         const { nama, kategori, satuan, stokAwal, kondisi, keterangan } = req.body;
         const stokAwalNum = parseInt(stokAwal) || 0;
-        // Hitung stok sekarang: stokAwal - total_penggunaan - total_pinjaman_aktif
-        const totalPakai = await prisma.asetPenggunaan.aggregate({ where: { asetId: parseInt(req.params.id) }, _sum: { jumlah: true } });
+        const totalPakai  = await prisma.asetPenggunaan.aggregate({ where: { asetId: parseInt(req.params.id) }, _sum: { jumlah: true } });
         const totalPinjam = await prisma.asetPinjam.aggregate({ where: { asetId: parseInt(req.params.id), status: 'Dipinjam' }, _sum: { jumlah: true } });
-        const stokBaru = stokAwalNum - (totalPakai._sum.jumlah || 0) - (totalPinjam._sum.jumlah || 0);
-        await prisma.aset.update({
-            where: { id: parseInt(req.params.id) },
-            data: { nama, kategori, satuan, stokAwal: stokAwalNum, stok: stokBaru, kondisi, keterangan: keterangan || null }
-        });
+        const stokBaru    = stokAwalNum - (totalPakai._sum.jumlah || 0) - (totalPinjam._sum.jumlah || 0);
+        await prisma.aset.update({ where: { id: parseInt(req.params.id) }, data: { nama, kategori, satuan, stokAwal: stokAwalNum, stok: stokBaru, kondisi, keterangan: keterangan || null } });
         res.redirect('/aset');
     } catch (error) { console.error(error); res.status(500).send("Gagal edit aset: " + error.message); }
 });
 
-// ==========================================
-// ASET — HAPUS MASTER
-// ==========================================
-app.post('/aset/hapus/:id', requireLogin, async (req, res) => {
+app.post('/aset/hapus/:id', requireLogin, requireAdmin, async (req, res) => {
     try {
         await prisma.aset.delete({ where: { id: parseInt(req.params.id) } });
         res.redirect('/aset');
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus: " + error.message); }
 });
 
-// ==========================================
-// ASET — CATAT PENGGUNAAN (potong stok)
-// ==========================================
-app.post('/aset/pakai/:id', requireLogin, async (req, res) => {
+app.post('/aset/pakai/:id', requireLogin, requireUser, async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, divisi, lokasi, keterangan, tanggal } = req.body;
-        const jml = parseInt(jumlah) || 1;
-
+        const jml  = parseInt(jumlah) || 1;
         const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
         if (aset.stok < jml) return res.status(400).send(`Stok tidak cukup! Stok tersedia: ${aset.stok} ${aset.satuan}`);
-
         await prisma.$transaction([
-            prisma.asetPenggunaan.create({
-                data: {
-                    asetId, jumlah: jml, divisi, lokasi,
-                    keterangan: keterangan || null,
-                    tanggal: tanggal ? new Date(tanggal) : new Date()
-                }
-            }),
+            prisma.asetPenggunaan.create({ data: { asetId, jumlah: jml, divisi, lokasi, keterangan: keterangan || null, tanggal: tanggal ? new Date(tanggal) : new Date() } }),
             prisma.aset.update({ where: { id: asetId }, data: { stok: { decrement: jml } } })
         ]);
         res.redirect('/aset/' + asetId + '?saved=pakai');
     } catch (error) { console.error(error); res.status(500).send("Gagal catat penggunaan: " + error.message); }
 });
 
-// ==========================================
-// ASET — HAPUS PENGGUNAAN (kembalikan stok)
-// ==========================================
-app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, async (req, res) => {
+app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, requireUser, async (req, res) => {
     try {
         const penggunaan = await prisma.asetPenggunaan.findUnique({ where: { id: parseInt(req.params.penggunaanId) } });
         if (!penggunaan) return res.status(404).send("Data tidak ditemukan");
@@ -634,58 +685,36 @@ app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus penggunaan: " + error.message); }
 });
 
-// ==========================================
-// ASET — CATAT PINJAMAN (potong stok)
-// ==========================================
-app.post('/aset/pinjam/:id', requireLogin, async (req, res) => {
+app.post('/aset/pinjam/:id', requireLogin, requireUser, async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, peminjam, divisi, keperluan, tanggalPinjam } = req.body;
-        const jml = parseInt(jumlah) || 1;
-
+        const jml  = parseInt(jumlah) || 1;
         const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
         if (aset.stok < jml) return res.status(400).send(`Stok tidak cukup! Stok tersedia: ${aset.stok} ${aset.satuan}`);
-
         await prisma.$transaction([
-            prisma.asetPinjam.create({
-                data: {
-                    asetId, jumlah: jml, peminjam, divisi,
-                    keperluan: keperluan || null,
-                    tanggalPinjam: tanggalPinjam ? new Date(tanggalPinjam) : new Date(),
-                    status: 'Dipinjam'
-                }
-            }),
+            prisma.asetPinjam.create({ data: { asetId, jumlah: jml, peminjam, divisi, keperluan: keperluan || null, tanggalPinjam: tanggalPinjam ? new Date(tanggalPinjam) : new Date(), status: 'Dipinjam' } }),
             prisma.aset.update({ where: { id: asetId }, data: { stok: { decrement: jml } } })
         ]);
         res.redirect('/aset/' + asetId + '?saved=pinjam');
     } catch (error) { console.error(error); res.status(500).send("Gagal catat pinjaman: " + error.message); }
 });
 
-// ==========================================
-// ASET — KEMBALIKAN PINJAMAN (naikkan stok)
-// ==========================================
-app.post('/aset/kembali/:pinjamId', requireLogin, async (req, res) => {
+app.post('/aset/kembali/:pinjamId', requireLogin, requireUser, async (req, res) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Data pinjaman tidak ditemukan");
         if (pinjam.status === 'Dikembalikan') return res.status(400).send("Sudah dikembalikan.");
-
         await prisma.$transaction([
-            prisma.asetPinjam.update({
-                where: { id: parseInt(req.params.pinjamId) },
-                data: { status: 'Dikembalikan', tanggalKembali: new Date() }
-            }),
+            prisma.asetPinjam.update({ where: { id: parseInt(req.params.pinjamId) }, data: { status: 'Dikembalikan', tanggalKembali: new Date() } }),
             prisma.aset.update({ where: { id: pinjam.asetId }, data: { stok: { increment: pinjam.jumlah } } })
         ]);
         res.redirect('/aset/' + pinjam.asetId + '?saved=kembali');
     } catch (error) { console.error(error); res.status(500).send("Gagal proses kembali: " + error.message); }
 });
 
-// ==========================================
-// ASET — HAPUS PINJAMAN (batalkan, kembalikan stok)
-// ==========================================
-app.post('/aset/pinjam-hapus/:pinjamId', requireLogin, async (req, res) => {
+app.post('/aset/pinjam-hapus/:pinjamId', requireLogin, requireUser, async (req, res) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Tidak ditemukan");

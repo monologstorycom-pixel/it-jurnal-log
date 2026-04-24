@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 — Akses Ditolak</title>
+    <style>
+        :root { --bg:#080a10; --text:#e2e8f0; --text2:#8b8fa8; --border:#1e2130; --accent:#f87171; }
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-system,sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem; }
+        .wrap { text-align:center; max-width:400px; }
+        .icon { font-size:3.5rem; margin-bottom:1rem; }
+        .code { font-size:5rem; font-weight:800; color:var(--accent); line-height:1; font-family:monospace; }
+        .title { font-size:1.1rem; font-weight:700; color:var(--text); margin:0.5rem 0; }
+        .msg { font-size:0.85rem; color:var(--text2); margin-bottom:2rem; line-height:1.6; }
+        .btn { display:inline-block; background:#1a3a2a; border:1px solid #2d6a4a; color:#4ade80; padding:10px 24px; border-radius:8px; font-size:0.85rem; font-weight:700; text-decoration:none; transition:all 0.15s; }
+        .btn:hover { background:#224a36; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="icon">🚫</div>
+        <div class="code">403</div>
+        <div class="title">Akses Ditolak</div>
+        <div class="msg"><%= typeof message !== 'undefined' ? message : 'Anda tidak memiliki izin untuk mengakses halaman ini.' %></div>
+        <a href="/kerja" class="btn">← Kembali ke Dashboard</a>
+    </div>
+</body>
+</html>

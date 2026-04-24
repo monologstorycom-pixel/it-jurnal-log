@@ -43,15 +43,27 @@
   .it-nav-link { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 6px; color: var(--nav-link); font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
   .it-nav-link:hover { background: var(--nav-hover); color: var(--nav-text); }
   .it-nav-link.active { background: var(--nav-hover); color: var(--nav-text); }
+
+  /* ADMIN-ONLY LINK */
+  .it-nav-link.admin-link { border: 1px solid #2d2040; }
+  .it-nav-link.admin-link:hover { background: #1a0d3d; color: #c9aaff; border-color: #4c3780; }
+  .it-nav-link.admin-link.active { background: #1a0d3d; color: #c9aaff; border-color: #4c3780; }
+
   .it-nav-right { display: flex; align-items: center; gap: 10px; }
   .nav-theme-btn { background: none; border: 1px solid var(--nav-border); border-radius: 20px; padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: var(--nav-link); transition: all 0.15s; }
   .nav-theme-btn:hover { border-color: #4ade80; color: var(--nav-text); }
   .t-track { width: 28px; height: 15px; background: var(--nav-border); border-radius: 8px; position: relative; transition: background 0.2s; flex-shrink: 0; }
   .t-thumb { position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; background: var(--nav-link); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
   .nav-user { display: flex; align-items: center; gap: 7px; padding: 4px 10px; background: var(--nav-hover); border-radius: 20px; font-size: 0.75rem; }
-  .nav-user-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; flex-shrink: 0; }
+  .nav-user-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-admin  { background: #a78bfa; }
+  .dot-user   { background: #4ade80; }
+  .dot-viewer { background: #7eb8f7; }
   .nav-user-name { color: var(--nav-text); font-weight: 600; }
-  .nav-user-role { color: var(--nav-link); font-size: 0.68rem; }
+  .nav-user-role { font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+  .role-pill-admin  { background: #1a0d3d; color: #a78bfa; }
+  .role-pill-user   { background: #0d2a18; color: #4ade80; }
+  .role-pill-viewer { background: #0d1a38; color: #7eb8f7; }
   .nav-logout { background: none; border: 1px solid var(--nav-border); border-radius: 6px; padding: 4px 10px; color: var(--nav-link); font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
   .nav-logout:hover { border-color: #f87171; color: #f87171; background: #2a0d0d; }
   .it-nav-hamburger { display: none; background: none; border: 1px solid var(--nav-border); border-radius: 6px; padding: 5px 9px; color: var(--nav-link); cursor: pointer; font-size: 15px; }
@@ -60,9 +72,11 @@
   .it-nav-mobile.open { display: block; }
   .it-nav-mobile a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: var(--nav-link); font-size: 0.83rem; font-weight: 600; text-decoration: none; margin-bottom: 3px; transition: all 0.15s; }
   .it-nav-mobile a:hover, .it-nav-mobile a.active { background: var(--nav-hover); color: var(--nav-text); }
+  .it-nav-mobile a.admin-link:hover { background: #1a0d3d; color: #c9aaff; }
+  .it-nav-mobile a.admin-link.active { background: #1a0d3d; color: #c9aaff; }
   .it-nav-mobile .m-sep { border-top: 1px solid var(--nav-border); margin: 8px 0; }
   .it-nav-mobile .m-user { padding: 8px 12px; font-size: 0.75rem; color: var(--nav-link); display: flex; align-items: center; gap: 8px; }
-  .it-nav-mobile .m-user-dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; }
+  .it-nav-mobile .m-user-dot { width: 7px; height: 7px; border-radius: 50%; }
   @media (max-width: 768px) {
     .it-nav-links, .it-nav-right { display: none; }
     .it-nav-hamburger { display: flex; align-items: center; }
@@ -76,6 +90,9 @@
       <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">⚙ Dashboard</a>
       <a href="/"      class="it-nav-link <%= activePage === 'view'      ? 'active' : '' %>">◉ View Harian</a>
       <a href="/aset"  class="it-nav-link <%= activePage === 'aset'      ? 'active' : '' %>">▦ Aset IT</a>
+      <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') { %>
+      <a href="/users" class="it-nav-link admin-link <%= activePage === 'users' ? 'active' : '' %>">👥 Users</a>
+      <% } %>
     </div>
     <div class="it-nav-right">
       <button class="nav-theme-btn" onclick="toggleTheme()" id="navThemeBtn">
@@ -83,12 +100,16 @@
         <span id="navThemeLabel">Light</span>
       </button>
       <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+      <%
+        var dotClass  = currentUser.role === 'admin' ? 'dot-admin'  : currentUser.role === 'viewer' ? 'dot-viewer' : 'dot-user';
+        var pillClass = currentUser.role === 'admin' ? 'role-pill-admin' : currentUser.role === 'viewer' ? 'role-pill-viewer' : 'role-pill-user';
+      %>
       <div class="nav-user">
-        <div class="nav-user-dot"></div>
+        <div class="nav-user-dot <%= dotClass %>"></div>
         <div>
           <div class="nav-user-name"><%= currentUser.nama %></div>
-          <div class="nav-user-role"><%= currentUser.role %></div>
         </div>
+        <span class="nav-user-role <%= pillClass %>"><%= currentUser.role.toUpperCase() %></span>
       </div>
       <a href="/logout" class="nav-logout">Keluar</a>
       <% } %>
@@ -99,9 +120,16 @@
     <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">⚙ Dashboard</a>
     <a href="/"      class="<%= activePage === 'view'      ? 'active' : '' %>">◉ View Harian</a>
     <a href="/aset"  class="<%= activePage === 'aset'      ? 'active' : '' %>">▦ Aset IT</a>
+    <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') { %>
+    <a href="/users" class="admin-link <%= activePage === 'users' ? 'active' : '' %>">👥 Users</a>
+    <% } %>
     <div class="m-sep"></div>
     <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-    <div class="m-user"><div class="m-user-dot"></div><span><%= currentUser.nama %> (<%= currentUser.role %>)</span></div>
+    <div class="m-user">
+      <div class="m-user-dot <%= currentUser.role === 'admin' ? 'dot-admin' : currentUser.role === 'viewer' ? 'dot-viewer' : 'dot-user' %>"></div>
+      <span><%= currentUser.nama %></span>
+      <span style="font-size:0.65rem;padding:1px 5px;border-radius:3px;font-weight:700;" class="<%= currentUser.role === 'admin' ? 'role-pill-admin' : currentUser.role === 'viewer' ? 'role-pill-viewer' : 'role-pill-user' %>"><%= currentUser.role.toUpperCase() %></span>
+    </div>
     <a href="/logout" style="color:#f87171;">Keluar</a>
     <% } %>
   </div>
@@ -110,7 +138,6 @@
 <script>
 (function() {
   function getTheme() { return localStorage.getItem('itlog-theme') || 'dark'; }
-
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     localStorage.setItem('itlog-theme', t);
@@ -121,13 +148,10 @@
     if (thumb) { thumb.style.transform = t === 'light' ? 'translateX(13px)' : ''; thumb.style.background = t === 'light' ? '#fff' : ''; }
     if (track) track.style.background = t === 'light' ? '#4ade80' : '';
   }
-
   window.toggleTheme = function() {
     var next = getTheme() === 'dark' ? 'light' : 'dark';
     applyTheme(next);
   };
-
-  // Apply immediately on load
   applyTheme(getTheme());
 })();
 

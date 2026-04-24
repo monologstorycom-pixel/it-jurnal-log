@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen User — IT Support Log</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', -apple-system, sans-serif; margin: 0; transition: background 0.25s, color 0.25s; }
+        .page-wrap { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+        /* SIDEBAR FORM */
+        .form-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; padding: 1.25rem; position: sticky; top: 72px; }
+        .form-panel h6 { font-size: 0.78rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+        .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+        .f-input { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; border-radius: 6px; color: var(--body-text) !important; padding: 8px 10px; width: 100%; margin-bottom: 0.65rem; font-size: 0.83rem; outline: none; transition: border-color 0.15s; }
+        .f-input:focus { border-color: var(--body-input-focus) !important; }
+        .f-input option { background: var(--body-card); }
+        .btn-add { background: #1a3a2a; border: 1px solid #2d6a4a; color: #4ade80; width: 100%; padding: 9px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
+        .btn-add:hover { background: #224a36; }
+
+        /* MAIN PANEL */
+        .main-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; overflow: hidden; }
+        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--body-border); }
+        .panel-title { font-size: 0.82rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; }
+
+        /* ROLE BADGES */
+        .role-admin  { display:inline-block;padding:3px 10px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a0d3d;color:#a78bfa;border:1px solid #4c3780; }
+        .role-user   { display:inline-block;padding:3px 10px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#0d2a18;color:#4ade80;border:1px solid #1a5c30; }
+        .role-viewer { display:inline-block;padding:3px 10px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a2a3a;color:#7eb8f7;border:1px solid #2a4a6a; }
+
+        /* PERMISSION MATRIX */
+        .perm-matrix { background: var(--body-bg); border: 1px solid var(--body-border); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .perm-matrix-title { font-size: 0.7rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.75rem; }
+        .perm-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--body-border); font-size: 0.78rem; }
+        .perm-row:last-child { border-bottom: none; }
+        .perm-label { color: var(--body-text2); }
+        .perm-dots { display: flex; gap: 24px; }
+        .perm-dot { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
+        .perm-yes { background: #0d2a18; color: #4ade80; border: 1px solid #1a5c30; }
+        .perm-no  { background: #1a1a2e; color: #3b4263; border: 1px solid #2a2d3e; }
+        .perm-header { display: flex; justify-content: flex-end; gap: 24px; font-size: 0.65rem; font-weight: 700; color: var(--body-text3); margin-bottom: 4px; padding-right: 0; }
+        .perm-col { width: 16px; text-align: center; }
+
+        /* TABLE */
+        .user-table { width: 100%; border-collapse: collapse; }
+        .user-table th { padding: 10px 14px; font-size: 0.65rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--body-border); background: var(--body-bg); text-align: left; }
+        .user-table td { padding: 12px 14px; font-size: 0.83rem; color: var(--body-text); border-bottom: 1px solid var(--body-border); vertical-align: middle; }
+        .user-table tr:last-child td { border-bottom: none; }
+        .user-table tr:hover td { background: var(--body-bg3); }
+
+        /* ACTION BTNS */
+        .act-btn { background: none; border: 1px solid var(--body-border); color: var(--body-text2); padding: 4px 9px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.12s; }
+        .act-btn.blue:hover  { border-color: #2a3d6a; color: #7eb8f7; background: #0d1a38; }
+        .act-btn.red:hover   { border-color: #5c1a1a; color: #f87171; background: #2a0d0d; }
+
+        /* MODAL */
+        .m-content { background: var(--body-card) !important; border: 1px solid var(--body-border) !important; }
+        .m-header  { border-bottom: 1px solid var(--body-border) !important; }
+        .m-footer  { border-top: 1px solid var(--body-border) !important; }
+        .m-content .modal-title { color: var(--body-text) !important; }
+
+        /* ALERT */
+        .alert-success-custom { background: #0d2a18; border: 1px solid #1a5c30; color: #4ade80; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
+        .alert-error-custom   { background: #2a0d0d; border: 1px solid #5c1a1a; color: #f87171; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
+
+        /* CURRENT USER INDICATOR */
+        .you-badge { display: inline-block; background: #1a2a0d; color: #86efac; border: 1px solid #2d5c1a; border-radius: 3px; padding: 1px 6px; font-size: 0.6rem; font-weight: 700; margin-left: 6px; vertical-align: middle; }
+
+        /* PASS STRENGTH */
+        .pass-strength { height: 3px; border-radius: 2px; margin-top: 4px; margin-bottom: 0.65rem; background: var(--body-border); overflow: hidden; }
+        .pass-strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
+
+        @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; } }
+    </style>
+</head>
+<body>
+<%- include('navbar', {activePage: 'users'}) %>
+
+<div class="page-wrap">
+  <% if (typeof msg !== 'undefined' && msg) { %>
+    <div class="<%= msgType === 'error' ? 'alert-error-custom' : 'alert-success-custom' %>">
+      <%= msgType === 'error' ? '⚠️' : '✅' %> <%= msg %>
+    </div>
+  <% } %>
+
+  <div class="row g-4">
+
+    <!-- FORM SIDEBAR -->
+    <div class="col-md-4">
+
+      <!-- PERMISSION MATRIX INFO -->
+      <div class="perm-matrix">
+        <div class="perm-matrix-title">📋 Tabel Hak Akses</div>
+        <div class="perm-header">
+          <span class="perm-col" style="color:#a78bfa;">ADM</span>
+          <span class="perm-col" style="color:#4ade80;">USR</span>
+          <span class="perm-col" style="color:#7eb8f7;">VWR</span>
+        </div>
+        <div class="perm-row"><span class="perm-label">Lihat Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div></div></div>
+        <div class="perm-row"><span class="perm-label">Tambah Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
+        <div class="perm-row"><span class="perm-label">Edit Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
+        <div class="perm-row"><span class="perm-label">Hapus Jurnal</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div><div class="perm-dot perm-no">✗</div></div></div>
+        <div class="perm-row"><span class="perm-label">Kelola Aset</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
+        <div class="perm-row"><span class="perm-label">Export Excel</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div></div></div>
+        <div class="perm-row"><span class="perm-label">Kelola User</span><div class="perm-dots"><div class="perm-dot perm-yes">✓</div><div class="perm-dot perm-no">✗</div><div class="perm-dot perm-no">✗</div></div></div>
+      </div>
+
+      <!-- FORM TAMBAH USER -->
+      <div class="form-panel">
+        <h6>+ Tambah User Baru</h6>
+        <form action="/users/tambah" method="POST" id="formTambah">
+          <label class="f-label">Nama Lengkap</label>
+          <input type="text" name="nama" class="f-input" placeholder="cth: Rizqi Subagyo" required>
+
+          <label class="f-label">Username</label>
+          <input type="text" name="username" class="f-input" placeholder="cth: rizqi (huruf kecil)" required pattern="[a-z0-9_]+" title="Hanya huruf kecil, angka, underscore">
+
+          <label class="f-label">Password</label>
+          <input type="password" name="password" id="newPass" class="f-input" placeholder="Min 6 karakter" required minlength="6" oninput="checkStrength(this.value)">
+          <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBar"></div></div>
+
+          <label class="f-label">Role / Hak Akses</label>
+          <select name="role" class="f-input" id="roleSelect" onchange="updateRoleDesc(this.value)">
+            <option value="user">User — Bisa input & edit jurnal, kelola aset</option>
+            <option value="viewer">Viewer — Hanya bisa lihat (read-only)</option>
+            <option value="admin">Admin — Akses penuh termasuk kelola user</option>
+          </select>
+
+          <div id="roleDesc" style="background:#0d1a38;border:1px solid #1a2d5c;border-radius:6px;padding:8px 10px;margin-bottom:0.65rem;font-size:0.75rem;color:#7eb8f7;">
+            💡 <strong>User:</strong> Dapat menambah jurnal, upload foto, kelola aset & pinjaman, export Excel. Tidak bisa hapus jurnal & kelola user.
+          </div>
+
+          <button type="submit" class="btn-add">SIMPAN USER</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- TABLE USER -->
+    <div class="col-md-8">
+      <div class="main-panel">
+        <div class="panel-header">
+          <div class="panel-title">Daftar User (<%= users.length %> akun)</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th style="width:30px;">#</th>
+                <th>Nama</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Dibuat</th>
+                <th style="width:130px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach((u, i) => { %>
+              <tr>
+                <td style="color:var(--body-text3);"><%= i+1 %></td>
+                <td>
+                  <strong style="color:var(--body-text);"><%= u.nama %></strong>
+                  <% if (currentUser && u.id === currentUser.id) { %><span class="you-badge">KAMU</span><% } %>
+                </td>
+                <td><code style="color:#4ade80;background:var(--body-bg);padding:2px 6px;border-radius:3px;font-size:0.78rem;"><%= u.username %></code></td>
+                <td>
+                  <span class="role-<%= u.role %>"><%= u.role.toUpperCase() %></span>
+                </td>
+                <td style="color:var(--body-text2);font-size:0.75rem;"><%= new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+                <td>
+                  <div style="display:flex;gap:5px;">
+                    <button class="act-btn blue" onclick="openEditModal(
+                      <%= u.id %>,
+                      `<%= u.nama.replace(/`/g, '\\`') %>`,
+                      `<%= u.username %>`,
+                      `<%= u.role %>`
+                    )">Edit</button>
+                    <% if (!currentUser || u.id !== currentUser.id) { %>
+                    <button class="act-btn red" onclick="confirmHapus(<%= u.id %>, `<%= u.nama.replace(/`/g, '\\`') %>`)">Hapus</button>
+                    <% } else { %>
+                    <button class="act-btn" style="opacity:0.3;cursor:not-allowed;" disabled title="Tidak bisa hapus akun sendiri">Hapus</button>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT USER -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content m-content">
+      <div class="modal-header m-header">
+        <h5 class="modal-title">✏️ Edit User</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEdit" action="" method="POST">
+        <div class="modal-body">
+          <label class="f-label">Nama Lengkap</label>
+          <input type="text" name="nama" id="edit_nama" class="f-input" required>
+
+          <label class="f-label">Username</label>
+          <input type="text" name="username" id="edit_username" class="f-input" required pattern="[a-z0-9_]+" title="Hanya huruf kecil, angka, underscore">
+
+          <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.65rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
+          <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrengthEdit(this.value)">
+          <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
+
+          <label class="f-label">Role / Hak Akses</label>
+          <select name="role" id="edit_role" class="f-input" onchange="updateRoleDescEdit(this.value)">
+            <option value="user">User — Bisa input & edit jurnal, kelola aset</option>
+            <option value="viewer">Viewer — Hanya bisa lihat (read-only)</option>
+            <option value="admin">Admin — Akses penuh termasuk kelola user</option>
+          </select>
+          <div id="roleDescEdit" style="background:#0d1a38;border:1px solid #1a2d5c;border-radius:6px;padding:8px 10px;font-size:0.75rem;color:#7eb8f7;"></div>
+        </div>
+        <div class="modal-footer m-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary fw-bold">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HAPUS -->
+<div class="modal fade" id="hapusModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content m-content" style="border-color:#5c1a1a !important;">
+      <div class="modal-header" style="border-color:#5c1a1a;">
+        <h5 class="modal-title">🗑️ Hapus User</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:var(--body-text);" class="mb-2">Yakin hapus user ini?</p>
+        <p id="hapusNama" style="color:#f87171;font-weight:700;font-size:0.95rem;"></p>
+        <p style="color:var(--body-text2);font-size:0.8rem;">⚠️ User yang dihapus tidak bisa dikembalikan.</p>
+      </div>
+      <div class="modal-footer" style="border-color:#5c1a1a;">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <form id="formHapus" action="" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-danger fw-bold">Ya, Hapus User</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const roleDescs = {
+  admin:  '🔑 <strong>Admin:</strong> Akses penuh — tambah/edit/hapus jurnal, kelola aset, export, dan kelola user.',
+  user:   '💡 <strong>User:</strong> Dapat menambah jurnal, upload foto, kelola aset & pinjaman, export Excel. Tidak bisa hapus jurnal & kelola user.',
+  viewer: '👁 <strong>Viewer:</strong> Hanya bisa melihat jurnal & aset. Tidak bisa input, edit, hapus, atau export.'
+};
+const roleColors = { admin: 'background:#1a0d3d;border-color:#4c3780;color:#c9aaff;', user: 'background:#0d1a38;border-color:#1a2d5c;color:#7eb8f7;', viewer: 'background:#0d2a18;border-color:#1a5c30;color:#86efac;' };
+
+function updateRoleDesc(role) {
+  var el = document.getElementById('roleDesc');
+  el.innerHTML = roleDescs[role] || '';
+  el.style.cssText = roleColors[role] + 'border-radius:6px;padding:8px 10px;margin-bottom:0.65rem;font-size:0.75rem;';
+}
+function updateRoleDescEdit(role) {
+  var el = document.getElementById('roleDescEdit');
+  el.innerHTML = roleDescs[role] || '';
+  el.style.cssText = roleColors[role] + 'border-radius:6px;padding:8px 10px;margin-top:4px;font-size:0.75rem;';
+}
+
+function checkStrength(v) {
+  var el = document.getElementById('passStrengthBar');
+  var score = 0;
+  if (v.length >= 6) score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^a-zA-Z0-9]/.test(v)) score++;
+  var pct = Math.min(100, score * 20);
+  var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
+  el.style.width = pct + '%';
+  el.style.background = colors[Math.max(0, score-1)] || '#f87171';
+}
+function checkStrengthEdit(v) {
+  if (!v) { document.getElementById('passStrengthBarEdit').style.width = '0%'; return; }
+  var el = document.getElementById('passStrengthBarEdit');
+  var score = 0;
+  if (v.length >= 6) score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^a-zA-Z0-9]/.test(v)) score++;
+  var pct = Math.min(100, score * 20);
+  var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
+  el.style.width = pct + '%';
+  el.style.background = colors[Math.max(0, score-1)] || '#f87171';
+}
+
+function openEditModal(id, nama, username, role) {
+  document.getElementById('formEdit').action = '/users/edit/' + id;
+  document.getElementById('edit_nama').value     = nama;
+  document.getElementById('edit_username').value = username;
+  document.getElementById('edit_pass').value     = '';
+  document.getElementById('edit_role').value     = role;
+  document.getElementById('passStrengthBarEdit').style.width = '0%';
+  updateRoleDescEdit(role);
+  new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function confirmHapus(id, nama) {
+  document.getElementById('formHapus').action = '/users/hapus/' + id;
+  document.getElementById('hapusNama').textContent = '"' + nama + '"';
+  new bootstrap.Modal(document.getElementById('hapusModal')).show();
+}
+
+// Init
+updateRoleDesc('user');
+</script>
+</body>
+</html>
