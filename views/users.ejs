@@ -131,6 +131,9 @@
           <input type="password" name="password" id="newPass" class="f-input" placeholder="Min 6 karakter" required minlength="6" oninput="checkStrength(this.value, 'passStrengthBar')">
           <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBar"></div></div>
 
+          <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
+          <input type="text" name="role" class="f-input" placeholder="cth: IT Support, Supervisor, Operator..." value="user">
+
           <!-- PERMISSION BUILDER -->
           <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; margin-bottom: 0.75rem; background: var(--body-bg);">
             <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">
@@ -146,48 +149,48 @@
             </div>
 
             <div class="perm-grid" id="permGrid_add">
-              <label class="perm-check" id="lbl_add_canView" onclick="togglePerm('add','canView')">
+              <div class="perm-check" id="lbl_add_canView" data-form="add" data-perm="canView">
                 <input type="checkbox" name="canView" id="add_canView">
                 <div class="perm-box" id="box_add_canView"></div>
                 <span class="perm-icon">👁</span>
                 <span class="perm-label-text">Lihat</span>
-              </label>
-              <label class="perm-check" id="lbl_add_canAdd" onclick="togglePerm('add','canAdd')">
+              </div>
+              <div class="perm-check" id="lbl_add_canAdd" data-form="add" data-perm="canAdd">
                 <input type="checkbox" name="canAdd" id="add_canAdd">
                 <div class="perm-box" id="box_add_canAdd"></div>
                 <span class="perm-icon">➕</span>
                 <span class="perm-label-text">Tambah</span>
-              </label>
-              <label class="perm-check" id="lbl_add_canEdit" onclick="togglePerm('add','canEdit')">
+              </div>
+              <div class="perm-check" id="lbl_add_canEdit" data-form="add" data-perm="canEdit">
                 <input type="checkbox" name="canEdit" id="add_canEdit">
                 <div class="perm-box" id="box_add_canEdit"></div>
                 <span class="perm-icon">✏️</span>
                 <span class="perm-label-text">Edit</span>
-              </label>
-              <label class="perm-check" id="lbl_add_canDelete" onclick="togglePerm('add','canDelete')">
+              </div>
+              <div class="perm-check" id="lbl_add_canDelete" data-form="add" data-perm="canDelete">
                 <input type="checkbox" name="canDelete" id="add_canDelete">
                 <div class="perm-box" id="box_add_canDelete"></div>
                 <span class="perm-icon">🗑</span>
                 <span class="perm-label-text">Hapus</span>
-              </label>
-              <label class="perm-check" id="lbl_add_canAsset" onclick="togglePerm('add','canAsset')">
+              </div>
+              <div class="perm-check" id="lbl_add_canAsset" data-form="add" data-perm="canAsset">
                 <input type="checkbox" name="canAsset" id="add_canAsset">
                 <div class="perm-box" id="box_add_canAsset"></div>
                 <span class="perm-icon">📦</span>
                 <span class="perm-label-text">Aset</span>
-              </label>
-              <label class="perm-check" id="lbl_add_canExport" onclick="togglePerm('add','canExport')">
+              </div>
+              <div class="perm-check" id="lbl_add_canExport" data-form="add" data-perm="canExport">
                 <input type="checkbox" name="canExport" id="add_canExport">
                 <div class="perm-box" id="box_add_canExport"></div>
                 <span class="perm-icon">📊</span>
                 <span class="perm-label-text">Export</span>
-              </label>
-              <label class="perm-check" id="lbl_add_canUsers" onclick="togglePerm('add','canUsers')">
+              </div>
+              <div class="perm-check" id="lbl_add_canUsers" data-form="add" data-perm="canUsers">
                 <input type="checkbox" name="canUsers" id="add_canUsers">
                 <div class="perm-box" id="box_add_canUsers"></div>
                 <span class="perm-icon">👥</span>
                 <span class="perm-label-text">Kelola User</span>
-              </label>
+              </div>
             </div>
           </div>
 
@@ -234,8 +237,8 @@
                 <td>
                   <strong><%= u.nama %></strong>
                   <% if (currentUser && u.id === currentUser.id) { %><span class="you-badge">KAMU</span><% } %>
-                  <div style="font-size:0.72rem;color:var(--body-text3);margin-top:2px;">
-                    <span class="role-<%= u.role %>"><%= u.role.toUpperCase() %></span>
+                  <div style="font-size:0.72rem;margin-top:3px;">
+                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:var(--body-bg);color:var(--body-text2);border:1px solid var(--body-border2);"><%= u.role %></span>
                   </div>
                 </td>
                 <td><code style="color:#4ade80;background:var(--body-bg);padding:2px 6px;border-radius:3px;font-size:0.78rem;"><%= u.username %></code></td>
@@ -295,6 +298,8 @@
               <input type="text" name="nama" id="edit_nama" class="f-input" required>
               <label class="f-label">Username</label>
               <input type="text" name="username" id="edit_username" class="f-input" required pattern="[a-z0-9_]+">
+              <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
+              <input type="text" name="role" id="edit_role" class="f-input" placeholder="cth: IT Support, Supervisor...">
               <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
               <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrength(this.value, 'passStrengthBarEdit')">
               <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
@@ -310,41 +315,41 @@
                   <button type="button" class="preset-btn preset-clear"  onclick="setPreset('edit', 'clear')">Clear</button>
                 </div>
                 <div class="perm-grid" id="permGrid_edit">
-                  <label class="perm-check" id="lbl_edit_canView" onclick="togglePerm('edit','canView')">
+                  <div class="perm-check" id="lbl_edit_canView" data-form="edit" data-perm="canView">
                     <input type="checkbox" name="canView" id="edit_canView">
                     <div class="perm-box" id="box_edit_canView"></div>
                     <span class="perm-icon">👁</span><span class="perm-label-text">Lihat</span>
-                  </label>
-                  <label class="perm-check" id="lbl_edit_canAdd" onclick="togglePerm('edit','canAdd')">
+                  </div>
+                  <div class="perm-check" id="lbl_edit_canAdd" data-form="edit" data-perm="canAdd">
                     <input type="checkbox" name="canAdd" id="edit_canAdd">
                     <div class="perm-box" id="box_edit_canAdd"></div>
                     <span class="perm-icon">➕</span><span class="perm-label-text">Tambah</span>
-                  </label>
-                  <label class="perm-check" id="lbl_edit_canEdit" onclick="togglePerm('edit','canEdit')">
+                  </div>
+                  <div class="perm-check" id="lbl_edit_canEdit" data-form="edit" data-perm="canEdit">
                     <input type="checkbox" name="canEdit" id="edit_canEdit">
                     <div class="perm-box" id="box_edit_canEdit"></div>
                     <span class="perm-icon">✏️</span><span class="perm-label-text">Edit</span>
-                  </label>
-                  <label class="perm-check" id="lbl_edit_canDelete" onclick="togglePerm('edit','canDelete')">
+                  </div>
+                  <div class="perm-check" id="lbl_edit_canDelete" data-form="edit" data-perm="canDelete">
                     <input type="checkbox" name="canDelete" id="edit_canDelete">
                     <div class="perm-box" id="box_edit_canDelete"></div>
                     <span class="perm-icon">🗑</span><span class="perm-label-text">Hapus</span>
-                  </label>
-                  <label class="perm-check" id="lbl_edit_canAsset" onclick="togglePerm('edit','canAsset')">
+                  </div>
+                  <div class="perm-check" id="lbl_edit_canAsset" data-form="edit" data-perm="canAsset">
                     <input type="checkbox" name="canAsset" id="edit_canAsset">
                     <div class="perm-box" id="box_edit_canAsset"></div>
                     <span class="perm-icon">📦</span><span class="perm-label-text">Aset</span>
-                  </label>
-                  <label class="perm-check" id="lbl_edit_canExport" onclick="togglePerm('edit','canExport')">
+                  </div>
+                  <div class="perm-check" id="lbl_edit_canExport" data-form="edit" data-perm="canExport">
                     <input type="checkbox" name="canExport" id="edit_canExport">
                     <div class="perm-box" id="box_edit_canExport"></div>
                     <span class="perm-icon">📊</span><span class="perm-label-text">Export</span>
-                  </label>
-                  <label class="perm-check" id="lbl_edit_canUsers" onclick="togglePerm('edit','canUsers')">
+                  </div>
+                  <div class="perm-check" id="lbl_edit_canUsers" data-form="edit" data-perm="canUsers">
                     <input type="checkbox" name="canUsers" id="edit_canUsers">
                     <div class="perm-box" id="box_edit_canUsers"></div>
                     <span class="perm-icon">👥</span><span class="perm-label-text">Kelola User</span>
-                  </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -399,70 +404,91 @@ var PRESETS = {
   clear:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false }
 };
 
+var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers'];
+
+// Toggle satu permission
 function togglePerm(form, perm) {
-  // Toggle
   permState[form][perm] = !permState[form][perm];
   renderPerms(form);
   syncCheckboxes(form);
 }
 
+// Set preset
 function setPreset(form, preset) {
   permState[form] = Object.assign({}, PRESETS[preset]);
   renderPerms(form);
   syncCheckboxes(form);
 }
 
+// Set dari object (untuk load data edit)
 function setPermState(form, obj) {
   permState[form] = Object.assign({}, PRESETS.clear, obj);
   renderPerms(form);
   syncCheckboxes(form);
 }
 
+// Render visual state ke DOM
 function renderPerms(form) {
-  var keys = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers'];
-  keys.forEach(function(perm) {
-    var val   = permState[form][perm];
-    var lbl   = document.getElementById('lbl_' + form + '_' + perm);
-    var box   = document.getElementById('box_' + form + '_' + perm);
-    var input = document.getElementById(form + '_' + perm);
-    if (!lbl) return;
+  PERM_KEYS.forEach(function(perm) {
+    var val = permState[form][perm];
+    var el  = document.getElementById('lbl_' + form + '_' + perm);
+    var box = document.getElementById('box_' + form + '_' + perm);
+    if (!el || !box) return;
 
-    // Reset classes
-    lbl.className = 'perm-check';
+    el.className = 'perm-check';
     box.textContent = '';
 
     if (val) {
       if (perm === 'canDelete') {
-        lbl.className = 'perm-check checked-delete';
+        el.className = 'perm-check checked-delete';
       } else if (perm === 'canUsers') {
-        lbl.className = 'perm-check checked-users';
+        el.className = 'perm-check checked-users';
       } else {
-        lbl.className = 'perm-check checked';
+        el.className = 'perm-check checked';
       }
       box.textContent = '✓';
     }
   });
 }
 
+// Sync hidden checkbox values (untuk dikirim form)
 function syncCheckboxes(form) {
-  var keys = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers'];
-  keys.forEach(function(perm) {
+  PERM_KEYS.forEach(function(perm) {
     var input = document.getElementById(form + '_' + perm);
     if (input) input.checked = permState[form][perm];
   });
 }
 
 // ===========================
+// PASANG CLICK LISTENER — pakai event delegation
+// Attach SETELAH DOM ready, satu listener per grid
+// ===========================
+document.addEventListener('DOMContentLoaded', function() {
+  // Pasang listener ke semua div.perm-check yang punya data-form dan data-perm
+  document.querySelectorAll('.perm-check[data-form][data-perm]').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      // Cegah event bubble ke mana-mana
+      e.stopPropagation();
+      var form = el.getAttribute('data-form');
+      var perm = el.getAttribute('data-perm');
+      togglePerm(form, perm);
+    });
+  });
+
+  // Init default: form tambah mulai dengan preset user
+  setPreset('add', 'user');
+});
+
+// ===========================
 // MODALS
 // ===========================
 function openEditModal(id, nama, username, role, perms) {
-  document.getElementById('formEdit').action = '/users/edit/' + id;
+  document.getElementById('formEdit').action     = '/users/edit/' + id;
   document.getElementById('edit_nama').value     = nama;
   document.getElementById('edit_username').value = username;
+  document.getElementById('edit_role').value     = role;
   document.getElementById('edit_pass').value     = '';
   document.getElementById('passStrengthBarEdit').style.width = '0%';
-
-  // Set perms
   setPermState('edit', perms || {});
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
@@ -488,13 +514,8 @@ function checkStrength(v, barId) {
   var pct = Math.min(100, score * 20);
   var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
   el.style.width = pct + '%';
-  el.style.background = colors[Math.max(0, score-1)] || '#f87171';
+  el.style.background = colors[Math.max(0, score - 1)] || '#f87171';
 }
-
-// ===========================
-// INIT — set default preset user untuk form tambah
-// ===========================
-setPreset('add', 'user');
 </script>
 </body>
 </html>

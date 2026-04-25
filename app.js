@@ -34,25 +34,31 @@ app.use(session({
 }));
 
 // ==========================================
-// PERMISSION HELPERS
+// PERMISSION HELPERS — MURNI DARI CHECKBOX
 // ==========================================
-// Default permissions per role (untuk backward compatibility)
-const DEFAULT_PERMS = {
-    admin:  { canView: true, canAdd: true, canEdit: true, canDelete: true, canAsset: true, canExport: true, canUsers: true },
-    user:   { canView: true, canAdd: true, canEdit: true, canDelete: false, canAsset: true, canExport: true, canUsers: false },
-    viewer: { canView: true, canAdd: false, canEdit: false, canDelete: false, canAsset: false, canExport: false, canUsers: false }
-};
+// Tidak ada default role, tidak ada auto-assign.
+// Semua hak akses ditentukan HANYA dari field permissions di DB.
+// Kalau permissions null/kosong (user lama), fallback ke semua false.
 
 function getUserPerms(user) {
     if (!user) return {};
-    // Jika user punya custom permissions, gunakan itu
     if (user.permissions) {
         try {
-            return typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+            const p = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
+            // Pastikan semua key ada (default false kalau tidak ada)
+            return {
+                canView:   p.canView   === true,
+                canAdd:    p.canAdd    === true,
+                canEdit:   p.canEdit   === true,
+                canDelete: p.canDelete === true,
+                canAsset:  p.canAsset  === true,
+                canExport: p.canExport === true,
+                canUsers:  p.canUsers  === true,
+            };
         } catch(e) {}
     }
-    // Fallback ke default role
-    return DEFAULT_PERMS[user.role] || DEFAULT_PERMS.viewer;
+    // User lama tanpa permissions field: semua false (aman)
+    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false };
 }
 
 function hasPerm(user, perm) {
@@ -623,7 +629,7 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
             return res.redirect('/users?msg=Username+sudah+dipakai%2C+pilih+yang+lain&msgType=error');
         }
 
-        // Kumpulkan permissions dari checkbox
+        // Permissions murni dari checkbox — tidak ada auto-assign role
         const permissions = {
             canView:   req.body.canView   === 'on',
             canAdd:    req.body.canAdd    === 'on',
@@ -634,8 +640,8 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
             canUsers:  req.body.canUsers  === 'on',
         };
 
-        // Tentukan role berdasarkan permissions
-        const role = permissions.canUsers ? 'admin' : (permissions.canAdd || permissions.canEdit) ? 'user' : 'viewer';
+        // role hanya label tampilan, tidak menentukan akses
+        const role = req.body.role || 'user';
 
         const hashed = await bcrypt.hash(password, 10);
         await prisma.user.create({
@@ -668,7 +674,7 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             return res.redirect('/users?msg=Username+sudah+dipakai+user+lain&msgType=error');
         }
 
-        // Kumpulkan permissions dari checkbox
+        // Permissions murni dari checkbox — tidak ada auto-assign role
         const permissions = {
             canView:   req.body.canView   === 'on',
             canAdd:    req.body.canAdd    === 'on',
@@ -679,7 +685,8 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             canUsers:  req.body.canUsers  === 'on',
         };
 
-        const role = permissions.canUsers ? 'admin' : (permissions.canAdd || permissions.canEdit) ? 'user' : 'viewer';
+        // role hanya label tampilan, tidak menentukan akses
+        const role = req.body.role || 'user';
 
         const updateData = {
             nama: nama.trim(),

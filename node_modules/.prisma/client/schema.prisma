@@ -75,10 +75,11 @@ model AsetPinjam {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  password  String
-  nama      String
-  role      String   @default("user")
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  username    String   @unique
+  password    String
+  nama        String
+  role        String   @default("user")
+  permissions String?  @db.Text
+  createdAt   DateTime @default(now())
 }
