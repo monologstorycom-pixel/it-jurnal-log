@@ -88,11 +88,18 @@
 
 <div class="page-wrap">
 
-    <!-- LOGIN PROMPT -->
+    <!-- LOGIN PROMPT / KELOLA PROMPT -->
+    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <div class="login-prompt" style="background:var(--body-bg3);border-color:var(--body-border);">
+        <span class="login-prompt-text" style="color:var(--body-text2);">👋 Halo <strong style="color:var(--body-text);"><%= currentUser.nama || currentUser.username %></strong> — kelola data aset IT di dashboard.</span>
+        <a href="/aset" style="background:var(--body-accent);color:var(--body-bg);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:13px;font-weight:600;">🗂 Kelola Aset</a>
+    </div>
+    <% } else { %>
     <div class="login-prompt">
         <span class="login-prompt-text">🔐 Ingin mengelola aset? Login sebagai tim IT.</span>
         <a href="/login">Login ke Dashboard</a>
     </div>
+    <% } %>
 
     <!-- MAIN PANEL -->
     <div class="panel">

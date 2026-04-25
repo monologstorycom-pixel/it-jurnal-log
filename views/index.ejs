@@ -87,6 +87,7 @@
             overflow: hidden;
         }
         .table { min-width: 900px; margin: 0; }
+        .table, .table > :not(caption) > * > * { background-color: transparent !important; }
         .table thead tr { background: var(--body-table-head) !important; }
         .table thead th {
             color: var(--body-table-head-text) !important;
@@ -94,6 +95,7 @@
             text-transform: uppercase; letter-spacing: 0.07em;
             padding: 12px 14px; border-bottom: 0.5px solid var(--body-border) !important;
             white-space: nowrap;
+            background: var(--body-table-head) !important;
         }
         .table tbody tr { border-bottom: 0.5px solid var(--body-table-border) !important; }
         .table tbody tr:hover td { background: var(--body-bg3) !important; }
@@ -184,11 +186,13 @@
 
     <div class="page-wrap">
 
-        <!-- LOGIN PROMPT -->
+        <!-- LOGIN PROMPT — hanya tampil kalau belum login -->
+        <% if (typeof currentUser === 'undefined' || !currentUser) { %>
         <div class="login-prompt">
             <span class="login-prompt-text">🔐 Ingin menambah atau mengedit data? Login sebagai tim IT.</span>
             <a href="/login">Login ke Dashboard</a>
         </div>
+        <% } %>
 
         <div class="row g-3">
 
@@ -207,6 +211,7 @@
                     <input type="date" name="date" value="<%= filterInfo.date %>" style="width:160px;">
                     <button type="submit" class="btn-filter primary">Lihat</button>
                     <a href="/" class="btn-filter">Hari Ini</a>
+
                     <span class="date-display">
                         <strong><%= filterInfo.dateDisplay %></strong>
                     </span>

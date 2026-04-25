@@ -316,7 +316,35 @@ app.get('/kerja', requireLogin, async (req, res) => {
             }
         }
         const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
-        res.render('admin', { journals, yearOptions: getYearOptions(), saved: saved === '1', formatDurasi });
+
+        // === STATS: data untuk hari ini ===
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+        const todayEnd   = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+        const todayWhere = { OR: [
+            { tipeInput: { not: 'multihari' }, tanggalManual: { gte: todayStart, lte: todayEnd } },
+            { tipeInput: 'multihari', tanggalMulai: { lte: todayEnd }, tanggalSelesai: { gte: todayStart } }
+        ]};
+        const [totalHariIni, solvedHariIni, pendingHariIni, totalAllTime, pendingAllTime, pendingItems] = await Promise.all([
+            prisma.journal.count({ where: todayWhere }),
+            prisma.journal.count({ where: { AND: [todayWhere, { status: 'Solved' }] } }),
+            prisma.journal.count({ where: { AND: [todayWhere, { status: 'Pending' }] } }),
+            prisma.journal.count(),
+            prisma.journal.count({ where: { status: 'Pending' } }),
+            prisma.journal.findMany({ where: { status: 'Pending' }, orderBy: { tanggalManual: 'asc' }, take: 10,
+                select: { id: true, aktivitas: true, divisi: true, pemesan: true, tanggalManual: true, durasiMenit: true }
+            })
+        ]);
+        // Hitung berapa hari pending tiap item
+        const pendingWithAge = pendingItems.map(p => {
+            const tgl = p.tanggalManual ? new Date(p.tanggalManual) : new Date();
+            const diffMs = Date.now() - tgl.getTime();
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            return { ...p, hariPending: diffDays };
+        });
+        const stats = { totalHariIni, solvedHariIni, pendingHariIni, totalAllTime, pendingAllTime, pendingItems: pendingWithAge };
+
+        res.render('admin', { journals, yearOptions: getYearOptions(), saved: saved === '1', formatDurasi, stats });
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
 });
 

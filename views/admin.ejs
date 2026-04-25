@@ -62,7 +62,38 @@
         .section-panel .form-control, .section-panel .form-select { background: var(--body-input) !important; color: var(--body-text) !important; border-color: var(--body-border) !important; }
         .section-panel .form-control:focus, .section-panel .form-select:focus { border-color: var(--body-input-focus) !important; box-shadow: none; }
 
-        @media (max-width: 768px) { .container-fluid { padding: 1rem !important; } .form-sidebar { margin-bottom: 2rem; } }
+        
+        /* STATS CARDS */
+        .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+        .stat-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
+        .stat-card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--body-text2); margin-bottom: 4px; }
+        .stat-card-value { font-size: 1.7rem; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+        .stat-card-sub { font-size: 0.7rem; color: var(--body-text3); }
+        .stat-card.green  { border-color: #1a5c1a; }
+        .stat-card.green .stat-card-value { color: #4caf50; }
+        .stat-card.yellow { border-color: #7a5c00; }
+        .stat-card.yellow .stat-card-value { color: #ffc107; }
+        .stat-card.blue   { border-color: #0d3d6e; }
+        .stat-card.blue   .stat-card-value { color: #4da6ff; }
+        .stat-card.red    { border-color: #5c1a1a; }
+        .stat-card.red    .stat-card-value { color: #ff6b6b; }
+        .stat-card-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 1.8rem; opacity: 0.15; }
+        @media (max-width: 768px) { .stat-cards { grid-template-columns: repeat(2, 1fr); } }
+
+        /* PENDING NOTIF */
+        .pending-notif { background: var(--body-card); border: 1px solid #5c1a1a; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+        .pending-notif-title { font-size: 0.78rem; font-weight: 700; color: #ff6b6b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .pending-notif-title span { background: #ff6b6b; color: #fff; border-radius: 20px; padding: 1px 7px; font-size: 0.65rem; }
+        .pending-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--body-bg); border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #ff6b6b; }
+        .pending-row:last-child { margin-bottom: 0; }
+        .pending-row-info { flex: 1; min-width: 0; }
+        .pending-row-title { font-size: 0.8rem; font-weight: 600; color: var(--body-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pending-row-meta  { font-size: 0.68rem; color: var(--body-text2); margin-top: 2px; }
+        .pending-age { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+        .pending-age.urgent  { background: #5c0000; color: #ff6b6b; }
+        .pending-age.warning { background: #5c3d00; color: #ffc107; }
+        .pending-age.normal  { background: var(--body-bg3); color: var(--body-text3); }
+@media (max-width: 768px) { .container-fluid { padding: 1rem !important; } .form-sidebar { margin-bottom: 2rem; } }
     </style>
 </head>
 <body>
@@ -153,6 +184,62 @@
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
           </div>
         </div>
+      </div>
+      <% } %>
+
+      <!-- ===== STAT CARDS ===== -->
+      <div class="stat-cards">
+        <div class="stat-card green">
+          <div class="stat-card-icon">✅</div>
+          <div class="stat-card-label">Solved Hari Ini</div>
+          <div class="stat-card-value"><%= stats.solvedHariIni %></div>
+          <div class="stat-card-sub">dari <%= stats.totalHariIni %> tiket hari ini</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-card-icon">⏳</div>
+          <div class="stat-card-label">Pending Hari Ini</div>
+          <div class="stat-card-value"><%= stats.pendingHariIni %></div>
+          <div class="stat-card-sub">belum diselesaikan</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-card-icon">📋</div>
+          <div class="stat-card-label">Total Log</div>
+          <div class="stat-card-value"><%= stats.totalAllTime %></div>
+          <div class="stat-card-sub">semua waktu</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-card-icon">🔴</div>
+          <div class="stat-card-label">Total Pending</div>
+          <div class="stat-card-value"><%= stats.pendingAllTime %></div>
+          <div class="stat-card-sub">semua waktu</div>
+        </div>
+      </div>
+
+      <!-- ===== PENDING NOTIFIKASI ===== -->
+      <% if (stats.pendingItems.length > 0) { %>
+      <div class="pending-notif">
+        <div class="pending-notif-title">
+          🔴 TIKET PENDING PERLU PERHATIAN
+          <span><%= stats.pendingAllTime %></span>
+        </div>
+        <% stats.pendingItems.forEach(function(p) { %>
+        <div class="pending-row">
+          <div class="pending-row-info">
+            <div class="pending-row-title"><%= p.aktivitas %></div>
+            <div class="pending-row-meta">👤 <%= p.pemesan %> &nbsp;·&nbsp; 🏢 <%= p.divisi %> &nbsp;·&nbsp; 📅 <%= new Date(p.tanggalManual).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) %></div>
+          </div>
+          <% if (p.hariPending >= 3) { %>
+            <span class="pending-age urgent">🔥 <%= p.hariPending %> hari</span>
+          <% } else if (p.hariPending >= 1) { %>
+            <span class="pending-age warning">⚠️ <%= p.hariPending %> hari</span>
+          <% } else { %>
+            <span class="pending-age normal">Baru</span>
+          <% } %>
+        </div>
+        <% }) %>
+        <% if (stats.pendingAllTime > 10) { %>
+        <div style="text-align:center;margin-top:8px;font-size:0.7rem;color:var(--body-text3);">+<%= stats.pendingAllTime - 10 %> tiket pending lainnya — gunakan filter Status: Pending</div>
+        <% } %>
       </div>
       <% } %>
 

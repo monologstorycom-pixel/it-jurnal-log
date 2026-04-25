@@ -321,13 +321,13 @@
   <a href="/kerja" class="it-nav-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
 
   <div class="it-nav-links">
+    <a href="/" class="it-nav-link <%= activePage === 'view' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
+      Home
+    </a>
     <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
       Dashboard
-    </a>
-    <a href="/" class="it-nav-link <%= activePage === 'view' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><line x1="8" y1="5" x2="8" y2="8.5"/><line x1="8" y1="8.5" x2="10" y2="10"/></svg>
-      View Harian
     </a>
     <a href="/aset" class="it-nav-link <%= activePage === 'aset' ? 'active' : '' %>">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><line x1="8" y1="7" x2="8" y2="10"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5"/></svg>
@@ -382,13 +382,13 @@
 
 <!-- MOBILE DRAWER -->
 <div class="it-nav-mobile" id="mobileNav">
+  <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
+    Home
+  </a>
   <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
     Dashboard
-  </a>
-  <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><line x1="8" y1="5" x2="8" y2="8.5"/><line x1="8" y1="8.5" x2="10" y2="10"/></svg>
-    View Harian
   </a>
   <a href="/aset" class="<%= activePage === 'aset' ? 'active' : '' %>">
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>

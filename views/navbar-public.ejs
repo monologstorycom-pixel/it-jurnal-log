@@ -128,6 +128,58 @@
     .it-nav-hamburger { display: flex; align-items: center; }
     .it-nav { padding: 0 16px; }
   }
+
+  /* EXPORT MODAL */
+  #exportModal {
+    display: none;
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.5);
+    align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .export-modal-box {
+    background: var(--body-card);
+    border: 0.5px solid var(--body-border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .export-modal-title {
+    font-size: 15px; font-weight: 700;
+    color: var(--body-text); margin-bottom: 4px;
+  }
+  .export-modal-sub {
+    font-size: 12px; color: var(--body-text2); margin-bottom: 1.25rem;
+  }
+  .export-form-row { display: flex; gap: 10px; margin-bottom: 1rem; }
+  .export-form-row select {
+    flex: 1;
+    background: var(--body-input);
+    border: 0.5px solid var(--body-input-border);
+    border-radius: 8px;
+    color: var(--body-text);
+    padding: 8px 10px;
+    font-size: 13px;
+    outline: none;
+  }
+  .export-form-row select:focus { border-color: var(--body-input-focus); }
+  .export-modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; }
+  .btn-export-confirm {
+    flex: 1; padding: 9px 0; border-radius: 8px;
+    background: var(--body-accent); border: none;
+    color: var(--body-bg); font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: opacity 0.12s;
+  }
+  .btn-export-confirm:hover { opacity: 0.85; }
+  .btn-export-cancel {
+    padding: 9px 16px; border-radius: 8px;
+    background: transparent; border: 0.5px solid var(--body-border);
+    color: var(--body-text2); font-size: 13px; cursor: pointer;
+    transition: all 0.12s;
+  }
+  .btn-export-cancel:hover { border-color: var(--body-border2); color: var(--body-text); }
 </style>
 
 <nav class="it-nav" id="mainNav">
@@ -145,7 +197,9 @@
   </div>
 
   <div class="it-nav-right">
-    <span class="it-nav-public-badge">👁 Public View</span>
+    <% if (typeof currentUser === 'undefined' || !currentUser) { %>
+      <span class="it-nav-public-badge">👁 Public View</span>
+    <% } %>
 
     <button class="it-nav-theme" onclick="toggleTheme()" id="navThemeBtn">
       <div class="t-track"><div class="t-thumb" id="navThumb"></div></div>
@@ -154,10 +208,34 @@
 
     <div class="it-nav-divider"></div>
 
-    <a href="/login" class="it-nav-login">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H3m0 0l2.5-2.5M3 8l2.5 2.5"/><path d="M7 5V3a1 1 0 011-1h4a1 1 0 011 1v10a1 1 0 01-1 1H8a1 1 0 01-1-1v-2"/></svg>
-      Login
-    </a>
+    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+      <%
+        var initials = currentUser.nama
+          ? currentUser.nama.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase()
+          : currentUser.username.slice(0,2).toUpperCase();
+        var roleClass = currentUser.role === 'admin' ? 'role-admin'
+                      : currentUser.role === 'user'   ? 'role-user'
+                      : currentUser.role === 'viewer' ? 'role-viewer'
+                      : 'role-custom';
+      %>
+      <div class="it-nav-user" style="display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:24px;border:0.5px solid var(--nav-border);">
+        <div class="it-nav-avatar" style="width:28px;height:28px;border-radius:50%;background:var(--body-accent-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--body-accent);"><%= initials %></div>
+        <span style="font-size:13px;font-weight:500;color:var(--nav-text);"><%= currentUser.nama || currentUser.username %></span>
+        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;" class="<%= roleClass %>"><%= currentUser.role.toUpperCase() %></span>
+      </div>
+      <% if (typeof userPerms !== 'undefined' && userPerms && userPerms.canExport) { %>
+      <button onclick="document.getElementById('exportModal').style.display='flex'" class="it-nav-login" style="border:none;cursor:pointer;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
+        Export Excel
+      </button>
+      <% } %>
+      <a href="/logout" style="padding:5px 12px;border-radius:8px;border:0.5px solid var(--nav-border);font-size:12px;font-weight:500;color:var(--nav-text2);text-decoration:none;display:inline-flex;align-items:center;">Keluar</a>
+    <% } else { %>
+      <a href="/login" class="it-nav-login">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H3m0 0l2.5-2.5M3 8l2.5 2.5"/><path d="M7 5V3a1 1 0 011-1h4a1 1 0 011 1v10a1 1 0 01-1 1H8a1 1 0 01-1-1v-2"/></svg>
+        Login
+      </a>
+    <% } %>
   </div>
 
   <button class="it-nav-hamburger" onclick="toggleMobileNav()">
@@ -177,11 +255,88 @@
     Aset IT
   </a>
   <hr class="m-sep">
-  <a href="/login" style="color:var(--body-accent) !important;">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H3m0 0l2.5-2.5M3 8l2.5 2.5"/><path d="M7 5V3a1 1 0 011-1h4a1 1 0 011 1v10a1 1 0 01-1 1H8a1 1 0 01-1-1v-2"/></svg>
-    Login ke Dashboard
-  </a>
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:var(--nav-text2);">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--body-accent-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--body-accent);"><%= initials %></div>
+      <span style="font-size:13px;font-weight:500;color:var(--nav-text);"><%= currentUser.nama || currentUser.username %></span>
+    </div>
+    <% if (typeof userPerms !== 'undefined' && userPerms && userPerms.canExport) { %>
+    <a href="#" onclick="document.getElementById('exportModal').style.display='flex';document.getElementById('mobileNav').classList.remove('open');return false;" style="color:var(--body-accent) !important;">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
+      Export Excel
+    </a>
+    <% } %>
+    <a href="/logout" style="color:#dc2626 !important;">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h7m0 0l-2.5-2.5M13 8l-2.5 2.5"/><path d="M9 5V3a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h4a1 1 0 001-1v-2"/></svg>
+      Keluar
+    </a>
+  <% } else { %>
+    <a href="/login" style="color:var(--body-accent) !important;">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H3m0 0l2.5-2.5M3 8l2.5 2.5"/><path d="M7 5V3a1 1 0 011-1h4a1 1 0 011 1v10a1 1 0 01-1 1H8a1 1 0 01-1-1v-2"/></svg>
+      Login ke Dashboard
+    </a>
+  <% } %>
 </div>
+
+
+<!-- EXPORT MODAL -->
+<div id="exportModal">
+  <div class="export-modal-box">
+    <div class="export-modal-title">📊 Export Data ke Excel</div>
+    <div class="export-modal-sub">Pilih bulan dan tahun yang ingin di-export untuk tim audit.</div>
+    <div class="export-form-row">
+      <select id="exportMonth">
+        <option value="1">Januari</option>
+        <option value="2">Februari</option>
+        <option value="3">Maret</option>
+        <option value="4">April</option>
+        <option value="5">Mei</option>
+        <option value="6">Juni</option>
+        <option value="7">Juli</option>
+        <option value="8">Agustus</option>
+        <option value="9">September</option>
+        <option value="10">Oktober</option>
+        <option value="11">November</option>
+        <option value="12">Desember</option>
+      </select>
+      <select id="exportYear"></select>
+    </div>
+    <div class="export-modal-actions">
+      <button class="btn-export-confirm" onclick="doExport()">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
+        Download Excel
+      </button>
+      <button class="btn-export-cancel" onclick="document.getElementById('exportModal').style.display='none'">Batal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var now = new Date();
+  var curMonth = now.getMonth() + 1;
+  var curYear  = now.getFullYear();
+  var sel = document.getElementById('exportYear');
+  for (var y = curYear; y >= curYear - 5; y--) {
+    var opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    sel.appendChild(opt);
+  }
+  document.getElementById('exportMonth').value = curMonth;
+
+  window.doExport = function() {
+    var m = document.getElementById('exportMonth').value;
+    var y = document.getElementById('exportYear').value;
+    document.getElementById('exportModal').style.display = 'none';
+    window.location.href = '/export?month=' + m + '&year=' + y;
+  };
+
+  // Tutup modal kalau klik di luar box
+  document.getElementById('exportModal').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+})();
+</script>
 
 <script>
 (function() {
