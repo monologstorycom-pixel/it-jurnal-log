@@ -194,6 +194,12 @@
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
       Aset IT
     </a>
+    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <a href="/kerja" class="it-nav-link">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Dashboard
+    </a>
+    <% } %>
   </div>
 
   <div class="it-nav-right">
@@ -254,6 +260,12 @@
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
     Aset IT
   </a>
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+  <a href="/kerja">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+    Dashboard
+  </a>
+  <% } %>
   <hr class="m-sep">
   <% if (typeof currentUser !== 'undefined' && currentUser) { %>
     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:var(--nav-text2);">
