@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aset IT — IT Support Log</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', sans-serif; margin: 0; transition: background 0.2s, color 0.2s; }
+        .page-wrap { max-width: 1300px; margin: 0 auto; padding: 1.5rem; }
+
+        /* LOGIN PROMPT */
+        .login-prompt { background: var(--body-accent-bg); border: 0.5px solid var(--body-accent); border-radius: 10px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .login-prompt-text { font-size: 13px; color: var(--body-accent); font-weight: 500; }
+        .login-prompt a { padding: 6px 14px; border-radius: 8px; background: var(--body-accent); color: var(--body-bg); font-size: 13px; font-weight: 600; text-decoration: none; }
+        .login-prompt a:hover { opacity: 0.88; }
+
+        /* PANEL */
+        .panel { background: var(--body-card); border: 0.5px solid var(--body-border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+        .panel-hd { padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--body-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .panel-title { font-size: 12px; font-weight: 600; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; }
+
+        /* SEARCH */
+        .search-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .s-input { background: var(--body-input); border: 0.5px solid var(--body-input-border); border-radius: 8px; color: var(--body-text); padding: 6px 10px; font-size: 13px; outline: none; }
+        .s-input:focus { border-color: var(--body-input-focus); }
+        .s-btn { padding: 6px 12px; border-radius: 8px; border: 0.5px solid var(--body-border); background: var(--body-bg3); color: var(--body-text2); font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; }
+        .s-btn:hover { color: var(--body-text); border-color: var(--body-border2); }
+        .s-btn-primary { background: var(--body-accent-bg); border-color: var(--body-accent); color: var(--body-accent); }
+
+        /* STATS */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1px; background: var(--body-border); }
+        .stat-item { background: var(--body-card); padding: 1rem; text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+        .stat-lbl { font-size: 11px; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 4px; font-weight: 600; }
+
+        /* ASET TABLE */
+        .aset-table { width: 100%; border-collapse: collapse; }
+        .aset-table thead tr { background: var(--body-bg3); }
+        .aset-table th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 0.5px solid var(--body-border); white-space: nowrap; }
+        .aset-table tbody tr { border-bottom: 0.5px solid var(--body-border); transition: background 0.1s; }
+        .aset-table tbody tr:hover td { background: var(--body-bg3); }
+        .aset-table td { padding: 11px 14px; font-size: 13px; color: var(--body-text); vertical-align: middle; }
+
+        /* STOK BAR */
+        .stok-val { font-weight: 600; font-size: 14px; }
+        .stok-bar { width: 60px; height: 3px; background: var(--body-border); border-radius: 2px; margin-top: 4px; overflow: hidden; display: inline-block; }
+        .stok-fill { height: 100%; border-radius: 2px; }
+
+        /* BADGES */
+        .badge-kondisi { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .k-baik    { background: #dcfce7; color: #15803d; }
+        .k-rusak   { background: #fee2e2; color: #dc2626; }
+        .k-service { background: #fef3c7; color: #d97706; }
+        .badge-pinjam { display: inline-block; background: #ede9fe; color: #6d28d9; border-radius: 4px; padding: 1px 7px; font-size: 11px; font-weight: 600; }
+
+        /* HISTORI TABLE */
+        .rw-table { width: 100%; border-collapse: collapse; }
+        .rw-table th { padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 0.5px solid var(--body-border); text-align: left; }
+        .rw-table td { padding: 9px 12px; font-size: 12px; color: var(--body-text); border-bottom: 0.5px solid var(--body-bg3); vertical-align: middle; }
+        .rw-table tr:last-child td { border-bottom: none; }
+
+        .bp-aktif   { display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600;background:#ede9fe;color:#6d28d9; }
+        .bp-kembali { display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600;background:#dcfce7;color:#15803d; }
+
+        /* ACCORDION */
+        .aset-row-detail { display: none; background: var(--body-bg3) !important; }
+        .aset-row-detail.show { display: table-row; }
+        .aset-row-detail td { padding: 0 !important; }
+        .detail-inner { padding: 1rem 1.25rem; }
+        .detail-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
+        .detail-tab { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--body-border); background: var(--body-card); color: var(--body-text2); }
+        .detail-tab.active { background: var(--body-accent-bg); border-color: var(--body-accent); color: var(--body-accent); }
+        .detail-tab-content { display: none; }
+        .detail-tab-content.active { display: block; }
+
+        .btn-toggle-detail { background: none; border: 0.5px solid var(--body-border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--body-text2); cursor: pointer; }
+        .btn-toggle-detail:hover { color: var(--body-text); border-color: var(--body-border2); }
+
+        .empty-row td { text-align: center; padding: 3rem; color: var(--body-text3); font-size: 13px; }
+
+        @media (max-width: 768px) { .page-wrap { padding: 1rem; } }
+    </style>
+</head>
+<body>
+<%- include('navbar-public', {activePage: 'aset-public'}) %>
+
+<div class="page-wrap">
+
+    <!-- LOGIN PROMPT -->
+    <div class="login-prompt">
+        <span class="login-prompt-text">🔐 Ingin mengelola aset? Login sebagai tim IT.</span>
+        <a href="/login">Login ke Dashboard</a>
+    </div>
+
+    <!-- MAIN PANEL -->
+    <div class="panel">
+        <div class="panel-hd">
+            <div>
+                <div class="panel-title">Inventaris Aset IT</div>
+                <div style="font-size:12px;color:var(--body-text3);margin-top:2px;"><%= aset.length %> item terdaftar</div>
+            </div>
+            <div class="search-row">
+                <form action="/aset-public" method="GET" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <input type="text" name="q" value="<%= q %>" class="s-input" placeholder="Cari nama / kategori..." style="width:180px;">
+                    <select name="kategori" class="s-input">
+                        <option value="">Semua Kategori</option>
+                        <% allKategori.forEach(function(k) { %>
+                        <option value="<%= k %>" <%= kategori === k ? 'selected' : '' %>><%= k %></option>
+                        <% }) %>
+                    </select>
+                    <button type="submit" class="s-btn s-btn-primary">Cari</button>
+                    <% if (q || kategori) { %><a href="/aset-public" class="s-btn">Reset</a><% } %>
+                </form>
+            </div>
+        </div>
+
+        <%
+            var totalAset = aset.length;
+            var stokHabis = aset.filter(function(a){ return a.stok <= 0; }).length;
+            var totalDipinjam = aset.reduce(function(s,a){ return s + a.pinjaman.filter(function(p){ return p.status==='Dipinjam'; }).reduce(function(ss,p){ return ss+p.jumlah; }, 0); }, 0);
+        %>
+        <div class="stat-grid">
+            <div class="stat-item"><div class="stat-val" style="color:var(--body-text)"><%= totalAset %></div><div class="stat-lbl">Total Aset</div></div>
+            <div class="stat-item"><div class="stat-val" style="color:#dc2626"><%= stokHabis %></div><div class="stat-lbl">Stok Habis</div></div>
+            <div class="stat-item"><div class="stat-val" style="color:#6d28d9"><%= totalDipinjam %></div><div class="stat-lbl">Dipinjam</div></div>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="aset-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nama Aset</th>
+                        <th>Kategori</th>
+                        <th>Kondisi</th>
+                        <th>Stok Awal</th>
+                        <th>Sisa Stok</th>
+                        <th>Dipinjam</th>
+                        <th>Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if(aset.length === 0) { %>
+                    <tr class="empty-row"><td colspan="8">Belum ada aset terdaftar.</td></tr>
+                    <% } %>
+                    <% aset.forEach(function(item, i) {
+                        var pct = item.stokAwal > 0 ? Math.round((item.stok / item.stokAwal) * 100) : 0;
+                        var barColor = pct > 50 ? '#16a34a' : pct > 20 ? '#d97706' : '#dc2626';
+                        var kondisiClass = item.kondisi === 'Baik' ? 'k-baik' : item.kondisi === 'Rusak' ? 'k-rusak' : 'k-service';
+                        var dipinjamAktif = item.pinjaman.filter(function(p){ return p.status==='Dipinjam'; }).reduce(function(s,p){ return s+p.jumlah; }, 0);
+                    %>
+                    <tr id="row-<%= item.id %>">
+                        <td style="color:var(--body-text3);font-size:12px;"><%= i+1 %></td>
+                        <td>
+                            <div style="font-weight:600;"><%= item.nama %></div>
+                            <% if(item.keterangan){ %><div style="font-size:11px;color:var(--body-text3);margin-top:2px;"><%= item.keterangan %></div><% } %>
+                        </td>
+                        <td style="font-size:12px;color:var(--body-text2);"><%= item.kategori || '—' %></td>
+                        <td><span class="badge-kondisi <%= kondisiClass %>"><%= item.kondisi %></span></td>
+                        <td style="color:var(--body-text2);font-size:12px;"><%= item.stokAwal %> <span style="color:var(--body-text3);"><%= item.satuan %></span></td>
+                        <td>
+                            <div class="stok-val" style="color:<%= barColor %>"><%= item.stok %> <span style="font-size:11px;color:var(--body-text3);font-weight:400;"><%= item.satuan %></span></div>
+                            <div><div class="stok-bar"><div class="stok-fill" style="width:<%= pct %>%;background:<%= barColor %>;"></div></div></div>
+                        </td>
+                        <td>
+                            <% if(dipinjamAktif > 0) { %>
+                                <span class="badge-pinjam"><%= dipinjamAktif %> item</span>
+                            <% } else { %>
+                                <span style="color:var(--body-text3);font-size:12px;">—</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <button class="btn-toggle-detail" onclick="toggleDetail(<%= item.id %>)">
+                                <span id="btn-icon-<%= item.id %>">▼</span> Histori
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- DETAIL ROW -->
+                    <tr class="aset-row-detail" id="detail-<%= item.id %>">
+                        <td colspan="8">
+                            <div class="detail-inner">
+                                <div class="detail-tabs">
+                                    <div class="detail-tab active" id="tab-pakai-<%= item.id %>" onclick="switchTab(<%= item.id %>,'pakai')">
+                                        Histori Penggunaan (<%= item.penggunaan.length %>)
+                                    </div>
+                                    <div class="detail-tab" id="tab-pinjam-<%= item.id %>" onclick="switchTab(<%= item.id %>,'pinjam')">
+                                        Daftar Pinjam (<%= item.pinjaman.length %>)
+                                    </div>
+                                </div>
+
+                                <!-- HISTORI PAKAI -->
+                                <div class="detail-tab-content active" id="content-pakai-<%= item.id %>">
+                                    <% if(item.penggunaan.length === 0) { %>
+                                        <div style="color:var(--body-text3);font-size:13px;padding:1rem 0;">Belum ada catatan penggunaan.</div>
+                                    <% } else { %>
+                                    <div style="overflow-x:auto;">
+                                        <table class="rw-table">
+                                            <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Divisi</th><th>Lokasi</th><th>Keterangan</th></tr></thead>
+                                            <tbody>
+                                            <% item.penggunaan.forEach(function(p) { %>
+                                            <tr>
+                                                <td style="white-space:nowrap;color:var(--body-text2)"><%= new Date(p.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+                                                <td style="font-weight:600;color:#1d4ed8;"><%= p.jumlah %> <%= item.satuan %></td>
+                                                <td><%= p.divisi %></td>
+                                                <td><%= p.lokasi %></td>
+                                                <td style="color:var(--body-text3)"><%= p.keterangan || '—' %></td>
+                                            </tr>
+                                            <% }) %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <% } %>
+                                </div>
+
+                                <!-- DAFTAR PINJAM -->
+                                <div class="detail-tab-content" id="content-pinjam-<%= item.id %>">
+                                    <% if(item.pinjaman.length === 0) { %>
+                                        <div style="color:var(--body-text3);font-size:13px;padding:1rem 0;">Belum ada catatan pinjaman.</div>
+                                    <% } else { %>
+                                    <div style="overflow-x:auto;">
+                                        <table class="rw-table">
+                                            <thead><tr><th>Peminjam</th><th>Jumlah</th><th>Divisi</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Status</th></tr></thead>
+                                            <tbody>
+                                            <% item.pinjaman.forEach(function(p) { %>
+                                            <tr>
+                                                <td>
+                                                    <div style="font-weight:600"><%= p.peminjam %></div>
+                                                    <% if(p.keperluan){%><div style="font-size:11px;color:var(--body-text3)"><%= p.keperluan %></div><%}%>
+                                                </td>
+                                                <td style="font-weight:600;color:#6d28d9;"><%= p.jumlah %> <%= item.satuan %></td>
+                                                <td><%= p.divisi %></td>
+                                                <td style="white-space:nowrap;color:var(--body-text2);font-size:12px;"><%= new Date(p.tanggalPinjam).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+                                                <td style="white-space:nowrap;font-size:12px;"><%= p.tanggalKembali ? new Date(p.tanggalKembali).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—' %></td>
+                                                <td><span class="<%= p.status==='Dipinjam'?'bp-aktif':'bp-kembali' %>"><%= p.status %></span></td>
+                                            </tr>
+                                            <% }) %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleDetail(id) {
+    var row  = document.getElementById('detail-' + id);
+    var icon = document.getElementById('btn-icon-' + id);
+    if (row.classList.contains('show')) {
+        row.classList.remove('show');
+        icon.textContent = '▼';
+    } else {
+        row.classList.add('show');
+        icon.textContent = '▲';
+    }
+}
+
+function switchTab(id, tab) {
+    ['pakai','pinjam'].forEach(function(t) {
+        document.getElementById('tab-' + t + '-' + id).classList.toggle('active', t === tab);
+        document.getElementById('content-' + t + '-' + id).classList.toggle('active', t === tab);
+    });
+}
+</script>
+</body>
+</html>

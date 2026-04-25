@@ -228,7 +228,7 @@ app.get('/403', (req, res) => {
 // ==========================================
 // 1. VIEWER MODE
 // ==========================================
-app.get('/', requireLogin, async (req, res) => {
+app.get('/', async (req, res) => {
     try {
         const { date } = req.query;
         const now = new Date();
@@ -264,6 +264,30 @@ app.get('/', requireLogin, async (req, res) => {
             formatDurasi
         });
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
+});
+
+
+// ==========================================
+// PUBLIC ASET VIEW — tanpa login, read-only
+// ==========================================
+app.get('/aset-public', async (req, res) => {
+    try {
+        const { q, kategori } = req.query;
+        let where = {};
+        if (q) where.OR = [{ nama: { contains: q } }, { kategori: { contains: q } }];
+        if (kategori && kategori !== '') where.kategori = kategori;
+        const aset = await prisma.aset.findMany({
+            where,
+            orderBy: { nama: 'asc' },
+            include: {
+                penggunaan: { orderBy: { tanggal: 'desc' }, take: 10 },
+                pinjaman:   { orderBy: { tanggalPinjam: 'desc' }, take: 10 },
+                _count: { select: { pinjaman: { where: { status: 'Dipinjam' } } } }
+            }
+        });
+        const allKategori = await prisma.aset.findMany({ select: { kategori: true }, distinct: ['kategori'] });
+        res.render('aset-public', { aset, allKategori: allKategori.map(k => k.kategori), q: q || '', kategori: kategori || '' });
+    } catch (error) { console.error(error); res.status(500).send('Error: ' + error.message); }
 });
 
 // ==========================================
