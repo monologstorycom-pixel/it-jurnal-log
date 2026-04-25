@@ -1,161 +1,441 @@
 <style>
   /* ===== GLOBAL THEME VARS ===== */
   :root {
-    --nav-bg: #0f1117; --nav-border: #1e2130;
-    --nav-text: #e2e8f0; --nav-link: #8b8fa8; --nav-hover: #1a1d2e;
-    --body-bg: #080a10; --body-bg2: #0f1117; --body-bg3: #13161f;
-    --body-text: #c9d1e0; --body-text2: #8b8fa8; --body-text3: #3b4263;
-    --body-border: #1e2130; --body-border2: #2a2d3e;
-    --body-card: #0f1117; --body-input: #080a10;
-    --body-input-border: #1e2130; --body-input-focus: #3b4263;
-    --body-accent: #4ade80; --body-accent-bg: #0d2a18;
-    --body-err-bg: #2a0d0d; --body-err-text: #f87171; --body-err-border: #5c1a1a;
-    --body-table-row: #ffffff; --body-table-row-alt: #f4f4f4;
-    --body-table-text: #000000; --body-table-border: #ddd;
-    --body-table-head: #1f242b; --body-table-head-text: #ffffff;
+    --nav-bg: #ffffff;
+    --nav-border: rgba(0,0,0,0.08);
+    --nav-text: #111827;
+    --nav-text2: #6b7280;
+    --nav-hover-bg: #f9fafb;
+    --nav-active-bg: #f3f4f6;
+    --body-bg: #f9fafb;
+    --body-bg2: #ffffff;
+    --body-bg3: #f3f4f6;
+    --body-text: #111827;
+    --body-text2: #6b7280;
+    --body-text3: #9ca3af;
+    --body-border: rgba(0,0,0,0.08);
+    --body-border2: rgba(0,0,0,0.14);
+    --body-card: #ffffff;
+    --body-input: #f9fafb;
+    --body-input-border: rgba(0,0,0,0.1);
+    --body-input-focus: #6366f1;
+    --body-accent: #16a34a;
+    --body-accent-bg: #dcfce7;
+    --body-err-bg: #fff0f0;
+    --body-err-text: #dc2626;
+    --body-err-border: #fca5a5;
+    --body-table-row: #ffffff;
+    --body-table-row-alt: #f9fafb;
+    --body-table-text: #111827;
+    --body-table-border: rgba(0,0,0,0.07);
+    --body-table-head: #f9fafb;
+    --body-table-head-text: #374151;
+    --avatar-bg: #dcfce7;
+    --avatar-text: #15803d;
+    --role-admin-bg: #ede9fe;
+    --role-admin-text: #6d28d9;
+    --role-user-bg: #dcfce7;
+    --role-user-text: #15803d;
+    --role-viewer-bg: #dbeafe;
+    --role-viewer-text: #1d4ed8;
   }
-  [data-theme="light"] {
-    --nav-bg: #ffffff; --nav-border: #dde0ee;
-    --nav-text: #1a1a2e; --nav-link: #5a5f7a; --nav-hover: #f0f2f8;
-    --body-bg: #f0f2f8; --body-bg2: #ffffff; --body-bg3: #e8ecf5;
-    --body-text: #1a1a2e; --body-text2: #5a5f7a; --body-text3: #aab0cc;
-    --body-border: #dde0ee; --body-border2: #c4c8dd;
-    --body-card: #ffffff; --body-input: #f8faff;
-    --body-input-border: #c4c8dd; --body-input-focus: #6366f1;
-    --body-accent: #1d6b3b; --body-accent-bg: #dcfce7;
-    --body-err-bg: #fff0f0; --body-err-text: #b91c1c; --body-err-border: #fca5a5;
-    --body-table-row: #ffffff; --body-table-row-alt: #f8faff;
-    --body-table-text: #1a1a2e; --body-table-border: #dde0ee;
-    --body-table-head: #f0f2f8; --body-table-head-text: #1a1a2e;
+
+  [data-theme="dark"] {
+    --nav-bg: #0f1117;
+    --nav-border: rgba(255,255,255,0.07);
+    --nav-text: #f1f5f9;
+    --nav-text2: #94a3b8;
+    --nav-hover-bg: #1e2130;
+    --nav-active-bg: #1a1d2e;
+    --body-bg: #080a10;
+    --body-bg2: #0f1117;
+    --body-bg3: #13161f;
+    --body-text: #e2e8f0;
+    --body-text2: #8b8fa8;
+    --body-text3: #3b4263;
+    --body-border: rgba(255,255,255,0.07);
+    --body-border2: rgba(255,255,255,0.12);
+    --body-card: #0f1117;
+    --body-input: #080a10;
+    --body-input-border: rgba(255,255,255,0.08);
+    --body-input-focus: #818cf8;
+    --body-accent: #4ade80;
+    --body-accent-bg: #0d2a18;
+    --body-err-bg: #2a0d0d;
+    --body-err-text: #f87171;
+    --body-err-border: #5c1a1a;
+    --body-table-row: #ffffff;
+    --body-table-row-alt: #f4f4f4;
+    --body-table-text: #000000;
+    --body-table-border: #dddddd;
+    --body-table-head: #1f242b;
+    --body-table-head-text: #ffffff;
+    --avatar-bg: #0d2a18;
+    --avatar-text: #4ade80;
+    --role-admin-bg: #1a0d3d;
+    --role-admin-text: #a78bfa;
+    --role-user-bg: #0d2a18;
+    --role-user-text: #4ade80;
+    --role-viewer-bg: #0d1a38;
+    --role-viewer-text: #7eb8f7;
   }
 
   body {
     background-color: var(--body-bg) !important;
     color: var(--body-text) !important;
-    transition: background-color 0.25s, color 0.25s;
+    transition: background-color 0.2s, color 0.2s;
   }
 
-  .it-nav { position: sticky; top: 0; z-index: 999; background: var(--nav-bg); border-bottom: 1px solid var(--nav-border); transition: background 0.25s, border-color 0.2s; }
-  .it-nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; height: 52px; max-width: 1800px; margin: 0 auto; }
-  .it-nav-brand { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.88rem; color: var(--nav-text); text-decoration: none; display: flex; align-items: center; gap: 6px; letter-spacing: 0.02em; }
-  .it-nav-brand span { color: #4ade80; }
-  .it-nav-links { display: flex; align-items: center; gap: 2px; }
-  .it-nav-link { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 6px; color: var(--nav-link); font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
-  .it-nav-link:hover { background: var(--nav-hover); color: var(--nav-text); }
-  .it-nav-link.active { background: var(--nav-hover); color: var(--nav-text); }
+  /* ===== NAVBAR ===== */
+  .it-nav {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: var(--nav-bg);
+    border-bottom: 0.5px solid var(--nav-border);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
 
-  /* ADMIN-ONLY LINK */
-  .it-nav-link.admin-link { border: 1px solid #2d2040; }
-  .it-nav-link.admin-link:hover { background: #1a0d3d; color: #c9aaff; border-color: #4c3780; }
-  .it-nav-link.admin-link.active { background: #1a0d3d; color: #c9aaff; border-color: #4c3780; }
+  /* BRAND */
+  .it-nav-brand {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--nav-text);
+    letter-spacing: 0.03em;
+    text-decoration: none;
+    margin-right: 28px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .it-nav-brand span { color: var(--body-accent); }
 
-  .it-nav-right { display: flex; align-items: center; gap: 10px; }
-  .nav-theme-btn { background: none; border: 1px solid var(--nav-border); border-radius: 20px; padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: var(--nav-link); transition: all 0.15s; }
-  .nav-theme-btn:hover { border-color: #4ade80; color: var(--nav-text); }
-  .t-track { width: 28px; height: 15px; background: var(--nav-border); border-radius: 8px; position: relative; transition: background 0.2s; flex-shrink: 0; }
-  .t-thumb { position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; background: var(--nav-link); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
-  .nav-user { display: flex; align-items: center; gap: 7px; padding: 4px 10px; background: var(--nav-hover); border-radius: 20px; font-size: 0.75rem; }
-  .nav-user-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .dot-admin  { background: #a78bfa; }
-  .dot-user   { background: #4ade80; }
-  .dot-viewer { background: #7eb8f7; }
-  .nav-user-name { color: var(--nav-text); font-weight: 600; }
-  .nav-user-role { font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
-  .role-pill-admin  { background: #1a0d3d; color: #a78bfa; }
-  .role-pill-user   { background: #0d2a18; color: #4ade80; }
-  .role-pill-viewer { background: #0d1a38; color: #7eb8f7; }
-  .nav-logout { background: none; border: 1px solid var(--nav-border); border-radius: 6px; padding: 4px 10px; color: var(--nav-link); font-size: 0.75rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
-  .nav-logout:hover { border-color: #f87171; color: #f87171; background: #2a0d0d; }
-  .it-nav-hamburger { display: none; background: none; border: 1px solid var(--nav-border); border-radius: 6px; padding: 5px 9px; color: var(--nav-link); cursor: pointer; font-size: 15px; }
-  .it-nav-hamburger:hover { color: var(--nav-text); border-color: #444; }
-  .it-nav-mobile { display: none; background: var(--nav-bg); border-top: 1px solid var(--nav-border); padding: 0.75rem 1rem; }
+  /* LINKS */
+  .it-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+  }
+  .it-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--nav-text2);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .it-nav-link:hover { background: var(--nav-hover-bg); color: var(--nav-text); }
+  .it-nav-link.active { background: var(--nav-active-bg); color: var(--nav-text); font-weight: 500; }
+  .it-nav-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* RIGHT SIDE */
+  .it-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* DIVIDER */
+  .it-nav-divider {
+    width: 0.5px;
+    height: 20px;
+    background: var(--nav-border);
+    margin: 0 2px;
+  }
+
+  /* THEME TOGGLE */
+  .it-nav-theme {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 0.5px solid var(--nav-border);
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--nav-text2);
+    background: transparent;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .it-nav-theme:hover { border-color: var(--body-border2); color: var(--nav-text); }
+  .t-track {
+    width: 26px;
+    height: 14px;
+    background: var(--nav-border);
+    border-radius: 7px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .t-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--nav-text2);
+    transition: transform 0.2s, background 0.2s;
+  }
+  [data-theme="light"] .t-track { background: #16a34a; }
+  [data-theme="light"] .t-thumb { transform: translateX(12px); background: #ffffff; }
+
+  /* USER PILL */
+  .it-nav-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 24px;
+    border: 0.5px solid var(--nav-border);
+    cursor: default;
+    transition: background 0.12s;
+  }
+  .it-nav-user:hover { background: var(--nav-hover-bg); }
+
+  /* AVATAR */
+  .it-nav-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--avatar-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--avatar-text);
+    flex-shrink: 0;
+    letter-spacing: 0.03em;
+  }
+  .it-nav-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--nav-text);
+    white-space: nowrap;
+  }
+
+  /* ROLE BADGE */
+  .it-nav-role {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+  .role-admin  { background: var(--role-admin-bg);  color: var(--role-admin-text); }
+  .role-user   { background: var(--role-user-bg);   color: var(--role-user-text); }
+  .role-viewer { background: var(--role-viewer-bg); color: var(--role-viewer-text); }
+  .role-custom { background: var(--role-viewer-bg); color: var(--role-viewer-text); }
+
+  /* LOGOUT BTN */
+  .it-nav-logout {
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 0.5px solid var(--nav-border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--nav-text2);
+    cursor: pointer;
+    background: transparent;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: border-color 0.12s, color 0.12s, background 0.12s;
+  }
+  .it-nav-logout:hover {
+    border-color: #fca5a5;
+    color: #dc2626;
+    background: var(--body-err-bg);
+  }
+
+  /* HAMBURGER MOBILE */
+  .it-nav-hamburger {
+    display: none;
+    background: none;
+    border: 0.5px solid var(--nav-border);
+    border-radius: 8px;
+    padding: 6px 9px;
+    color: var(--nav-text2);
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .it-nav-hamburger:hover { color: var(--nav-text); }
+
+  /* MOBILE DRAWER */
+  .it-nav-mobile {
+    display: none;
+    background: var(--nav-bg);
+    border-top: 0.5px solid var(--nav-border);
+    padding: 10px 16px 14px;
+  }
   .it-nav-mobile.open { display: block; }
-  .it-nav-mobile a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; color: var(--nav-link); font-size: 0.83rem; font-weight: 600; text-decoration: none; margin-bottom: 3px; transition: all 0.15s; }
-  .it-nav-mobile a:hover, .it-nav-mobile a.active { background: var(--nav-hover); color: var(--nav-text); }
-  .it-nav-mobile a.admin-link:hover { background: #1a0d3d; color: #c9aaff; }
-  .it-nav-mobile a.admin-link.active { background: #1a0d3d; color: #c9aaff; }
-  .it-nav-mobile .m-sep { border-top: 1px solid var(--nav-border); margin: 8px 0; }
-  .it-nav-mobile .m-user { padding: 8px 12px; font-size: 0.75rem; color: var(--nav-link); display: flex; align-items: center; gap: 8px; }
-  .it-nav-mobile .m-user-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .it-nav-mobile a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--nav-text2);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    margin-bottom: 2px;
+    transition: background 0.12s, color 0.12s;
+  }
+  .it-nav-mobile a:hover,
+  .it-nav-mobile a.active { background: var(--nav-active-bg); color: var(--nav-text); }
+  .it-nav-mobile a svg { width: 14px; height: 14px; }
+  .it-nav-mobile .m-sep { border: none; border-top: 0.5px solid var(--nav-border); margin: 8px 0; }
+  .it-nav-mobile .m-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--nav-text2);
+  }
+
   @media (max-width: 768px) {
     .it-nav-links, .it-nav-right { display: none; }
     .it-nav-hamburger { display: flex; align-items: center; }
+    .it-nav { padding: 0 16px; }
   }
 </style>
 
 <nav class="it-nav" id="mainNav">
-  <div class="it-nav-inner">
-    <a href="/kerja" class="it-nav-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
-    <div class="it-nav-links">
-      <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">⚙ Dashboard</a>
-      <a href="/"      class="it-nav-link <%= activePage === 'view'      ? 'active' : '' %>">◉ View Harian</a>
-      <a href="/aset"  class="it-nav-link <%= activePage === 'aset'      ? 'active' : '' %>">▦ Aset IT</a>
-      <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') { %>
-      <a href="/users" class="it-nav-link admin-link <%= activePage === 'users' ? 'active' : '' %>">👥 Users</a>
-      <% } %>
-    </div>
-    <div class="it-nav-right">
-      <button class="nav-theme-btn" onclick="toggleTheme()" id="navThemeBtn">
-        <div class="t-track" id="navTrack"><div class="t-thumb" id="navThumb"></div></div>
-        <span id="navThemeLabel">Light</span>
-      </button>
-      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-      <%
-        var dotClass  = currentUser.role === 'admin' ? 'dot-admin'  : currentUser.role === 'viewer' ? 'dot-viewer' : 'dot-user';
-        var pillClass = currentUser.role === 'admin' ? 'role-pill-admin' : currentUser.role === 'viewer' ? 'role-pill-viewer' : 'role-pill-user';
-      %>
-      <div class="nav-user">
-        <div class="nav-user-dot <%= dotClass %>"></div>
-        <div>
-          <div class="nav-user-name"><%= currentUser.nama %></div>
-        </div>
-        <span class="nav-user-role <%= pillClass %>"><%= currentUser.role.toUpperCase() %></span>
-      </div>
-      <a href="/logout" class="nav-logout">Keluar</a>
-      <% } %>
-    </div>
-    <button class="it-nav-hamburger" onclick="toggleMobileNav()">☰</button>
-  </div>
-  <div class="it-nav-mobile" id="mobileNav">
-    <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">⚙ Dashboard</a>
-    <a href="/"      class="<%= activePage === 'view'      ? 'active' : '' %>">◉ View Harian</a>
-    <a href="/aset"  class="<%= activePage === 'aset'      ? 'active' : '' %>">▦ Aset IT</a>
-    <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'admin') { %>
-    <a href="/users" class="admin-link <%= activePage === 'users' ? 'active' : '' %>">👥 Users</a>
+  <a href="/kerja" class="it-nav-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
+
+  <div class="it-nav-links">
+    <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="/" class="it-nav-link <%= activePage === 'view' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><line x1="8" y1="5" x2="8" y2="8.5"/><line x1="8" y1="8.5" x2="10" y2="10"/></svg>
+      View Harian
+    </a>
+    <a href="/aset" class="it-nav-link <%= activePage === 'aset' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><line x1="8" y1="7" x2="8" y2="10"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5"/></svg>
+      Aset IT
+    </a>
+    <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
+    <a href="/users" class="it-nav-link <%= activePage === 'users' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/><circle cx="11.5" cy="9.5" r="2"/><line x1="11.5" y1="7.5" x2="11.5" y2="11.5"/><line x1="9.5" y1="9.5" x2="13.5" y2="9.5"/></svg>
+      Users
+    </a>
     <% } %>
-    <div class="m-sep"></div>
+  </div>
+
+  <div class="it-nav-right">
+    <!-- THEME TOGGLE -->
+    <button class="it-nav-theme" onclick="toggleTheme()" id="navThemeBtn">
+      <div class="t-track"><div class="t-thumb" id="navThumb"></div></div>
+      <span id="navThemeLabel">Light</span>
+    </button>
+
+    <div class="it-nav-divider"></div>
+
     <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-    <div class="m-user">
-      <div class="m-user-dot <%= currentUser.role === 'admin' ? 'dot-admin' : currentUser.role === 'viewer' ? 'dot-viewer' : 'dot-user' %>"></div>
-      <span><%= currentUser.nama %></span>
-      <span style="font-size:0.65rem;padding:1px 5px;border-radius:3px;font-weight:700;" class="<%= currentUser.role === 'admin' ? 'role-pill-admin' : currentUser.role === 'viewer' ? 'role-pill-viewer' : 'role-pill-user' %>"><%= currentUser.role.toUpperCase() %></span>
+    <%
+      var initials = currentUser.nama
+        ? currentUser.nama.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase()
+        : currentUser.username.slice(0,2).toUpperCase();
+      var roleClass = currentUser.role === 'admin' ? 'role-admin'
+                    : currentUser.role === 'user'   ? 'role-user'
+                    : currentUser.role === 'viewer' ? 'role-viewer'
+                    : 'role-custom';
+    %>
+    <!-- USER PILL -->
+    <div class="it-nav-user">
+      <div class="it-nav-avatar"><%= initials %></div>
+      <span class="it-nav-name"><%= currentUser.nama %></span>
+      <span class="it-nav-role <%= roleClass %>"><%= currentUser.role.toUpperCase() %></span>
     </div>
-    <a href="/logout" style="color:#f87171;">Keluar</a>
+
+    <!-- LOGOUT -->
+    <a href="/logout" class="it-nav-logout">Keluar</a>
     <% } %>
   </div>
+
+  <!-- HAMBURGER -->
+  <button class="it-nav-hamburger" onclick="toggleMobileNav()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>
+    </svg>
+  </button>
 </nav>
+
+<!-- MOBILE DRAWER -->
+<div class="it-nav-mobile" id="mobileNav">
+  <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+    Dashboard
+  </a>
+  <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><line x1="8" y1="5" x2="8" y2="8.5"/><line x1="8" y1="8.5" x2="10" y2="10"/></svg>
+    View Harian
+  </a>
+  <a href="/aset" class="<%= activePage === 'aset' ? 'active' : '' %>">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
+    Aset IT
+  </a>
+  <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
+  <a href="/users" class="<%= activePage === 'users' ? 'active' : '' %>">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/></svg>
+    Users
+  </a>
+  <% } %>
+  <hr class="m-sep">
+  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+  <div class="m-user">
+    <div class="it-nav-avatar"><%= initials %></div>
+    <span style="font-size:13px;font-weight:500;color:var(--nav-text);"><%= currentUser.nama %></span>
+    <span class="it-nav-role <%= roleClass %>"><%= currentUser.role.toUpperCase() %></span>
+  </div>
+  <a href="/logout" style="color:#dc2626 !important;">Keluar</a>
+  <% } %>
+</div>
 
 <script>
 (function() {
   function getTheme() { return localStorage.getItem('itlog-theme') || 'dark'; }
+
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
     localStorage.setItem('itlog-theme', t);
     var lbl   = document.getElementById('navThemeLabel');
     var thumb = document.getElementById('navThumb');
-    var track = document.getElementById('navTrack');
     if (lbl)   lbl.textContent = t === 'dark' ? 'Light' : 'Dark';
-    if (thumb) { thumb.style.transform = t === 'light' ? 'translateX(13px)' : ''; thumb.style.background = t === 'light' ? '#fff' : ''; }
-    if (track) track.style.background = t === 'light' ? '#4ade80' : '';
+    if (thumb) {
+      thumb.style.transform  = t === 'light' ? 'translateX(12px)' : '';
+      thumb.style.background = t === 'light' ? '#ffffff' : '';
+    }
   }
+
   window.toggleTheme = function() {
-    var next = getTheme() === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
+    applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
   };
+
+  window.toggleMobileNav = function() {
+    var el = document.getElementById('mobileNav');
+    if (el) el.classList.toggle('open');
+  };
+
   applyTheme(getTheme());
 })();
-
-function toggleMobileNav() {
-  document.getElementById('mobileNav').classList.toggle('open');
-}
 </script>
