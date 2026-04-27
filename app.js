@@ -928,6 +928,35 @@ async function callGemini(systemPrompt, userMessage, history = []) {
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
+// Helper: ambil konteks aset dari DB
+async function getAsetContext() {
+    const asetList = await prisma.aset.findMany({
+        orderBy: { nama: 'asc' },
+        select: {
+            id: true, nama: true, kategori: true, satuan: true,
+            stokAwal: true, stok: true, kondisi: true, keterangan: true,
+            pinjaman: {
+                where: { status: 'Dipinjam' },
+                select: { peminjam: true, divisi: true, jumlah: true, tanggalPinjam: true, keperluan: true }
+            }
+        }
+    });
+
+    if (!asetList.length) return 'Belum ada data aset.';
+
+    return asetList.map(a => {
+        let line = `[Aset ID:${a.id}] ${a.nama} | Kategori: ${a.kategori} | Stok: ${a.stok}/${a.stokAwal} ${a.satuan} | Kondisi: ${a.kondisi}`;
+        if (a.keterangan) line += ` | Ket: ${a.keterangan.substring(0, 60)}`;
+        if (a.pinjaman.length > 0) {
+            const pinjamInfo = a.pinjaman.map(p =>
+                `dipinjam ${p.jumlah} oleh ${p.peminjam} (${p.divisi})${p.keperluan ? ' utk ' + p.keperluan.substring(0, 40) : ''}`
+            ).join('; ');
+            line += ` | Sedang dipinjam: ${pinjamInfo}`;
+        }
+        return line;
+    }).join('\n');
+}
+
 // Route: Auto-generate deskripsi (login required)
 app.post('/api/ai-describe', requireLogin, async (req, res) => {
     try {
@@ -957,23 +986,28 @@ app.post('/api/ai-chat-public', async (req, res) => {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
 
-        // Ambil log publik terbaru sebagai konteks
-        const recentLogs = await prisma.journal.findMany({
-            orderBy: { tanggalManual: 'desc' },
-            take: 15,
-            select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, status: true }
-        });
+        const [recentLogs, asetContext] = await Promise.all([
+            prisma.journal.findMany({
+                orderBy: { tanggalManual: 'desc' },
+                take: 15,
+                select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, status: true }
+            }),
+            getAsetContext()
+        ]);
 
         const logContext = recentLogs.map(l =>
             `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}`
         ).join('\n');
 
         const systemPrompt = `Kamu adalah AI asisten IT Support publik bernama "RSBY-AI" untuk sistem IT Jurnal Log RSBY.
-Jawab pertanyaan seputar log aktivitas IT, status tiket, dan troubleshooting umum.
+Jawab pertanyaan seputar log aktivitas IT, status tiket, aset IT, stok, dan troubleshooting umum.
 Jawab singkat dalam Bahasa Indonesia. Jangan reveal data sensitif seperti password atau konfigurasi sistem.
 
-Data log IT terbaru:
-${logContext || 'Belum ada data.'}`;
+=== DATA LOG IT TERBARU ===
+${logContext || 'Belum ada data.'}
+
+=== DATA ASET IT ===
+${asetContext}`;
 
         const reply = await callGemini(systemPrompt, message, history || []);
         res.json({ reply });
@@ -984,18 +1018,20 @@ ${logContext || 'Belum ada data.'}`;
 });
 
 // Route: AI Chat (login required — dashboard)
-// AI CHATBOT — GEMINI API
 // ==========================================
 app.post('/api/ai-chat', requireLogin, async (req, res) => {
     try {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
 
-        const recentLogs = await prisma.journal.findMany({
-            orderBy: { tanggalManual: 'desc' },
-            take: 20,
-            select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, deskripsi: true, status: true }
-        });
+        const [recentLogs, asetContext] = await Promise.all([
+            prisma.journal.findMany({
+                orderBy: { tanggalManual: 'desc' },
+                take: 20,
+                select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, deskripsi: true, status: true }
+            }),
+            getAsetContext()
+        ]);
 
         const logContext = recentLogs.map(l =>
             `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}${l.deskripsi ? ' | ' + l.deskripsi.substring(0, 80) : ''}`
@@ -1003,8 +1039,19 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
 
         const systemPrompt = `Kamu adalah AI asisten IT Support bernama "RSBY-AI" untuk sistem IT Jurnal Log.
 Jawab dalam Bahasa Indonesia, singkat dan to the point.
-Data log terbaru:\n${logContext || 'Belum ada data log.'}
-Panduan: jawab soal tiket dari data di atas, tips troubleshooting praktis, jangan buat data fiktif, max 3-4 kalimat.`;
+
+=== DATA LOG IT TERBARU (20 tiket) ===
+${logContext || 'Belum ada data log.'}
+
+=== DATA ASET IT ===
+${asetContext}
+
+Panduan:
+- Jawab pertanyaan soal tiket/log dari data log di atas
+- Jawab pertanyaan soal aset, stok, kondisi, dan peminjaman dari data aset di atas
+- Berikan tips troubleshooting IT praktis jika diminta
+- Jangan buat data fiktif di luar konteks yang diberikan
+- Jawab max 3-4 kalimat kecuali diminta detail`;
 
         const reply = await callGemini(systemPrompt, message, history || []);
         res.json({ reply });
