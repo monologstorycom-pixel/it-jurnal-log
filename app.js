@@ -896,6 +896,125 @@ app.get('/api/check-foto/:filename', requireLogin, (req, res) => {
     }
 });
 
+// ==========================================
+// ==========================================
+// AI HELPER — GEMINI API
+// ==========================================
+
+// Helper: call Gemini
+async function callGemini(systemPrompt, userMessage, history = []) {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY belum diset di .env');
+
+    const geminiHistory = history.map(h => ({
+        role: h.role === 'user' ? 'user' : 'model',
+        parts: [{ text: h.content }]
+    }));
+
+    const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                system_instruction: { parts: [{ text: systemPrompt }] },
+                contents: [...geminiHistory, { role: 'user', parts: [{ text: userMessage }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
+            })
+        }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || JSON.stringify(data));
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// Route: Auto-generate deskripsi (login required)
+app.post('/api/ai-describe', requireLogin, async (req, res) => {
+    try {
+        const { aktivitas, divisi, pemesan } = req.body;
+        if (!aktivitas) return res.status(400).json({ error: 'Aktivitas tidak boleh kosong.' });
+
+        const systemPrompt = `Kamu adalah asisten IT Support. Tugasmu membuat deskripsi singkat dan profesional untuk log tiket IT.
+Deskripsi harus: 1-3 kalimat, padat, dalam Bahasa Indonesia, menjelaskan apa yang dikerjakan/terjadi.
+Jangan tambahkan poin-poin atau format markdown. Langsung tulis deskripsinya saja, tanpa kalimat pembuka.`;
+
+        const userMessage = `Buat deskripsi untuk tiket IT berikut:
+Aktivitas: ${aktivitas}
+Divisi: ${divisi || '-'}
+Pemesan: ${pemesan || '-'}`;
+
+        const reply = await callGemini(systemPrompt, userMessage);
+        res.json({ deskripsi: reply.trim() });
+    } catch (err) {
+        console.error('AI Describe error:', err);
+        res.status(500).json({ error: '⚠️ ' + err.message });
+    }
+});
+
+// Route: Public AI Chat (tanpa login)
+app.post('/api/ai-chat-public', async (req, res) => {
+    try {
+        const { message, history } = req.body;
+        if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
+
+        // Ambil log publik terbaru sebagai konteks
+        const recentLogs = await prisma.journal.findMany({
+            orderBy: { tanggalManual: 'desc' },
+            take: 15,
+            select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, status: true }
+        });
+
+        const logContext = recentLogs.map(l =>
+            `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}`
+        ).join('\n');
+
+        const systemPrompt = `Kamu adalah AI asisten IT Support publik bernama "RSBY-AI" untuk sistem IT Jurnal Log RSBY.
+Jawab pertanyaan seputar log aktivitas IT, status tiket, dan troubleshooting umum.
+Jawab singkat dalam Bahasa Indonesia. Jangan reveal data sensitif seperti password atau konfigurasi sistem.
+
+Data log IT terbaru:
+${logContext || 'Belum ada data.'}`;
+
+        const reply = await callGemini(systemPrompt, message, history || []);
+        res.json({ reply });
+    } catch (err) {
+        console.error('AI Public Chat error:', err);
+        res.status(500).json({ error: '⚠️ ' + err.message });
+    }
+});
+
+// Route: AI Chat (login required — dashboard)
+// AI CHATBOT — GEMINI API
+// ==========================================
+app.post('/api/ai-chat', requireLogin, async (req, res) => {
+    try {
+        const { message, history } = req.body;
+        if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
+
+        const recentLogs = await prisma.journal.findMany({
+            orderBy: { tanggalManual: 'desc' },
+            take: 20,
+            select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, deskripsi: true, status: true }
+        });
+
+        const logContext = recentLogs.map(l =>
+            `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}${l.deskripsi ? ' | ' + l.deskripsi.substring(0, 80) : ''}`
+        ).join('\n');
+
+        const systemPrompt = `Kamu adalah AI asisten IT Support bernama "RSBY-AI" untuk sistem IT Jurnal Log.
+Jawab dalam Bahasa Indonesia, singkat dan to the point.
+Data log terbaru:\n${logContext || 'Belum ada data log.'}
+Panduan: jawab soal tiket dari data di atas, tips troubleshooting praktis, jangan buat data fiktif, max 3-4 kalimat.`;
+
+        const reply = await callGemini(systemPrompt, message, history || []);
+        res.json({ reply });
+
+    } catch (err) {
+        console.error('AI Chat error:', err);
+        res.status(500).json({ error: '⚠️ ' + err.message });
+    }
+});
+
 app.listen(3001, '0.0.0.0', () => {
     console.log('🚀 SYSTEM READY AT PORT 3001');
     console.log('📁 Upload directory:', uploadDir);

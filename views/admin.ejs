@@ -163,7 +163,14 @@
           <option value="Admin Sales">Admin Sales</option>
         </select>
         <span class="label-text">Deskripsi</span>
-        <textarea name="deskripsi" class="input-custom" rows="3" required></textarea>
+        <div style="position:relative;">
+          <textarea name="deskripsi" id="add_deskripsi" class="input-custom" rows="3" required></textarea>
+          <button type="button" id="btn_ai_desc" onclick="aiGenerateDesc()" title="Generate deskripsi pakai AI"
+            style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:opacity 0.15s;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg>
+            AI
+          </button>
+        </div>
         <span class="label-text">Status</span>
         <select name="status" class="input-custom">
           <option value="Solved">SOLVED</option>
@@ -546,7 +553,14 @@
             </div>
             <div class="col-12">
               <span class="label-text">Deskripsi</span>
-              <textarea name="deskripsi" id="edit_deskripsi" class="input-custom" rows="3" required></textarea>
+              <div style="position:relative;">
+                <textarea name="deskripsi" id="edit_deskripsi" class="input-custom" rows="3" required></textarea>
+                <button type="button" onclick="aiGenerateDescEdit()" title="Generate deskripsi pakai AI"
+                  style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg>
+                  AI
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -706,6 +720,70 @@ async function deleteAdminNote(id) {
 
 window.addEventListener('load', function() { loadAdminNotes(); });
 </script>
+
+<script>
+// ===== AI GENERATE DESKRIPSI =====
+async function aiGenerateDesc() {
+  var aktivitas = document.querySelector('input[name="aktivitas"]').value.trim();
+  var divisi    = document.querySelector('select[name="divisi"]').value;
+  var pemesan   = document.querySelector('input[name="pemesan"]').value.trim();
+  var btn       = document.getElementById('btn_ai_desc');
+  var textarea  = document.getElementById('add_deskripsi');
+
+  if (!aktivitas) { alert('Isi dulu kolom Aktivitas!'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> ...';
+
+  try {
+    var res  = await fetch('/api/ai-describe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aktivitas, divisi, pemesan })
+    });
+    var data = await res.json();
+    if (data.deskripsi) {
+      textarea.value = data.deskripsi;
+      textarea.style.borderColor = '#6366f1';
+      setTimeout(function(){ textarea.style.borderColor = ''; }, 2000);
+    } else {
+      alert(data.error || 'Gagal generate deskripsi.');
+    }
+  } catch(e) {
+    alert('Gagal koneksi ke AI.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg> AI';
+  }
+}
+
+async function aiGenerateDescEdit() {
+  var aktivitas = document.getElementById('edit_aktivitas').value.trim();
+  var divisi    = document.getElementById('edit_divisi').value;
+  var pemesan   = document.getElementById('edit_pemesan').value.trim();
+  var textarea  = document.getElementById('edit_deskripsi');
+
+  if (!aktivitas) { alert('Isi dulu kolom Aktivitas!'); return; }
+  textarea.value = '⏳ Generating...';
+
+  try {
+    var res  = await fetch('/api/ai-describe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ aktivitas, divisi, pemesan })
+    });
+    var data = await res.json();
+    textarea.value = data.deskripsi || data.error || 'Gagal generate.';
+    if (data.deskripsi) {
+      textarea.style.borderColor = '#6366f1';
+      setTimeout(function(){ textarea.style.borderColor = ''; }, 2000);
+    }
+  } catch(e) {
+    textarea.value = 'Gagal koneksi ke AI.';
+  }
+}
+</script>
+
 <script src="/offline-sync.js"></script>
 </body>
 </html>
