@@ -84,7 +84,9 @@
             background: var(--body-card);
             border: 0.5px solid var(--body-border);
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
         }
         .table { min-width: 900px; margin: 0; }
         .table, .table > :not(caption) > * > * { background-color: transparent !important; }
