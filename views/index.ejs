@@ -79,6 +79,31 @@
         }
         .date-display strong { color: var(--body-text); }
 
+        /* SEARCH BAR */
+        .search-bar {
+            background: var(--body-card);
+            border: 0.5px solid var(--body-border);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .search-bar input[type="text"] {
+            flex: 1; background: var(--body-input) !important;
+            border: 0.5px solid var(--body-input-border) !important;
+            border-radius: 8px; color: var(--body-text) !important;
+            padding: 7px 12px; font-size: 13px; outline: none;
+        }
+        .search-bar input[type="text"]:focus { border-color: var(--body-input-focus) !important; }
+        .search-bar input::placeholder { color: var(--body-text3); }
+        .search-result-info {
+            font-size: 12px; color: var(--body-text2);
+            padding: 4px 12px; border-radius: 20px;
+            background: var(--body-accent-bg);
+            border: 0.5px solid var(--body-accent);
+            color: var(--body-accent); white-space: nowrap;
+        }
+
         /* TABLE */
         .table-wrap {
             background: var(--body-card);
@@ -206,7 +231,22 @@
                 </div>
             </div>
 
-            <!-- FILTER -->
+            <!-- SEARCH BAR -->
+            <div class="col-12">
+                <form action="/" method="GET" class="search-bar">
+                    <span style="font-size:16px;">🔍</span>
+                    <input type="text" name="q" value="<%= searchQuery %>"
+                        placeholder="Cari aktivitas, nama, divisi, deskripsi...">
+                    <button type="submit" class="btn-filter primary">Cari</button>
+                    <% if (isSearch) { %>
+                        <a href="/" class="btn-filter">✕ Reset</a>
+                        <span class="search-result-info"><%= journals.length %> hasil untuk "<%= searchQuery %>"</span>
+                    <% } %>
+                </form>
+            </div>
+
+            <!-- FILTER TANGGAL — sembunyikan kalau mode search -->
+            <% if (!isSearch) { %>
             <div class="col-12">
                 <form action="/" method="GET" class="filter-bar">
                     <span class="filter-label">📅 Tanggal</span>
@@ -219,6 +259,7 @@
                     </span>
                 </form>
             </div>
+            <% } %>
 
             <!-- TABLE -->
             <div class="col-12">
@@ -238,8 +279,14 @@
                             <tr>
                                 <td colspan="5">
                                     <div class="empty-state">
+                                        <% if (isSearch) { %>
+                                        <div class="empty-icon">🔍</div>
+                                        <div>Tidak ada hasil untuk "<strong><%= searchQuery %></strong>".</div>
+                                        <div style="margin-top:8px;font-size:12px;">Coba kata kunci lain atau <a href="/" style="color:var(--body-accent);">lihat log hari ini</a>.</div>
+                                        <% } else { %>
                                         <div class="empty-icon">📋</div>
                                         <div>Belum ada log kerja untuk hari ini.</div>
+                                        <% } %>
                                     </div>
                                 </td>
                             </tr>

@@ -5,7 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const session = require('express-session');
 
 const app = express();
@@ -230,30 +230,52 @@ app.get('/403', (req, res) => {
 // ==========================================
 app.get('/', async (req, res) => {
     try {
-        const { date } = req.query;
+        const { date, q } = req.query;
         const now = new Date();
-        let selectedDate;
-        if (date) {
-            const [year, month, day] = date.split('-');
-            selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else {
-            selectedDate = now;
-        }
-        const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
-        const endDate   = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
+        let selectedDate, journals, isSearch = false;
 
-        const journals = await prisma.journal.findMany({
-            where: {
-                OR: [
-                    { tipeInput: { not: 'multihari' }, tanggalManual: { gte: startDate, lte: endDate } },
-                    { tipeInput: 'multihari', tanggalMulai: { lte: endDate }, tanggalSelesai: { gte: startDate } }
-                ]
-            },
-            orderBy: { tanggalManual: 'desc' }
-        });
+        if (q && q.trim()) {
+            // MODE SEARCH — cari semua waktu by keyword
+            isSearch = true;
+            const keyword = q.trim();
+            journals = await prisma.journal.findMany({
+                where: {
+                    OR: [
+                        { aktivitas: { contains: keyword } },
+                        { pemesan:   { contains: keyword } },
+                        { divisi:    { contains: keyword } },
+                        { deskripsi: { contains: keyword } },
+                    ]
+                },
+                orderBy: { tanggalManual: 'desc' },
+                take: 100
+            });
+            selectedDate = now;
+        } else {
+            // MODE HARIAN — default
+            if (date) {
+                const [year, month, day] = date.split('-');
+                selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            } else {
+                selectedDate = now;
+            }
+            const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
+            const endDate   = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
+            journals = await prisma.journal.findMany({
+                where: {
+                    OR: [
+                        { tipeInput: { not: 'multihari' }, tanggalManual: { gte: startDate, lte: endDate } },
+                        { tipeInput: 'multihari', tanggalMulai: { lte: endDate }, tanggalSelesai: { gte: startDate } }
+                    ]
+                },
+                orderBy: { tanggalManual: 'desc' }
+            });
+        }
 
         res.render('index', {
             journals,
+            searchQuery: q || '',
+            isSearch,
             filterInfo: {
                 date: selectedDate.toISOString().split('T')[0],
                 dateDisplay: selectedDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
