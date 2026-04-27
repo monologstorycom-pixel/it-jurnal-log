@@ -230,7 +230,7 @@
         <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;" class="<%= roleClass %>"><%= currentUser.role.toUpperCase() %></span>
       </div>
       <% if (typeof userPerms !== 'undefined' && userPerms && userPerms.canExport) { %>
-      <button onclick="document.getElementById('exportModal').style.display='flex'" class="it-nav-login" style="border:none;cursor:pointer;">
+      <button onclick="openExportModal()" class="it-nav-login" style="border:none;cursor:pointer;">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
         Export Excel
       </button>
@@ -273,7 +273,7 @@
       <span style="font-size:13px;font-weight:500;color:var(--nav-text);"><%= currentUser.nama || currentUser.username %></span>
     </div>
     <% if (typeof userPerms !== 'undefined' && userPerms && userPerms.canExport) { %>
-    <a href="#" onclick="document.getElementById('exportModal').style.display='flex';document.getElementById('mobileNav').classList.remove('open');return false;" style="color:var(--body-accent) !important;">
+    <a href="#" onclick="openExportModal();document.getElementById('mobileNav').classList.remove('open');return false;" style="color:var(--body-accent) !important;">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
       Export Excel
     </a>
@@ -294,37 +294,59 @@
 <!-- EXPORT MODAL -->
 <div id="exportModal">
   <div class="export-modal-box">
-    <div class="export-modal-title">📊 Export Data ke Excel</div>
-    <div class="export-modal-sub">Pilih bulan dan tahun yang ingin di-export untuk tim audit.</div>
-    <div class="export-form-row">
-      <select id="exportMonth">
-        <option value="1">Januari</option>
-        <option value="2">Februari</option>
-        <option value="3">Maret</option>
-        <option value="4">April</option>
-        <option value="5">Mei</option>
-        <option value="6">Juni</option>
-        <option value="7">Juli</option>
-        <option value="8">Agustus</option>
-        <option value="9">September</option>
-        <option value="10">Oktober</option>
-        <option value="11">November</option>
-        <option value="12">Desember</option>
-      </select>
-      <select id="exportYear"></select>
+
+    <!-- MODE: LOG (muncul kalau di halaman Home) -->
+    <div id="exportModeLog">
+      <div class="export-modal-title">📊 Export Log IT ke Excel</div>
+      <div class="export-modal-sub">Pilih bulan dan tahun untuk tim audit.</div>
+      <div class="export-form-row">
+        <select id="exportMonth">
+          <option value="1">Januari</option>
+          <option value="2">Februari</option>
+          <option value="3">Maret</option>
+          <option value="4">April</option>
+          <option value="5">Mei</option>
+          <option value="6">Juni</option>
+          <option value="7">Juli</option>
+          <option value="8">Agustus</option>
+          <option value="9">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Desember</option>
+        </select>
+        <select id="exportYear"></select>
+      </div>
+      <div class="export-modal-actions">
+        <button class="btn-export-confirm" onclick="doExportLog()">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
+          Download Excel
+        </button>
+        <button class="btn-export-cancel" onclick="document.getElementById('exportModal').style.display='none'">Batal</button>
+      </div>
     </div>
-    <div class="export-modal-actions">
-      <button class="btn-export-confirm" onclick="doExport()">
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
-        Download Excel
-      </button>
-      <button class="btn-export-cancel" onclick="document.getElementById('exportModal').style.display='none'">Batal</button>
+
+    <!-- MODE: ASET (muncul kalau di halaman Aset) -->
+    <div id="exportModeAset" style="display:none;">
+      <div class="export-modal-title">🗂 Export Data Aset IT ke Excel</div>
+      <div class="export-modal-sub">Akan mengunduh seluruh data aset IT saat ini.</div>
+      <div style="padding:12px;background:var(--body-bg);border-radius:8px;margin-bottom:1rem;font-size:12px;color:var(--body-text2);">
+        📋 Berisi: Nama Aset, Kategori, Satuan, Stok, Kondisi, Jumlah Dipakai, Keterangan
+      </div>
+      <div class="export-modal-actions">
+        <button class="btn-export-confirm" onclick="doExportAset()">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
+          Download Excel
+        </button>
+        <button class="btn-export-cancel" onclick="document.getElementById('exportModal').style.display='none'">Batal</button>
+      </div>
     </div>
+
   </div>
 </div>
 
 <script>
 (function() {
+  // Isi dropdown tahun
   var now = new Date();
   var curMonth = now.getMonth() + 1;
   var curYear  = now.getFullYear();
@@ -336,11 +358,26 @@
   }
   document.getElementById('exportMonth').value = curMonth;
 
-  window.doExport = function() {
+  // Deteksi halaman aktif lewat activePage yang di-render EJS
+  var isAsetPage = '<%= typeof activePage !== "undefined" && activePage === "aset-public" %>' === 'true';
+
+  // Buka modal: tampilkan mode yang sesuai
+  window.openExportModal = function() {
+    document.getElementById('exportModeLog').style.display  = isAsetPage ? 'none'  : 'block';
+    document.getElementById('exportModeAset').style.display = isAsetPage ? 'block' : 'none';
+    document.getElementById('exportModal').style.display = 'flex';
+  };
+
+  window.doExportLog = function() {
     var m = document.getElementById('exportMonth').value;
     var y = document.getElementById('exportYear').value;
     document.getElementById('exportModal').style.display = 'none';
     window.location.href = '/export?month=' + m + '&year=' + y;
+  };
+
+  window.doExportAset = function() {
+    document.getElementById('exportModal').style.display = 'none';
+    window.location.href = '/export-aset';
   };
 
   // Tutup modal kalau klik di luar box

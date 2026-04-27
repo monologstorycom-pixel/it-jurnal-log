@@ -627,6 +627,81 @@ app.get('/export', requireLogin, (req, res, next) => {
 });
 
 // ==========================================
+// 8b. EXPORT EXCEL ASET
+// ==========================================
+app.get('/export-aset', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canExport')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    next();
+}, async (req, res) => {
+    try {
+        const asets = await prisma.aset.findMany({
+            orderBy: { kategori: 'asc' },
+            include: { penggunaan: true }
+        });
+
+        const workbook  = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Data Aset IT');
+
+        worksheet.columns = [
+            { header: 'NO',        key: 'no',        width: 6  },
+            { header: 'NAMA ASET', key: 'nama',      width: 30 },
+            { header: 'KATEGORI',  key: 'kategori',  width: 16 },
+            { header: 'SATUAN',    key: 'satuan',    width: 10 },
+            { header: 'STOK AWAL', key: 'stokAwal',  width: 12 },
+            { header: 'STOK',      key: 'stok',      width: 10 },
+            { header: 'KONDISI',   key: 'kondisi',   width: 12 },
+            { header: 'DIPAKAI',   key: 'dipakai',   width: 10 },
+            { header: 'KETERANGAN',key: 'keterangan',width: 30 },
+        ];
+
+        // Header style
+        worksheet.getRow(1).eachCell(cell => {
+            cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+            cell.font   = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+            cell.border = { bottom: { style: 'thin', color: { argb: 'FF4DA6FF' } } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+        worksheet.getRow(1).height = 20;
+
+        asets.forEach((a, i) => {
+            const dipakaiCount = a.penggunaan ? a.penggunaan.length : 0;
+            const row = worksheet.addRow({
+                no:         i + 1,
+                nama:       a.nama,
+                kategori:   a.kategori,
+                satuan:     a.satuan,
+                stokAwal:   a.stokAwal,
+                stok:       a.stok,
+                kondisi:    a.kondisi,
+                dipakai:    dipakaiCount,
+                keterangan: a.keterangan || '-',
+            });
+            row.eachCell(cell => {
+                cell.border = { bottom: { style: 'thin', color: { argb: 'FFE0E0E0' } } };
+                cell.alignment = { vertical: 'middle', wrapText: true };
+                cell.font = { size: 10 };
+            });
+            // Warna kondisi
+            const kondisiCell = row.getCell('kondisi');
+            if (a.kondisi === 'Rusak') kondisiCell.font = { color: { argb: 'FFDC2626' }, size: 10, bold: true };
+            else if (a.kondisi === 'Baik') kondisiCell.font = { color: { argb: 'FF16A34A' }, size: 10, bold: true };
+            row.height = 18;
+        });
+
+        const now = new Date();
+        const tgl = now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+        worksheet.addRow([]);
+        const infoRow = worksheet.addRow([`Diekspor pada: ${tgl}`, '', '', '', '', '', '', '', `Total: ${asets.length} aset`]);
+        infoRow.font = { italic: true, color: { argb: 'FF888888' }, size: 9 };
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename="Data-Aset-IT.xlsx"');
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) { console.error(error); res.status(500).send('Gagal export aset: ' + error.message); }
+});
+
+// ==========================================
 // 9. NOTES
 // ==========================================
 app.get('/api/notes', requireLogin, async (req, res) => {
