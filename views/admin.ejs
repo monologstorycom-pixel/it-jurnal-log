@@ -93,6 +93,12 @@
         .pending-age.urgent  { background: #5c0000; color: #ff6b6b; }
         .pending-age.warning { background: #5c3d00; color: #ffc107; }
         .pending-age.normal  { background: var(--body-bg3); color: var(--body-text3); }
+        .pending-actions { display: flex; gap: 5px; flex-shrink: 0; margin-left: 4px; }
+        .btn-pending-solve { padding: 4px 10px; border-radius: 6px; border: none; background: #1a4731; color: #4caf50; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+        .btn-pending-solve:hover { background: #198754; color: #fff; }
+        .btn-pending-edit  { padding: 4px 10px; border-radius: 6px; border: none; background: #0d2d6e; color: #4da6ff; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+        .btn-pending-edit:hover  { background: #0d6efd; color: #fff; }
+        @media (max-width: 576px) { .pending-actions { flex-direction: column; gap: 3px; } }
 @media (max-width: 768px) { .container-fluid { padding: 1rem !important; } .form-sidebar { margin-bottom: 2rem; } }
     </style>
 </head>
@@ -235,6 +241,26 @@
           <% } else { %>
             <span class="pending-age normal">Baru</span>
           <% } %>
+          <div class="pending-actions">
+            <form method="POST" action="/update-status/<%= p.id %>" style="margin:0;">
+              <input type="hidden" name="newStatus" value="Solved">
+              <button type="submit" class="btn-pending-solve" onclick="return confirm('Tandai tiket ini sebagai Solved?')">✅ Selesai</button>
+            </form>
+            <button type="button" class="btn-pending-edit" onclick="openEditModal(
+              <%= p.id %>,
+              `<%- (p.aktivitas||'').replace(/`/g,'\\`') %>`,
+              `<%= p.divisi %>`,
+              `<%- (p.pemesan||'').replace(/`/g,'\\`') %>`,
+              `<%- (p.deskripsi||'').replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,
+              `<%= p.status %>`,
+              `<%= p.tipeInput || 'harian' %>`,
+              `<%= new Date(p.tanggalManual).toISOString().slice(0,10) %>`,
+              `<%= p.jamMulai || '' %>`,
+              `<%= p.jamSelesai || '' %>`,
+              `<%= p.tanggalMulai ? new Date(p.tanggalMulai).toISOString().slice(0,10) : '' %>`,
+              `<%= p.tanggalSelesai ? new Date(p.tanggalSelesai).toISOString().slice(0,10) : '' %>`
+            )">✏️ Edit</button>
+          </div>
         </div>
         <% }) %>
         <% if (stats.pendingAllTime > 10) { %>

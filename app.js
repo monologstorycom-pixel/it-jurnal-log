@@ -332,7 +332,9 @@ app.get('/kerja', requireLogin, async (req, res) => {
             prisma.journal.count(),
             prisma.journal.count({ where: { status: 'Pending' } }),
             prisma.journal.findMany({ where: { status: 'Pending' }, orderBy: { tanggalManual: 'asc' }, take: 10,
-                select: { id: true, aktivitas: true, divisi: true, pemesan: true, tanggalManual: true, durasiMenit: true }
+                select: { id: true, aktivitas: true, divisi: true, pemesan: true, tanggalManual: true, durasiMenit: true,
+                    deskripsi: true, status: true, tipeInput: true, jamMulai: true, jamSelesai: true,
+                    tanggalMulai: true, tanggalSelesai: true }
             })
         ]);
         // Hitung berapa hari pending tiap item
