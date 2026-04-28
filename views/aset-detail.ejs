@@ -74,7 +74,7 @@
         <!-- FOTO UTAMA ASET -->
         <% if(aset.fotoUrl) { %>
         <img src="<%= aset.fotoUrl %>" class="aset-main-foto"
-            onclick="showFoto('<%= aset.fotoUrl %>', '<%= aset.nama.replace(/'/g, `\\'`) %>')"
+            onclick="showFoto('<%= aset.fotoUrl %>', '<%= aset.nama.replace(/'/g, "&#39;") %>')"
             alt="<%= aset.nama %>" title="Klik untuk perbesar">
         <% } else { %>
         <div class="aset-no-foto-banner">📦 Belum ada foto aset</div>
@@ -113,7 +113,7 @@
                         <td style="width:60px;">
                             <% if(p.fotoUrl) { %>
                                 <img src="<%= p.fotoUrl %>" class="rw-thumb"
-                                    onclick="showFoto('<%= p.fotoUrl %>', 'Pemasangan — <%= new Date(p.tanggal).toLocaleDateString(\'id-ID\') %>')"
+                                    onclick="showFoto('<%= p.fotoUrl %>', 'Pemasangan — <%= new Date(p.tanggal).toLocaleDateString("id-ID") %>')"
                                     alt="foto penggunaan">
                             <% } else { %>
                                 <div class="rw-no-foto" title="Tidak ada foto">📍</div>
@@ -155,7 +155,7 @@
                         <td style="width:60px;">
                             <% if(p.fotoUrl) { %>
                                 <img src="<%= p.fotoUrl %>" class="rw-thumb"
-                                    onclick="showFoto('<%= p.fotoUrl %>', 'Pinjam — <%= p.peminjam.replace(/'/g, `\\'`) %>')"
+                                    onclick="showFoto('<%= p.fotoUrl %>', 'Pinjam — <%= p.peminjam.replace(/'/g, "&#39;") %>')"
                                     alt="foto pinjaman">
                             <% } else { %>
                                 <div class="rw-no-foto" title="Tidak ada foto">🔑</div>
@@ -176,7 +176,7 @@
                             <div style="display:flex;flex-direction:column;gap:4px;">
                                 <%if(p.status==='Dipinjam'){%>
                                 <form action="/aset/kembali/<%= p.id %>" method="POST">
-                                    <button type="submit" class="act-btn green" onclick="return confirm('Konfirmasi pengembalian oleh <%= p.peminjam.replace(/'/g, `\\'`) %>?')" style="width:100%;">Kembali</button>
+                                    <button type="submit" class="act-btn green" onclick="return confirm('Konfirmasi pengembalian oleh <%= p.peminjam.replace(/'/g, "&#39;") %>?')" style="width:100%;">Kembali</button>
                                 </form>
                                 <%}%>
                                 <form action="/aset/pinjam-hapus/<%= p.id %>" method="POST">
