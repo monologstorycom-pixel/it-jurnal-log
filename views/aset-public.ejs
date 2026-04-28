@@ -80,6 +80,21 @@
 
         .empty-row td { text-align: center; padding: 3rem; color: var(--body-text3); font-size: 13px; }
 
+        /* FOTO THUMBNAIL */
+        .aset-thumb { width:40px;height:40px;border-radius:6px;object-fit:cover;border:0.5px solid var(--body-border);cursor:pointer;transition:transform 0.15s; }
+        .aset-thumb:hover { transform:scale(1.12); }
+        .aset-no-thumb { width:40px;height:40px;border-radius:6px;background:var(--body-bg3);border:0.5px dashed var(--body-border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--body-text3); }
+        .rw-thumb { width:36px;height:36px;border-radius:5px;object-fit:cover;border:0.5px solid var(--body-border);cursor:pointer;transition:transform 0.15s; }
+        .rw-thumb:hover { transform:scale(1.12); }
+        .rw-no-thumb { width:36px;height:36px;border-radius:5px;background:var(--body-bg3);border:0.5px dashed var(--body-border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--body-text3); }
+        /* FOTO MODAL */
+        .foto-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px; }
+        .foto-overlay.show { display:flex; }
+        .foto-overlay img { max-width:92vw;max-height:85vh;border-radius:10px;object-fit:contain; }
+        .foto-overlay-caption { color:#fff;font-size:13px;opacity:0.8; }
+        .foto-overlay-close { position:absolute;top:16px;right:20px;color:#fff;font-size:28px;cursor:pointer;line-height:1;opacity:0.7; }
+        .foto-overlay-close:hover { opacity:1; }
+
         @media (max-width: 768px) { .page-wrap { padding: 1rem; } }
     </style>
 </head>
@@ -139,6 +154,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
+                        <th style="width:52px;">Foto</th>
                         <th>Nama Aset</th>
                         <th>Kategori</th>
                         <th>Kondisi</th>
@@ -150,7 +166,7 @@
                 </thead>
                 <tbody>
                     <% if(aset.length === 0) { %>
-                    <tr class="empty-row"><td colspan="8">Belum ada aset terdaftar.</td></tr>
+                    <tr class="empty-row"><td colspan="9">Belum ada aset terdaftar.</td></tr>
                     <% } %>
                     <% aset.forEach(function(item, i) {
                         var pct = item.stokAwal > 0 ? Math.round((item.stok / item.stokAwal) * 100) : 0;
@@ -160,6 +176,15 @@
                     %>
                     <tr id="row-<%= item.id %>">
                         <td style="color:var(--body-text3);font-size:12px;"><%= i+1 %></td>
+                        <td style="width:52px;">
+                            <% if(item.fotoUrl){ %>
+                                <img src="<%= item.fotoUrl %>" class="aset-thumb"
+                                    onclick="showFoto('<%= item.fotoUrl %>','<%= item.nama.replace(/'/g,"&#39;") %>')"
+                                    alt="<%= item.nama %>">
+                            <% } else { %>
+                                <div class="aset-no-thumb">📦</div>
+                            <% } %>
+                        </td>
                         <td>
                             <div style="font-weight:600;"><%= item.nama %></div>
                             <% if(item.keterangan){ %><div style="font-size:11px;color:var(--body-text3);margin-top:2px;"><%= item.keterangan %></div><% } %>
@@ -205,10 +230,19 @@
                                     <% } else { %>
                                     <div style="overflow-x:auto;">
                                         <table class="rw-table">
-                                            <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Divisi</th><th>Lokasi</th><th>Keterangan</th></tr></thead>
+                                            <thead><tr><th>Foto</th><th>Tanggal</th><th>Jumlah</th><th>Divisi</th><th>Lokasi</th><th>Keterangan</th></tr></thead>
                                             <tbody>
                                             <% item.penggunaan.forEach(function(p) { %>
                                             <tr>
+                                                <td style="width:48px;">
+                                                    <% if(p.fotoUrl){ %>
+                                                        <img src="<%= p.fotoUrl %>" class="rw-thumb"
+                                                            onclick="showFoto('<%= p.fotoUrl %>','Pemasangan - <%= new Date(p.tanggal).toLocaleDateString("id-ID") %>')"
+                                                            alt="foto">
+                                                    <% } else { %>
+                                                        <div class="rw-no-thumb">📍</div>
+                                                    <% } %>
+                                                </td>
                                                 <td style="white-space:nowrap;color:var(--body-text2)"><%= new Date(p.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
                                                 <td style="font-weight:600;color:#1d4ed8;"><%= p.jumlah %> <%= item.satuan %></td>
                                                 <td><%= p.divisi %></td>
@@ -229,10 +263,19 @@
                                     <% } else { %>
                                     <div style="overflow-x:auto;">
                                         <table class="rw-table">
-                                            <thead><tr><th>Peminjam</th><th>Jumlah</th><th>Divisi</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Status</th></tr></thead>
+                                            <thead><tr><th>Foto</th><th>Peminjam</th><th>Jumlah</th><th>Divisi</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Status</th></tr></thead>
                                             <tbody>
                                             <% item.pinjaman.forEach(function(p) { %>
                                             <tr>
+                                                <td style="width:48px;">
+                                                    <% if(p.fotoUrl){ %>
+                                                        <img src="<%= p.fotoUrl %>" class="rw-thumb"
+                                                            onclick="showFoto('<%= p.fotoUrl %>','Pinjam - <%= p.peminjam.replace(/'/g,"&#39;") %>')"
+                                                            alt="foto">
+                                                    <% } else { %>
+                                                        <div class="rw-no-thumb">🔑</div>
+                                                    <% } %>
+                                                </td>
                                                 <td>
                                                     <div style="font-weight:600"><%= p.peminjam %></div>
                                                     <% if(p.keperluan){%><div style="font-size:11px;color:var(--body-text3)"><%= p.keperluan %></div><%}%>
@@ -259,8 +302,27 @@
     </div>
 </div>
 
+<!-- FOTO MODAL OVERLAY -->
+<div class="foto-overlay" id="fotoOverlay" onclick="closeFoto()">
+    <span class="foto-overlay-close" onclick="closeFoto()">✕</span>
+    <img id="fotoOverlayImg" src="" alt="foto">
+    <div class="foto-overlay-caption" id="fotoOverlayCaption"></div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+function showFoto(url, caption) {
+    document.getElementById('fotoOverlayImg').src = url;
+    document.getElementById('fotoOverlayCaption').textContent = '📷 ' + caption;
+    document.getElementById('fotoOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+function closeFoto() {
+    document.getElementById('fotoOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeFoto(); });
+
 function toggleDetail(id) {
     var row  = document.getElementById('detail-' + id);
     var icon = document.getElementById('btn-icon-' + id);
