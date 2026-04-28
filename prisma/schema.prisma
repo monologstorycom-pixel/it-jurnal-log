@@ -43,6 +43,7 @@ model Aset {
   stok        Int              @default(0)
   kondisi     String           @default("Baik")
   keterangan  String?          @db.Text
+  fotoUrl     String?
   createdAt   DateTime         @default(now())
   penggunaan  AsetPenggunaan[]
   pinjaman    AsetPinjam[]
@@ -56,6 +57,7 @@ model AsetPenggunaan {
   divisi      String
   lokasi      String
   keterangan  String?  @db.Text
+  fotoUrl     String?
   tanggal     DateTime @default(now())
   createdAt   DateTime @default(now())
 }
@@ -68,6 +70,7 @@ model AsetPinjam {
   peminjam        String
   divisi          String
   keperluan       String?   @db.Text
+  fotoUrl         String?
   tanggalPinjam   DateTime  @default(now())
   tanggalKembali  DateTime?
   status          String    @default("Dipinjam")

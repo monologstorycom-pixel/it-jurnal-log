@@ -20,6 +20,18 @@
         .btn-add { background: #1a3a2a; border: 1px solid #2d6a4a; color: #4ade80; width: 100%; padding: 9px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
         .btn-add:hover { background: #224a36; }
 
+        /* FOTO PREVIEW di sidebar */
+        .foto-preview-box {
+            width: 100%; height: 120px; border: 1px dashed var(--body-border2);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 0.65rem; overflow: hidden; background: var(--body-bg);
+            cursor: pointer; position: relative; transition: border-color 0.15s;
+        }
+        .foto-preview-box:hover { border-color: #4ade80; }
+        .foto-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .foto-preview-placeholder { text-align: center; color: var(--body-text3); font-size: 0.75rem; }
+        .foto-preview-placeholder .icon { font-size: 1.8rem; margin-bottom: 4px; display: block; }
+
         /* MAIN TABLE */
         .main-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; overflow: hidden; }
         .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--body-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
@@ -31,9 +43,7 @@
         .s-btn { background: var(--body-bg2); border: 1px solid var(--body-border); color: var(--body-text2); padding: 6px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
         .s-btn:hover { border-color: var(--body-border2); color: var(--body-text); }
         .s-btn-primary { background: #1a2a4a; border-color: #2a3d6a; color: #7eb8f7; }
-        .s-btn-primary:hover { background: #1e3054; }
         .s-btn-export { background: #2a1a0a; border-color: #5a3a1a; color: #f5a623; }
-        .s-btn-export:hover { background: #3a2010; }
 
         /* TABLE */
         .aset-table { width: 100%; border-collapse: collapse; }
@@ -43,6 +53,20 @@
         .aset-table tbody tr:hover { background: var(--body-bg3); }
         .aset-table td { padding: 11px 14px; font-size: 0.83rem; color: var(--body-text); vertical-align: middle; }
         .aset-name { font-weight: 600; color: var(--body-text); }
+
+        /* FOTO THUMBNAIL di tabel */
+        .aset-thumb {
+            width: 44px; height: 44px; border-radius: 8px; object-fit: cover;
+            border: 1px solid var(--body-border); cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .aset-thumb:hover { transform: scale(1.08); border-color: #4ade80; }
+        .aset-no-foto {
+            width: 44px; height: 44px; border-radius: 8px;
+            background: var(--body-bg3); border: 1px dashed var(--body-border2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: var(--body-text3);
+        }
 
         /* STOK */
         .stok-val { font-weight: 700; font-size: 0.95rem; }
@@ -70,6 +94,20 @@
         .m-footer  { border-top: 1px solid var(--body-border) !important; }
         .m-content .modal-title { color: var(--body-text); }
 
+        /* FOTO UPLOAD di MODAL */
+        .modal-foto-area {
+            border: 1px dashed var(--body-border2); border-radius: 8px;
+            overflow: hidden; margin-bottom: 0.65rem; cursor: pointer;
+            transition: border-color 0.15s; position: relative;
+        }
+        .modal-foto-area:hover { border-color: #4ade80; }
+        .modal-foto-placeholder {
+            padding: 1.25rem; text-align: center; color: var(--body-text3); font-size: 0.78rem;
+        }
+        .modal-foto-placeholder .icon { font-size: 2rem; display: block; margin-bottom: 6px; }
+        .modal-foto-preview { width: 100%; max-height: 180px; object-fit: cover; display: none; }
+        .modal-foto-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+
         .empty-row td { text-align: center; padding: 3rem; color: var(--body-text3); font-size: 0.85rem; }
 
         @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; } }
@@ -81,11 +119,24 @@
 <div class="page-wrap">
   <div class="row g-4">
 
-    <!-- FORM SIDEBAR -->
+    <!-- ========== FORM SIDEBAR ========== -->
     <div class="col-md-3">
       <div class="form-panel">
         <h6>+ Tambah Aset</h6>
-        <form action="/aset/tambah" method="POST">
+        <form action="/aset/tambah" method="POST" enctype="multipart/form-data">
+
+          <!-- FOTO ASET -->
+          <label class="f-label">📷 Foto Aset</label>
+          <div class="foto-preview-box" onclick="document.getElementById('addFotoInput').click()">
+            <img id="addFotoPreview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+            <div class="foto-preview-placeholder" id="addFotoPlaceholder">
+              <span class="icon">📷</span>
+              <span>Klik untuk ambil / pilih foto</span>
+            </div>
+          </div>
+          <input type="file" id="addFotoInput" name="foto" accept="image/*" capture="environment" style="display:none;"
+            onchange="previewFoto(this, 'addFotoPreview', 'addFotoPlaceholder')">
+
           <label class="f-label">Nama Aset</label>
           <input type="text" name="nama" class="f-input" placeholder="cth: Switch TP-Link 8 Port" required>
           <label class="f-label">Kategori</label>
@@ -117,7 +168,7 @@
       </div>
     </div>
 
-    <!-- MAIN TABLE -->
+    <!-- ========== MAIN TABLE ========== -->
     <div class="col-md-9">
       <div class="main-panel">
         <div class="panel-header">
@@ -144,18 +195,19 @@
             <thead>
               <tr>
                 <th style="width:32px;">#</th>
+                <th style="width:60px;">Foto</th>
                 <th>Nama Aset</th>
                 <th>Kategori</th>
                 <th>Kondisi</th>
                 <th>Stok Awal</th>
                 <th>Stok Sisa</th>
                 <th>Dipinjam</th>
-                <th style="width:200px;">Aksi</th>
+                <th style="width:220px;">Aksi</th>
               </tr>
             </thead>
             <tbody>
               <% if(aset.length === 0) { %>
-                <tr class="empty-row"><td colspan="8">Belum ada aset. Tambahkan menggunakan form di kiri.</td></tr>
+                <tr class="empty-row"><td colspan="9">Belum ada aset. Tambahkan menggunakan form di kiri.</td></tr>
               <% } %>
               <% aset.forEach((item, i) => {
                 const pct = item.stokAwal > 0 ? Math.round((item.stok / item.stokAwal) * 100) : 0;
@@ -164,7 +216,19 @@
               %>
               <tr>
                 <td style="color:var(--body-text3);font-size:0.75rem;"><%= i+1 %></td>
-                <td><div class="aset-name"><%= item.nama %></div></td>
+                <td>
+                  <% if(item.fotoUrl) { %>
+                    <img src="<%= item.fotoUrl %>" class="aset-thumb"
+                      onclick="showFotoModal('<%= item.fotoUrl %>', '<%= item.nama.replace(/'/g, `\\'`) %>')"
+                      alt="<%= item.nama %>">
+                  <% } else { %>
+                    <div class="aset-no-foto" title="Belum ada foto">📦</div>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="aset-name"><%= item.nama %></div>
+                  <% if(item.keterangan){%><div style="font-size:0.72rem;color:var(--body-text3);margin-top:2px;"><%= item.keterangan %></div><%}%>
+                </td>
                 <td><span style="font-size:0.75rem;color:var(--body-text2);"><%= item.kategori || '—' %></span></td>
                 <td><span class="badge-kondisi <%= kondisiClass %>"><%= item.kondisi %></span></td>
                 <td style="color:var(--body-text2);font-size:0.82rem;"><%= item.stokAwal %> <span style="color:var(--body-text3);"><%= item.satuan %></span></td>
@@ -198,15 +262,44 @@
   </div>
 </div>
 
-<!-- MODAL PAKAI -->
+<!-- ========== MODAL LIHAT FOTO ========== -->
+<div class="modal fade" id="modalFoto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content m-content">
+      <div class="modal-header m-header">
+        <h5 class="modal-title" id="modalFotoTitle">Foto Aset</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center p-3">
+        <img id="modalFotoImg" src="" class="img-fluid rounded" style="max-height:75vh;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODAL PAKAI ========== -->
 <div class="modal fade" id="modalPakai" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header"><h5 class="modal-title" id="modalPakaiTitle">Catat Penggunaan</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <form id="formPakai" action="" method="POST">
+      <form id="formPakai" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
           <div id="pakaiInfo" style="background:#0d2a18;border:1px solid #1a5c30;border-radius:6px;padding:9px 12px;margin-bottom:1rem;font-size:0.82rem;color:#4ade80;font-weight:700;"></div>
-          <label class="f-label">Jumlah</label><input type="number" name="jumlah" class="f-input" min="1" value="1" required id="pakaiJml">
+
+          <!-- FOTO PENGGUNAAN -->
+          <label class="f-label">📷 Foto Pemasangan / Lokasi</label>
+          <div class="modal-foto-area" id="pakaiAreaFoto">
+            <img id="pakaiFotoPreview" class="modal-foto-preview" alt="">
+            <div class="modal-foto-placeholder" id="pakaiFotoPlaceholder">
+              <span class="icon">📸</span>
+              Foto kondisi aset saat dipasang (opsional)
+            </div>
+            <input type="file" name="foto" accept="image/*" capture="environment"
+              onchange="previewModalFoto(this, 'pakaiFotoPreview', 'pakaiFotoPlaceholder')">
+          </div>
+
+          <label class="f-label">Jumlah</label>
+          <input type="number" name="jumlah" class="f-input" min="1" value="1" required id="pakaiJml">
           <label class="f-label">Divisi Tujuan</label>
           <select name="divisi" class="f-input">
             <option value="IT & IC">IT & IC</option><option value="HRGA">HRGA</option>
@@ -215,29 +308,47 @@
             <option value="Produksi">Produksi</option><option value="Bahanbaku">Bahanbaku</option>
             <option value="MAINTENANCE">MAINTENANCE</option><option value="Admin Sales">Admin Sales</option>
           </select>
-          <label class="f-label">Lokasi Pemasangan</label><input type="text" name="lokasi" class="f-input" placeholder="cth: Ruang server lt.1" required>
-          <label class="f-label">Tanggal</label><input type="date" name="tanggal" class="f-input" id="pakaiTgl">
-          <label class="f-label">Keterangan</label><textarea name="keterangan" class="f-input" rows="2"></textarea>
+          <label class="f-label">Lokasi Pemasangan</label>
+          <input type="text" name="lokasi" class="f-input" placeholder="cth: Ruang server lt.1" required>
+          <label class="f-label">Tanggal</label>
+          <input type="date" name="tanggal" class="f-input" id="pakaiTgl">
+          <label class="f-label">Keterangan</label>
+          <textarea name="keterangan" class="f-input" rows="2"></textarea>
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-success fw-bold">Catat</button>
+          <button type="submit" class="btn btn-success fw-bold">Catat Penggunaan</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- MODAL PINJAM -->
+<!-- ========== MODAL PINJAM ========== -->
 <div class="modal fade" id="modalPinjam" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header"><h5 class="modal-title" id="modalPinjamTitle">Catat Peminjaman</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <form id="formPinjam" action="" method="POST">
+      <form id="formPinjam" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
           <div id="pinjamInfo" style="background:#1a0d3d;border:1px solid #4c3780;border-radius:6px;padding:9px 12px;margin-bottom:1rem;font-size:0.82rem;color:#a78bfa;font-weight:700;"></div>
-          <label class="f-label">Jumlah</label><input type="number" name="jumlah" class="f-input" min="1" value="1" required>
-          <label class="f-label">Nama Peminjam</label><input type="text" name="peminjam" class="f-input" placeholder="cth: Roby, Bagyo" required>
+
+          <!-- FOTO PINJAM -->
+          <label class="f-label">📷 Foto Kondisi Aset</label>
+          <div class="modal-foto-area" id="pinjamAreaFoto">
+            <img id="pinjamFotoPreview" class="modal-foto-preview" alt="">
+            <div class="modal-foto-placeholder" id="pinjamFotoPlaceholder">
+              <span class="icon">📸</span>
+              Foto kondisi aset sebelum dipinjam (opsional)
+            </div>
+            <input type="file" name="foto" accept="image/*" capture="environment"
+              onchange="previewModalFoto(this, 'pinjamFotoPreview', 'pinjamFotoPlaceholder')">
+          </div>
+
+          <label class="f-label">Jumlah</label>
+          <input type="number" name="jumlah" class="f-input" min="1" value="1" required>
+          <label class="f-label">Nama Peminjam</label>
+          <input type="text" name="peminjam" class="f-input" placeholder="cth: Roby, Bagyo" required>
           <label class="f-label">Divisi</label>
           <select name="divisi" class="f-input">
             <option value="IT & IC">IT & IC</option><option value="HRGA">HRGA</option>
@@ -246,8 +357,10 @@
             <option value="Produksi">Produksi</option><option value="Bahanbaku">Bahanbaku</option>
             <option value="MAINTENANCE">MAINTENANCE</option><option value="Admin Sales">Admin Sales</option>
           </select>
-          <label class="f-label">Keperluan</label><textarea name="keperluan" class="f-input" rows="2" placeholder="cth: Presentasi jobfair..." required></textarea>
-          <label class="f-label">Tanggal Pinjam</label><input type="date" name="tanggalPinjam" class="f-input" id="pinjamTgl">
+          <label class="f-label">Keperluan</label>
+          <textarea name="keperluan" class="f-input" rows="2" placeholder="cth: Presentasi jobfair..." required></textarea>
+          <label class="f-label">Tanggal Pinjam</label>
+          <input type="date" name="tanggalPinjam" class="f-input" id="pinjamTgl">
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -258,13 +371,26 @@
   </div>
 </div>
 
-<!-- MODAL EDIT -->
+<!-- ========== MODAL EDIT ========== -->
 <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header"><h5 class="modal-title">Edit Aset</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <form id="formEdit" action="" method="POST">
+      <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
+
+          <!-- GANTI FOTO ASET -->
+          <label class="f-label">📷 Ganti Foto Aset (opsional)</label>
+          <div class="modal-foto-area" id="editAreaFoto">
+            <img id="editFotoPreview" class="modal-foto-preview" alt="" id="editFotoExisting">
+            <div class="modal-foto-placeholder" id="editFotoPlaceholder">
+              <span class="icon">🔄</span>
+              Klik untuk ganti foto aset
+            </div>
+            <input type="file" name="foto" accept="image/*"
+              onchange="previewModalFoto(this, 'editFotoPreview', 'editFotoPlaceholder')">
+          </div>
+
           <label class="f-label">Nama Aset</label><input type="text" name="nama" id="eNama" class="f-input" required>
           <label class="f-label">Kategori</label><input type="text" name="kategori" id="eKat" class="f-input" list="kategoriList">
           <label class="f-label">Satuan</label><input type="text" name="satuan" id="eSat" class="f-input" list="satuanList" required>
@@ -282,7 +408,7 @@
   </div>
 </div>
 
-<!-- MODAL HAPUS -->
+<!-- ========== MODAL HAPUS ========== -->
 <div class="modal fade" id="modalHapus" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content" style="border-color:#5c1a1a !important;">
@@ -302,14 +428,97 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-var today=new Date().toISOString().split('T')[0];
-if(document.getElementById('pakaiTgl'))document.getElementById('pakaiTgl').value=today;
-if(document.getElementById('pinjamTgl'))document.getElementById('pinjamTgl').value=today;
+var today = new Date().toISOString().split('T')[0];
+if (document.getElementById('pakaiTgl'))  document.getElementById('pakaiTgl').value  = today;
+if (document.getElementById('pinjamTgl')) document.getElementById('pinjamTgl').value = today;
 
-function openModalPakai(id,nama,stok,sat){document.getElementById('formPakai').action='/aset/pakai/'+id;document.getElementById('modalPakaiTitle').textContent='Catat Penggunaan: '+nama;document.getElementById('pakaiInfo').textContent='Stok tersedia: '+stok+' '+sat;document.getElementById('pakaiJml').max=stok;new bootstrap.Modal(document.getElementById('modalPakai')).show();}
-function openModalPinjam(id,nama,stok,sat){document.getElementById('formPinjam').action='/aset/pinjam/'+id;document.getElementById('modalPinjamTitle').textContent='Catat Peminjaman: '+nama;document.getElementById('pinjamInfo').textContent='Stok tersedia: '+stok+' '+sat;new bootstrap.Modal(document.getElementById('modalPinjam')).show();}
-function openModalEdit(id,nama,kat,sat,stok,kon,ket){document.getElementById('formEdit').action='/aset/edit/'+id;document.getElementById('eNama').value=nama;document.getElementById('eKat').value=kat;document.getElementById('eSat').value=sat;document.getElementById('eStok').value=stok;document.getElementById('eKon').value=kon;document.getElementById('eKet').value=ket;new bootstrap.Modal(document.getElementById('modalEdit')).show();}
-function hapusAset(id,nama){document.getElementById('formHapus').action='/aset/hapus/'+id;document.getElementById('hapusNama').textContent='"'+nama+'"';new bootstrap.Modal(document.getElementById('modalHapus')).show();}
+// ===== FOTO PREVIEW (sidebar form) =====
+function previewFoto(input, imgId, placeholderId) {
+    if (!input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var img = document.getElementById(imgId);
+        var ph  = document.getElementById(placeholderId);
+        img.src = e.target.result;
+        img.style.display = 'block';
+        if (ph) ph.style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+// ===== FOTO PREVIEW (modal) =====
+function previewModalFoto(input, imgId, placeholderId) {
+    if (!input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var img = document.getElementById(imgId);
+        var ph  = document.getElementById(placeholderId);
+        img.src = e.target.result;
+        img.style.display = 'block';
+        if (ph) ph.style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+// ===== MODAL LIHAT FOTO =====
+function showFotoModal(url, nama) {
+    document.getElementById('modalFotoImg').src   = url;
+    document.getElementById('modalFotoTitle').textContent = '📷 ' + nama;
+    new bootstrap.Modal(document.getElementById('modalFoto')).show();
+}
+
+// ===== MODAL PAKAI =====
+function openModalPakai(id, nama, stok, sat) {
+    document.getElementById('formPakai').action = '/aset/pakai/' + id;
+    document.getElementById('modalPakaiTitle').textContent = 'Catat Penggunaan: ' + nama;
+    document.getElementById('pakaiInfo').textContent = 'Stok tersedia: ' + stok + ' ' + sat;
+    document.getElementById('pakaiJml').max = stok;
+    // Reset foto
+    var img = document.getElementById('pakaiFotoPreview');
+    var ph  = document.getElementById('pakaiFotoPlaceholder');
+    img.src = ''; img.style.display = 'none'; if(ph) ph.style.display = '';
+    document.getElementById('formPakai').reset();
+    document.getElementById('pakaiTgl').value = today;
+    document.getElementById('pakaiJml').max = stok;
+    new bootstrap.Modal(document.getElementById('modalPakai')).show();
+}
+
+// ===== MODAL PINJAM =====
+function openModalPinjam(id, nama, stok, sat) {
+    document.getElementById('formPinjam').action = '/aset/pinjam/' + id;
+    document.getElementById('modalPinjamTitle').textContent = 'Catat Peminjaman: ' + nama;
+    document.getElementById('pinjamInfo').textContent = 'Stok tersedia: ' + stok + ' ' + sat;
+    // Reset foto
+    var img = document.getElementById('pinjamFotoPreview');
+    var ph  = document.getElementById('pinjamFotoPlaceholder');
+    img.src = ''; img.style.display = 'none'; if(ph) ph.style.display = '';
+    document.getElementById('formPinjam').reset();
+    document.getElementById('pinjamTgl').value = today;
+    new bootstrap.Modal(document.getElementById('modalPinjam')).show();
+}
+
+// ===== MODAL EDIT =====
+function openModalEdit(id, nama, kat, sat, stok, kon, ket) {
+    document.getElementById('formEdit').action = '/aset/edit/' + id;
+    document.getElementById('eNama').value = nama;
+    document.getElementById('eKat').value  = kat;
+    document.getElementById('eSat').value  = sat;
+    document.getElementById('eStok').value = stok;
+    document.getElementById('eKon').value  = kon;
+    document.getElementById('eKet').value  = ket;
+    // Reset preview foto (foto existing tidak ditampilkan di preview, hanya kalau upload baru)
+    var img = document.getElementById('editFotoPreview');
+    var ph  = document.getElementById('editFotoPlaceholder');
+    img.src = ''; img.style.display = 'none'; if(ph) ph.style.display = '';
+    new bootstrap.Modal(document.getElementById('modalEdit')).show();
+}
+
+// ===== HAPUS ASET =====
+function hapusAset(id, nama) {
+    document.getElementById('formHapus').action = '/aset/hapus/' + id;
+    document.getElementById('hapusNama').textContent = '"' + nama + '"';
+    new bootstrap.Modal(document.getElementById('modalHapus')).show();
+}
 </script>
 </body>
 </html>

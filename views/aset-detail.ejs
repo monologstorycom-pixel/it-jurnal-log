@@ -10,7 +10,7 @@
         body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', -apple-system, sans-serif; margin: 0; transition: background 0.25s, color 0.25s; }
         .page-wrap { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
         .panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
-        .panel-hd { padding: 1rem 1.25rem; border-bottom: 1px solid var(--body-border); display: flex; align-items: center; justify-content: space-between; }
+        .panel-hd { padding: 1rem 1.25rem; border-bottom: 1px solid var(--body-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .panel-title { font-size: 0.75rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.08em; }
         .back-link { color: var(--body-text2); font-size: 0.78rem; text-decoration: none; }
         .back-link:hover { color: var(--body-text); }
@@ -30,6 +30,33 @@
         .act-btn.green:hover{border-color:#2d6a4a;color:#4ade80;background:#0d2a18;}
         .act-btn.red:hover{border-color:#5c1a1a;color:#f87171;background:#2a0d0d;}
         .empty-msg { text-align:center;padding:2.5rem;color:var(--body-text3);font-size:0.83rem; }
+
+        /* FOTO HEADER ASET */
+        .aset-main-foto {
+            width: 100%; max-height: 280px; object-fit: cover;
+            border-bottom: 1px solid var(--body-border);
+            display: block; cursor: pointer;
+        }
+        .aset-no-foto-banner {
+            height: 80px; display: flex; align-items: center; justify-content: center;
+            color: var(--body-text3); font-size: 0.82rem;
+            border-bottom: 1px solid var(--body-border);
+            background: var(--body-bg3);
+        }
+
+        /* FOTO THUMBNAIL di tabel */
+        .rw-thumb {
+            width: 48px; height: 48px; border-radius: 6px; object-fit: cover;
+            border: 1px solid var(--body-border); cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .rw-thumb:hover { transform: scale(1.1); border-color: #4ade80; }
+        .rw-no-foto {
+            width: 48px; height: 48px; border-radius: 6px;
+            background: var(--body-bg3); border: 1px dashed var(--body-border2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: var(--body-text3);
+        }
     </style>
 </head>
 <body>
@@ -44,13 +71,22 @@
 
     <!-- HEADER ASET -->
     <div class="panel">
+        <!-- FOTO UTAMA ASET -->
+        <% if(aset.fotoUrl) { %>
+        <img src="<%= aset.fotoUrl %>" class="aset-main-foto"
+            onclick="showFoto('<%= aset.fotoUrl %>', '<%= aset.nama.replace(/'/g, `\\'`) %>')"
+            alt="<%= aset.nama %>" title="Klik untuk perbesar">
+        <% } else { %>
+        <div class="aset-no-foto-banner">📦 Belum ada foto aset</div>
+        <% } %>
+
         <div class="panel-hd">
             <div>
                 <div style="font-size:1.1rem;font-weight:800;color:var(--body-text);"><%= aset.nama %></div>
                 <div style="font-size:0.78rem;color:var(--body-text2);margin-top:2px;"><%= aset.kategori %> &bull; Satuan: <%= aset.satuan %> &bull; Kondisi: <span style="color:<%= aset.kondisi==='Baik'?'#4ade80':aset.kondisi==='Rusak'?'#f87171':'#fb923c' %>"><%= aset.kondisi %></span></div>
                 <% if(aset.keterangan){%><div style="font-size:0.75rem;color:var(--body-text3);margin-top:3px;"><%= aset.keterangan %></div><%}%>
             </div>
-            <a href="/aset" class="back-link">← Kembali</a>
+            <a href="/aset" class="back-link">← Kembali ke Aset</a>
         </div>
         <div class="stat-grid">
             <div class="stat-item"><div class="stat-val" style="color:<%= barColor %>"><%= aset.stok %></div><div class="stat-lbl">Stok Sisa</div></div>
@@ -70,10 +106,19 @@
                 <% } else { %>
                 <div style="overflow-x:auto;">
                   <table class="rw-table">
-                    <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Divisi / Lokasi</th><th></th></tr></thead>
+                    <thead><tr><th>Foto</th><th>Tanggal</th><th>Jumlah</th><th>Divisi / Lokasi</th><th></th></tr></thead>
                     <tbody>
                     <% aset.penggunaan.forEach(p => { %>
                     <tr>
+                        <td style="width:60px;">
+                            <% if(p.fotoUrl) { %>
+                                <img src="<%= p.fotoUrl %>" class="rw-thumb"
+                                    onclick="showFoto('<%= p.fotoUrl %>', 'Pemasangan — <%= new Date(p.tanggal).toLocaleDateString(\'id-ID\') %>')"
+                                    alt="foto penggunaan">
+                            <% } else { %>
+                                <div class="rw-no-foto" title="Tidak ada foto">📍</div>
+                            <% } %>
+                        </td>
                         <td style="white-space:nowrap;color:var(--body-text2);font-size:0.75rem;"><%= new Date(p.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
                         <td><span style="font-weight:700;color:#7eb8f7;"><%= p.jumlah %></span> <span style="color:var(--body-text3);font-size:0.72rem;"><%= aset.satuan %></span></td>
                         <td>
@@ -103,10 +148,19 @@
                 <% } else { %>
                 <div style="overflow-x:auto;">
                   <table class="rw-table">
-                    <thead><tr><th>Peminjam</th><th>Jml</th><th>Tgl Pinjam</th><th>Status</th><th></th></tr></thead>
+                    <thead><tr><th>Foto</th><th>Peminjam</th><th>Jml</th><th>Tgl Pinjam</th><th>Status</th><th></th></tr></thead>
                     <tbody>
                     <% aset.pinjaman.forEach(p => { %>
                     <tr>
+                        <td style="width:60px;">
+                            <% if(p.fotoUrl) { %>
+                                <img src="<%= p.fotoUrl %>" class="rw-thumb"
+                                    onclick="showFoto('<%= p.fotoUrl %>', 'Pinjam — <%= p.peminjam.replace(/'/g, `\\'`) %>')"
+                                    alt="foto pinjaman">
+                            <% } else { %>
+                                <div class="rw-no-foto" title="Tidak ada foto">🔑</div>
+                            <% } %>
+                        </td>
                         <td>
                             <div style="font-weight:600;color:var(--body-text);"><%= p.peminjam %></div>
                             <div style="font-size:0.72rem;color:var(--body-text2);"><%= p.divisi %></div>
@@ -122,7 +176,7 @@
                             <div style="display:flex;flex-direction:column;gap:4px;">
                                 <%if(p.status==='Dipinjam'){%>
                                 <form action="/aset/kembali/<%= p.id %>" method="POST">
-                                    <button type="submit" class="act-btn green" onclick="return confirm('Konfirmasi pengembalian oleh <%= p.peminjam %>?')" style="width:100%;">Kembali</button>
+                                    <button type="submit" class="act-btn green" onclick="return confirm('Konfirmasi pengembalian oleh <%= p.peminjam.replace(/'/g, `\\'`) %>?')" style="width:100%;">Kembali</button>
                                 </form>
                                 <%}%>
                                 <form action="/aset/pinjam-hapus/<%= p.id %>" method="POST">
@@ -140,6 +194,29 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL FOTO -->
+<div class="modal fade" id="fotoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
+      <div class="modal-header" style="border-color:var(--body-border);">
+        <h5 class="modal-title" id="fotoModalTitle" style="color:var(--body-text);">Foto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center p-3">
+        <img id="fotoModalImg" src="" class="img-fluid rounded" style="max-height:75vh;">
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function showFoto(url, judul) {
+    document.getElementById('fotoModalImg').src = url;
+    document.getElementById('fotoModalTitle').textContent = '📷 ' + judul;
+    new bootstrap.Modal(document.getElementById('fotoModal')).show();
+}
+</script>
 </body>
 </html>

@@ -1072,6 +1072,11 @@ app.listen(3001, '0.0.0.0', () => {
     }
 });
 
+// ============================================================
+// GANTI BAGIAN ASET ROUTES di app.js kamu (dari baris "// ASET ROUTES" sampai akhir file)
+// dengan kode di bawah ini
+// ============================================================
+
 // ==========================================
 // ASET ROUTES
 // ==========================================
@@ -1115,29 +1120,36 @@ app.get('/aset/:id', requireLogin, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 
+// TAMBAH ASET — support foto
 app.post('/aset/tambah', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
-}, async (req, res) => {
+}, upload.single('foto'), async (req, res) => {
     try {
         const { nama, kategori, satuan, stok, kondisi, keterangan } = req.body;
         const stokNum = parseInt(stok) || 0;
-        await prisma.aset.create({ data: { nama, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan: keterangan || null } });
+        const fotoUrl = req.file ? '/uploads/' + req.file.filename : null;
+        await prisma.aset.create({ data: { nama, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan: keterangan || null, fotoUrl } });
         res.redirect('/aset?saved=1');
     } catch (error) { console.error(error); res.status(500).send("Gagal tambah aset: " + error.message); }
 });
 
+// EDIT ASET — support ganti foto
 app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
-}, async (req, res) => {
+}, upload.single('foto'), async (req, res) => {
     try {
         const { nama, kategori, satuan, stokAwal, kondisi, keterangan } = req.body;
         const stokAwalNum = parseInt(stokAwal) || 0;
         const totalPakai  = await prisma.asetPenggunaan.aggregate({ where: { asetId: parseInt(req.params.id) }, _sum: { jumlah: true } });
         const totalPinjam = await prisma.asetPinjam.aggregate({ where: { asetId: parseInt(req.params.id), status: 'Dipinjam' }, _sum: { jumlah: true } });
         const stokBaru    = stokAwalNum - (totalPakai._sum.jumlah || 0) - (totalPinjam._sum.jumlah || 0);
-        await prisma.aset.update({ where: { id: parseInt(req.params.id) }, data: { nama, kategori, satuan, stokAwal: stokAwalNum, stok: stokBaru, kondisi, keterangan: keterangan || null } });
+
+        const updateData = { nama, kategori, satuan, stokAwal: stokAwalNum, stok: stokBaru, kondisi, keterangan: keterangan || null };
+        if (req.file) updateData.fotoUrl = '/uploads/' + req.file.filename;
+
+        await prisma.aset.update({ where: { id: parseInt(req.params.id) }, data: updateData });
         res.redirect('/aset');
     } catch (error) { console.error(error); res.status(500).send("Gagal edit aset: " + error.message); }
 });
@@ -1152,10 +1164,11 @@ app.post('/aset/hapus/:id', requireLogin, (req, res, next) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus: " + error.message); }
 });
 
+// PAKAI ASET — support foto penggunaan
 app.post('/aset/pakai/:id', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
-}, async (req, res) => {
+}, upload.single('foto'), async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, divisi, lokasi, keterangan, tanggal } = req.body;
@@ -1163,8 +1176,9 @@ app.post('/aset/pakai/:id', requireLogin, (req, res, next) => {
         const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
         if (aset.stok < jml) return res.status(400).send(`Stok tidak cukup! Stok tersedia: ${aset.stok} ${aset.satuan}`);
+        const fotoUrl = req.file ? '/uploads/' + req.file.filename : null;
         await prisma.$transaction([
-            prisma.asetPenggunaan.create({ data: { asetId, jumlah: jml, divisi, lokasi, keterangan: keterangan || null, tanggal: tanggal ? new Date(tanggal) : new Date() } }),
+            prisma.asetPenggunaan.create({ data: { asetId, jumlah: jml, divisi, lokasi, keterangan: keterangan || null, fotoUrl, tanggal: tanggal ? new Date(tanggal) : new Date() } }),
             prisma.aset.update({ where: { id: asetId }, data: { stok: { decrement: jml } } })
         ]);
         res.redirect('/aset/' + asetId + '?saved=pakai');
@@ -1178,6 +1192,11 @@ app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, (req, res, next) => {
     try {
         const penggunaan = await prisma.asetPenggunaan.findUnique({ where: { id: parseInt(req.params.penggunaanId) } });
         if (!penggunaan) return res.status(404).send("Data tidak ditemukan");
+        // Hapus file foto jika ada
+        if (penggunaan.fotoUrl) {
+            const p = path.join(__dirname, 'public', penggunaan.fotoUrl);
+            if (fs.existsSync(p)) fs.unlinkSync(p);
+        }
         await prisma.$transaction([
             prisma.aset.update({ where: { id: penggunaan.asetId }, data: { stok: { increment: penggunaan.jumlah } } }),
             prisma.asetPenggunaan.delete({ where: { id: parseInt(req.params.penggunaanId) } })
@@ -1186,10 +1205,11 @@ app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, (req, res, next) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus penggunaan: " + error.message); }
 });
 
+// PINJAM ASET — support foto
 app.post('/aset/pinjam/:id', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
-}, async (req, res) => {
+}, upload.single('foto'), async (req, res) => {
     try {
         const asetId = parseInt(req.params.id);
         const { jumlah, peminjam, divisi, keperluan, tanggalPinjam } = req.body;
@@ -1197,8 +1217,9 @@ app.post('/aset/pinjam/:id', requireLogin, (req, res, next) => {
         const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
         if (aset.stok < jml) return res.status(400).send(`Stok tidak cukup! Stok tersedia: ${aset.stok} ${aset.satuan}`);
+        const fotoUrl = req.file ? '/uploads/' + req.file.filename : null;
         await prisma.$transaction([
-            prisma.asetPinjam.create({ data: { asetId, jumlah: jml, peminjam, divisi, keperluan: keperluan || null, tanggalPinjam: tanggalPinjam ? new Date(tanggalPinjam) : new Date(), status: 'Dipinjam' } }),
+            prisma.asetPinjam.create({ data: { asetId, jumlah: jml, peminjam, divisi, keperluan: keperluan || null, fotoUrl, tanggalPinjam: tanggalPinjam ? new Date(tanggalPinjam) : new Date(), status: 'Dipinjam' } }),
             prisma.aset.update({ where: { id: asetId }, data: { stok: { decrement: jml } } })
         ]);
         res.redirect('/aset/' + asetId + '?saved=pinjam');
@@ -1228,6 +1249,11 @@ app.post('/aset/pinjam-hapus/:pinjamId', requireLogin, (req, res, next) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Tidak ditemukan");
+        // Hapus file foto jika ada
+        if (pinjam.fotoUrl) {
+            const p = path.join(__dirname, 'public', pinjam.fotoUrl);
+            if (fs.existsSync(p)) fs.unlinkSync(p);
+        }
         const ops = [prisma.asetPinjam.delete({ where: { id: parseInt(req.params.pinjamId) } })];
         if (pinjam.status === 'Dipinjam') {
             ops.push(prisma.aset.update({ where: { id: pinjam.asetId }, data: { stok: { increment: pinjam.jumlah } } }));
