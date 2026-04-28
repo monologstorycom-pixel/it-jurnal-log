@@ -935,16 +935,22 @@ async function callGemini(systemPrompt, userMessage, history = []) {
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-// Helper: ambil konteks aset dari DB
+// Helper: ambil konteks aset dari DB (lengkap: stok + pemasangan + pinjaman)
 async function getAsetContext() {
     const asetList = await prisma.aset.findMany({
         orderBy: { nama: 'asc' },
         select: {
             id: true, nama: true, kategori: true, satuan: true,
             stokAwal: true, stok: true, kondisi: true, keterangan: true,
+            penggunaan: {
+                orderBy: { tanggal: 'desc' },
+                take: 10,
+                select: { jumlah: true, divisi: true, lokasi: true, keterangan: true, tanggal: true }
+            },
             pinjaman: {
-                where: { status: 'Dipinjam' },
-                select: { peminjam: true, divisi: true, jumlah: true, tanggalPinjam: true, keperluan: true }
+                orderBy: { tanggalPinjam: 'desc' },
+                take: 10,
+                select: { peminjam: true, divisi: true, jumlah: true, tanggalPinjam: true, tanggalKembali: true, keperluan: true, status: true }
             }
         }
     });
@@ -952,16 +958,40 @@ async function getAsetContext() {
     if (!asetList.length) return 'Belum ada data aset.';
 
     return asetList.map(a => {
-        let line = `[Aset ID:${a.id}] ${a.nama} | Kategori: ${a.kategori} | Stok: ${a.stok}/${a.stokAwal} ${a.satuan} | Kondisi: ${a.kondisi}`;
-        if (a.keterangan) line += ` | Ket: ${a.keterangan.substring(0, 60)}`;
-        if (a.pinjaman.length > 0) {
-            const pinjamInfo = a.pinjaman.map(p =>
-                `dipinjam ${p.jumlah} oleh ${p.peminjam} (${p.divisi})${p.keperluan ? ' utk ' + p.keperluan.substring(0, 40) : ''}`
-            ).join('; ');
-            line += ` | Sedang dipinjam: ${pinjamInfo}`;
+        const tglFmt = (d) => d ? new Date(d).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-';
+
+        let lines = [];
+        lines.push(`[ASET] ${a.nama} | Kategori: ${a.kategori} | Stok sisa: ${a.stok}/${a.stokAwal} ${a.satuan} | Kondisi: ${a.kondisi}${a.keterangan ? ' | Ket: ' + a.keterangan.substring(0,60) : ''}`);
+
+        // Riwayat pemasangan/penggunaan
+        if (a.penggunaan.length > 0) {
+            const pakaiInfo = a.penggunaan.map(p =>
+                `  - ${tglFmt(p.tanggal)}: ${p.jumlah} ${a.satuan} dipasang di ${p.lokasi || '-'} (Divisi: ${p.divisi || '-'})${p.keterangan ? ', ket: ' + p.keterangan.substring(0,50) : ''}`
+            ).join('\n');
+            lines.push(`  Riwayat pemasangan (${a.penggunaan.length} terakhir):\n${pakaiInfo}`);
+        } else {
+            lines.push('  Riwayat pemasangan: belum ada.');
         }
-        return line;
-    }).join('\n');
+
+        // Riwayat pinjaman
+        const pinjamanAktif = a.pinjaman.filter(p => p.status === 'Dipinjam');
+        const pinjamanSelesai = a.pinjaman.filter(p => p.status !== 'Dipinjam');
+        if (pinjamanAktif.length > 0) {
+            const aktifInfo = pinjamanAktif.map(p =>
+                `  - AKTIF: ${p.jumlah} ${a.satuan} dipinjam oleh ${p.peminjam} (${p.divisi || '-'}) sejak ${tglFmt(p.tanggalPinjam)}${p.keperluan ? ', keperluan: ' + p.keperluan.substring(0,50) : ''}`
+            ).join('\n');
+            lines.push(`  Pinjaman aktif:\n${aktifInfo}`);
+        }
+        if (pinjamanSelesai.length > 0) {
+            const selesaiInfo = pinjamanSelesai.map(p =>
+                `  - ${p.jumlah} ${a.satuan} dipinjam ${p.peminjam} (${p.divisi || '-'}), kembali ${tglFmt(p.tanggalKembali)}`
+            ).join('\n');
+            lines.push(`  Riwayat pinjaman selesai:\n${selesaiInfo}`);
+        }
+        if (a.pinjaman.length === 0) lines.push('  Riwayat pinjaman: belum ada.');
+
+        return lines.join('\n');
+    }).join('\n\n');
 }
 
 // Route: Auto-generate deskripsi (login required)
@@ -1007,13 +1037,18 @@ app.post('/api/ai-chat-public', async (req, res) => {
         ).join('\n');
 
         const systemPrompt = `Kamu adalah AI asisten IT Support publik bernama "RSBY-AI" untuk sistem IT Jurnal Log RSBY.
-Jawab pertanyaan seputar log aktivitas IT, status tiket, aset IT, stok, dan troubleshooting umum.
-Jawab singkat dalam Bahasa Indonesia. Jangan reveal data sensitif seperti password atau konfigurasi sistem.
+Jawab pertanyaan seputar log aktivitas IT, status tiket, aset IT, stok, pemasangan, dan peminjaman.
+Jawab dalam Bahasa Indonesia, singkat dan informatif. Jangan reveal data sensitif seperti password atau konfigurasi sistem.
+Kamu bisa menjawab pertanyaan seperti:
+- Aset X dipasang di ruangan mana / oleh divisi mana?
+- Siapa yang sedang meminjam aset Y?
+- Aset mana yang stoknya menipis?
+- Kapan terakhir aset Z digunakan?
 
 === DATA LOG IT TERBARU ===
 ${logContext || 'Belum ada data.'}
 
-=== DATA ASET IT ===
+=== DATA ASET IT (termasuk riwayat pemasangan & peminjaman) ===
 ${asetContext}`;
 
         const reply = await callGemini(systemPrompt, message, history || []);
@@ -1050,12 +1085,13 @@ Jawab dalam Bahasa Indonesia, singkat dan to the point.
 === DATA LOG IT TERBARU (20 tiket) ===
 ${logContext || 'Belum ada data log.'}
 
-=== DATA ASET IT ===
+=== DATA ASET IT (lengkap: stok, pemasangan per lokasi/ruangan, pinjaman aktif & riwayat) ===
 ${asetContext}
 
 Panduan:
 - Jawab pertanyaan soal tiket/log dari data log di atas
-- Jawab pertanyaan soal aset, stok, kondisi, dan peminjaman dari data aset di atas
+- Jawab pertanyaan soal aset: stok, kondisi, dipasang di ruangan/lokasi mana, oleh divisi apa, siapa yang meminjam, sejak kapan, kapan kembali
+- Kamu bisa menjawab: "Aset X saat ini dipasang di [lokasi] oleh divisi [Y]", atau "Aset Z sedang dipinjam oleh [nama] sejak [tanggal]"
 - Berikan tips troubleshooting IT praktis jika diminta
 - Jangan buat data fiktif di luar konteks yang diberikan
 - Jawab max 3-4 kalimat kecuali diminta detail`;
