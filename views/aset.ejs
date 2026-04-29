@@ -136,6 +136,7 @@
           </div>
           <input type="file" id="addFotoInput" name="foto" accept="image/*" capture="environment" style="display:none;"
             onchange="previewFoto(this, 'addFotoPreview', 'addFotoPlaceholder')">
+          <small class="compress-msg" style="display:none;color:#22c55e;font-weight:600;">✅ Foto dikompres!</small>
 
           <label class="f-label">Nama Aset</label>
           <input type="text" name="nama" class="f-input" placeholder="cth: Switch TP-Link 8 Port" required>
@@ -296,6 +297,7 @@
             </div>
             <input type="file" name="foto" accept="image/*" capture="environment"
               onchange="previewModalFoto(this, 'pakaiFotoPreview', 'pakaiFotoPlaceholder')">
+            <small class="compress-msg" style="display:none;color:#22c55e;font-weight:600;">✅ Foto dikompres!</small>
           </div>
 
           <label class="f-label">Jumlah</label>
@@ -343,6 +345,7 @@
             </div>
             <input type="file" name="foto" accept="image/*" capture="environment"
               onchange="previewModalFoto(this, 'pinjamFotoPreview', 'pinjamFotoPlaceholder')">
+            <small class="compress-msg" style="display:none;color:#22c55e;font-weight:600;">✅ Foto dikompres!</small>
           </div>
 
           <label class="f-label">Jumlah</label>
@@ -389,6 +392,7 @@
             </div>
             <input type="file" name="foto" accept="image/*"
               onchange="previewModalFoto(this, 'editFotoPreview', 'editFotoPlaceholder')">
+            <small class="compress-msg" style="display:none;color:#22c55e;font-weight:600;">✅ Foto dikompres!</small>
           </div>
 
           <label class="f-label">Nama Aset</label><input type="text" name="nama" id="eNama" class="f-input" required>
@@ -432,32 +436,81 @@ var today = new Date().toISOString().split('T')[0];
 if (document.getElementById('pakaiTgl'))  document.getElementById('pakaiTgl').value  = today;
 if (document.getElementById('pinjamTgl')) document.getElementById('pinjamTgl').value = today;
 
-// ===== FOTO PREVIEW (sidebar form) =====
-function previewFoto(input, imgId, placeholderId) {
-    if (!input.files || !input.files[0]) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        var img = document.getElementById(imgId);
-        var ph  = document.getElementById(placeholderId);
-        img.src = e.target.result;
-        img.style.display = 'block';
-        if (ph) ph.style.display = 'none';
-    };
-    reader.readAsDataURL(input.files[0]);
+// ===== COMPRESS IMAGE (canvas, max 1000px, JPEG 60%) =====
+async function compressImage(file) {
+    return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(e) {
+            var img = new Image();
+            img.src = e.target.result;
+            img.onload = function() {
+                var w = img.width, h = img.height, max = 1000;
+                if (w > h) { if (w > max) { h = Math.round(h * max / w); w = max; } }
+                else       { if (h > max) { w = Math.round(w * max / h); h = max; } }
+                var canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                canvas.toBlob(function(blob) {
+                    resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), { type: 'image/jpeg', lastModified: Date.now() }));
+                }, 'image/jpeg', 0.6);
+            };
+        };
+        reader.onerror = reject;
+    });
 }
 
-// ===== FOTO PREVIEW (modal) =====
-function previewModalFoto(input, imgId, placeholderId) {
+// Helper: tampilkan preview dari blob/file ke elemen img
+function showPreview(file, imgId, placeholderId) {
+    var img = document.getElementById(imgId);
+    var ph  = document.getElementById(placeholderId);
+    var url = URL.createObjectURL(file);
+    img.src = url;
+    img.style.display = 'block';
+    if (ph) ph.style.display = 'none';
+}
+
+// Helper: replace file di input + tampilkan label kompres
+function replaceInputFile(input, compressedFile) {
+    var dt = new DataTransfer();
+    dt.items.add(compressedFile);
+    input.files = dt.files;
+    // Cari label compress terdekat (nextElementSibling atau sibling lainnya)
+    var msg = input.nextElementSibling;
+    if (msg && msg.classList && msg.classList.contains('compress-msg')) {
+        msg.style.display = 'inline-block';
+    }
+}
+
+// ===== FOTO PREVIEW (sidebar form tambah aset) =====
+async function previewFoto(input, imgId, placeholderId) {
     if (!input.files || !input.files[0]) return;
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        var img = document.getElementById(imgId);
-        var ph  = document.getElementById(placeholderId);
-        img.src = e.target.result;
-        img.style.display = 'block';
-        if (ph) ph.style.display = 'none';
-    };
-    reader.readAsDataURL(input.files[0]);
+    var file = input.files[0];
+    if (!file.type.startsWith('image/')) return;
+    try {
+        var compressed = await compressImage(file);
+        replaceInputFile(input, compressed);
+        showPreview(compressed, imgId, placeholderId);
+    } catch(err) {
+        console.error('Gagal kompres:', err);
+        // fallback: preview tanpa compress
+        showPreview(file, imgId, placeholderId);
+    }
+}
+
+// ===== FOTO PREVIEW (modal: pakai, pinjam, edit) =====
+async function previewModalFoto(input, imgId, placeholderId) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    if (!file.type.startsWith('image/')) return;
+    try {
+        var compressed = await compressImage(file);
+        replaceInputFile(input, compressed);
+        showPreview(compressed, imgId, placeholderId);
+    } catch(err) {
+        console.error('Gagal kompres:', err);
+        showPreview(file, imgId, placeholderId);
+    }
 }
 
 // ===== MODAL LIHAT FOTO =====
