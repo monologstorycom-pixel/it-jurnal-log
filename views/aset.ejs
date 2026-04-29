@@ -238,8 +238,8 @@
                   <div><div class="stok-mini-bar"><div class="stok-mini-fill" style="width:<%= pct %>%;background:<%= barColor %>;"></div></div></div>
                 </td>
                 <td>
-                  <% if(item._count.pinjaman > 0) { %>
-                    <span class="badge-pinjam"><%= item._count.pinjaman %> item</span>
+                  <% if(item.pinjaman && item.pinjaman.length > 0) { %>
+                    <span class="badge-pinjam"><%= item.pinjaman.length %> item</span>
                   <% } else { %>
                     <span style="color:var(--body-border2);font-size:0.75rem;">—</span>
                   <% } %>

@@ -311,7 +311,6 @@ app.get('/aset-public', async (req, res) => {
             include: {
                 penggunaan: { orderBy: { tanggal: 'desc' }, take: 10 },
                 pinjaman:   { orderBy: { tanggalPinjam: 'desc' }, take: 10 },
-                _count: { select: { pinjaman: { where: { status: 'Dipinjam' } } } }
             }
         });
         const allKategori = await prisma.aset.findMany({ select: { kategori: true }, distinct: ['kategori'] });
@@ -1145,7 +1144,7 @@ app.get('/aset', requireLogin, async (req, res) => {
         const aset = await prisma.aset.findMany({
             where,
             orderBy: { nama: 'asc' },
-            include: { _count: { select: { pinjaman: { where: { status: 'Dipinjam' } } } } }
+            include: { pinjaman: { where: { status: 'Dipinjam' }, select: { id: true } } }
         });
         const allKategori = await prisma.aset.findMany({ select: { kategori: true }, distinct: ['kategori'] });
         res.render('aset', { aset, allKategori: allKategori.map(k => k.kategori), q: q || '', kategori: kategori || '' });
