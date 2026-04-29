@@ -88,6 +88,7 @@
         .act-btn.green:hover  { border-color: #2d6a4a; color: #4ade80; background: #0d2a18; }
         .act-btn.blue:hover   { border-color: #2a3d6a; color: #7eb8f7; background: #0d1a38; }
         .act-btn.purple:hover { border-color: #4c3780; color: #a78bfa; background: #1a0d3d; }
+        .act-btn.orange:hover { border-color: #7a3a10; color: #fb923c; background: #2a1200; }
         .act-btn.red:hover    { border-color: #5c1a1a; color: #f87171; background: #2a0d0d; }
 
         /* MODAL */
@@ -142,6 +143,12 @@
 
           <label class="f-label">Nama Aset</label>
           <input type="text" name="nama" class="f-input" placeholder="cth: Switch TP-Link 8 Port" required>
+          <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+          <label class="f-label">Divisi Aset</label>
+          <input type="text" name="divisi" class="f-input" placeholder="IT, GA, HR, FINANCE..." value="<%= typeof userDivisi !== 'undefined' ? userDivisi : 'IT' %>" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+          <% } else { %>
+          <input type="hidden" name="divisi" value="<%= typeof userDivisi !== 'undefined' ? userDivisi : 'IT' %>">
+          <% } %>
           <label class="f-label">Kategori</label>
           <input type="text" name="kategori" class="f-input" placeholder="Jaringan, Komputer, Aksesoris..." list="kategoriList">
           <datalist id="kategoriList">
@@ -176,18 +183,32 @@
       <div class="main-panel">
         <div class="panel-header">
           <div>
-            <div class="panel-title">Inventaris Aset IT</div>
+            <div class="panel-title">Inventaris Aset
+              <span style="font-size:0.72rem;font-weight:700;padding:2px 9px;border-radius:4px;background:var(--body-bg3);color:var(--body-text2);border:1px solid var(--body-border2);margin-left:6px;letter-spacing:0.06em;">
+                <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+                  <%= (typeof divisi !== 'undefined' && divisi) ? divisi : 'SEMUA DIVISI' %>
+                <% } else { %>
+                  <%= typeof userDivisi !== 'undefined' ? userDivisi : 'IT' %>
+                <% } %>
+              </span>
+            </div>
             <div class="panel-count"><%= aset.length %> item terdaftar</div>
           </div>
           <div class="search-row">
             <form action="/aset" method="GET" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               <input type="text" name="q" value="<%= q %>" class="s-input" placeholder="Cari nama / kategori..." style="width:180px;">
+              <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+              <select name="divisi" class="s-input">
+                <option value="">Semua Divisi</option>
+                <% allDivisi.forEach(function(d) { %><option value="<%= d %>" <%= divisi === d ? 'selected' : '' %>><%= d %></option><% }); %>
+              </select>
+              <% } %>
               <select name="kategori" class="s-input">
                 <option value="">Semua Kategori</option>
                 <% allKategori.forEach(k => { %><option value="<%= k %>" <%= kategori === k ? 'selected' : '' %>><%= k %></option><% }) %>
               </select>
               <button type="submit" class="s-btn s-btn-primary">Cari</button>
-              <% if (q || kategori) { %><a href="/aset" class="s-btn">Reset</a><% } %>
+              <% if (q || kategori || divisi) { %><a href="/aset" class="s-btn">Reset</a><% } %>
             </form>
             <a href="/aset/export-pdf" target="_blank" class="s-btn s-btn-export">⬇ Export PDF</a>
           </div>
@@ -251,6 +272,7 @@
                     <a href="/aset/<%= item.id %>" class="act-btn green">Riwayat</a>
                     <button class="act-btn blue" onclick="openModalPakai(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>', <%= item.stok %>, '<%= item.satuan %>')">Pakai</button>
                     <button class="act-btn purple" onclick="openModalPinjam(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>', <%= item.stok %>, '<%= item.satuan %>')">Pinjam</button>
+                    <button class="act-btn orange" onclick="openModalService(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>')">Service</button>
                     <button class="act-btn" onclick="openModalEdit(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>', '<%= item.kategori %>', '<%= item.satuan %>', <%= item.stokAwal %>, '<%= item.kondisi %>', `<%- (item.keterangan||'').replace(/`/g,'\\`') %>`)">Edit</button>
                     <button class="act-btn red" onclick="hapusAset(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>')">Hapus</button>
                   </div>
@@ -432,6 +454,75 @@
   </div>
 </div>
 
+<!-- MODAL SERVICE -->
+<div class="modal fade" id="modalService" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content m-content" style="border-color:#7a3a10 !important;">
+      <div class="modal-header" style="border-color:#7a3a10;">
+        <h5 class="modal-title" style="color:#fb923c;">🔧 Catat Service Aset</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formService" action="" method="POST" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div id="serviceInfo" style="background:#2a1200;border:1px solid #7a3a10;border-radius:6px;padding:9px 12px;margin-bottom:1rem;font-size:0.82rem;color:#fb923c;font-weight:700;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <label class="f-label">Teknisi / PIC *</label>
+              <input type="text" name="teknisi" class="f-input" placeholder="Nama teknisi" required>
+            </div>
+            <div>
+              <label class="f-label">Vendor / Bengkel</label>
+              <input type="text" name="vendor" class="f-input" placeholder="Opsional">
+            </div>
+            <div>
+              <label class="f-label">Tanggal Masuk Service *</label>
+              <input type="date" name="tanggal" class="f-input" id="serviceTgl">
+            </div>
+            <div>
+              <label class="f-label">Tanggal Selesai</label>
+              <input type="date" name="tanggalSelesai" class="f-input">
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="f-label">Keluhan / Kerusakan *</label>
+              <textarea name="keluhan" class="f-input" rows="2" placeholder="Deskripsikan masalah/kerusakan..." required style="resize:vertical;"></textarea>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="f-label">Hasil / Tindakan</label>
+              <textarea name="hasil" class="f-input" rows="2" placeholder="Apa yang sudah dilakukan? (opsional)" style="resize:vertical;"></textarea>
+            </div>
+            <div>
+              <label class="f-label">Biaya Service (Rp)</label>
+              <input type="number" name="biaya" class="f-input" placeholder="0" min="0">
+            </div>
+            <div>
+              <label class="f-label">Status</label>
+              <select name="status" class="f-input">
+                <option value="Proses">Proses</option>
+                <option value="Selesai">Selesai</option>
+              </select>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="f-label">Foto Dokumentasi</label>
+              <div class="modal-foto-area" id="serviceFotoArea">
+                <img id="serviceFotoPreview" class="modal-foto-preview" alt="" style="display:none;max-height:160px;border-radius:6px;">
+                <div class="modal-foto-placeholder" id="serviceFotoPlaceholder">
+                  <span style="font-size:1.5rem;">📷</span><br>Foto kondisi aset (opsional)
+                  <input type="file" name="foto" accept="image/*" style="display:block;margin-top:6px;"
+                    onchange="previewModalFoto(this, 'serviceFotoPreview', 'serviceFotoPlaceholder')">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-color:#7a3a10;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn fw-bold" style="background:#fb923c;color:#0f1117;">🔧 Simpan Service</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 var today = new Date().toISOString().split('T')[0];
@@ -573,6 +664,16 @@ function hapusAset(id, nama) {
     document.getElementById('formHapus').action = '/aset/hapus/' + id;
     document.getElementById('hapusNama').textContent = '"' + nama + '"';
     new bootstrap.Modal(document.getElementById('modalHapus')).show();
+}
+
+function openModalService(id, nama) {
+    document.getElementById('formService').action = '/aset/service/' + id;
+    document.getElementById('serviceInfo').textContent = '🔧 Service: ' + nama;
+    document.getElementById('serviceTgl').value = new Date().toISOString().split('T')[0];
+    // Reset foto preview
+    document.getElementById('serviceFotoPreview').style.display = 'none';
+    document.getElementById('serviceFotoPlaceholder').style.display = 'flex';
+    new bootstrap.Modal(document.getElementById('modalService')).show();
 }
 </script>
 <script src="/offline-sync.js"></script>

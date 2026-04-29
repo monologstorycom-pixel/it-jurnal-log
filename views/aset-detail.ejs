@@ -57,6 +57,9 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.1rem; color: var(--body-text3);
         }
+        .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+        .f-input { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; border-radius: 6px; color: var(--body-text) !important; padding: 8px 10px; width: 100%; margin-bottom: 0.65rem; font-size: 0.83rem; outline: none; transition: border-color 0.15s; }
+        .f-input:focus { border-color: var(--body-input-focus) !important; }
     </style>
 </head>
 <body>
@@ -193,6 +196,81 @@
             </div>
         </div>
     </div>
+
+    <!-- RIWAYAT SERVICE -->
+    <div class="row g-3 mt-1">
+        <div class="col-12">
+            <div class="panel">
+                <div class="panel-hd">
+                    <span class="panel-title" style="color:#fb923c;">🔧 Riwayat Service</span>
+                    <span style="font-size:0.72rem;color:var(--body-text3);"><%= aset.service ? aset.service.length : 0 %> catatan</span>
+                </div>
+                <% if(!aset.service || aset.service.length === 0){ %>
+                <div class="empty-msg">Belum ada catatan service.</div>
+                <% } else { %>
+                <div style="overflow-x:auto;">
+                  <table class="rw-table">
+                    <thead><tr><th>Foto</th><th>Tanggal</th><th>Teknisi / Vendor</th><th>Keluhan</th><th>Hasil</th><th>Biaya</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                    <% aset.service.forEach(sv => { %>
+                    <tr>
+                        <td style="width:60px;">
+                            <% if(sv.fotoUrl) { %>
+                                <% var tglSv = new Date(sv.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}); %>
+                                <img src="<%= sv.fotoUrl %>" class="rw-thumb"
+                                    onclick="showFoto('<%= sv.fotoUrl %>', 'Service — <%= tglSv %>')"
+                                    alt="foto service">
+                            <% } else { %>
+                                <div class="rw-no-foto" title="Tidak ada foto">🔧</div>
+                            <% } %>
+                        </td>
+                        <td style="white-space:nowrap;color:var(--body-text2);font-size:0.75rem;">
+                            <div><%= new Date(sv.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
+                            <% if(sv.tanggalSelesai) { %>
+                            <div style="color:#4ade80;">Selesai: <%= new Date(sv.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
+                            <% } %>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;color:var(--body-text)"><%= sv.teknisi %></div>
+                            <% if(sv.vendor) { %><div style="font-size:0.72rem;color:var(--body-text2);">🏪 <%= sv.vendor %></div><% } %>
+                        </td>
+                        <td style="max-width:200px;font-size:0.78rem;color:var(--body-text2);"><%= sv.keluhan %></td>
+                        <td style="max-width:200px;font-size:0.78rem;color:var(--body-text3);">
+                            <%= sv.hasil || '—' %>
+                        </td>
+                        <td style="white-space:nowrap;font-size:0.78rem;">
+                            <% if(sv.biaya && sv.biaya > 0) { %>
+                                <span style="color:#fb923c;font-weight:600;">Rp <%= sv.biaya.toLocaleString('id-ID') %></span>
+                            <% } else { %>
+                                <span style="color:var(--body-text3);">—</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <span style="padding:2px 8px;border-radius:4px;font-size:0.68rem;font-weight:700;
+                                <%= sv.status==='Selesai' ? 'background:#0d2a18;color:#4ade80;border:1px solid #2d6a4a;' : 'background:#2a1200;color:#fb923c;border:1px solid #7a3a10;' %>">
+                                <%= sv.status %>
+                            </span>
+                        </td>
+                        <td>
+                            <div style="display:flex;flex-direction:column;gap:4px;">
+                                <button class="act-btn orange" style="width:100%;"
+                                    onclick="openEditService(<%= sv.id %>, '<%= sv.teknisi.replace(/'/g,`\\'`) %>', '<%= (sv.vendor||'').replace(/'/g,`\\'`) %>', `<%- (sv.keluhan||'').replace(/`/g,'\\`') %>`, `<%- (sv.hasil||'').replace(/`/g,'\\`') %>`, <%= sv.biaya||0 %>, '<%= sv.status %>', '<%= new Date(sv.tanggal).toISOString().split('T')[0] %>', '<%= sv.tanggalSelesai ? new Date(sv.tanggalSelesai).toISOString().split('T')[0] : '' %>')">
+                                    Edit
+                                </button>
+                                <form action="/aset/service-hapus/<%= sv.id %>" method="POST">
+                                    <button type="submit" class="act-btn red" onclick="return confirm('Hapus catatan service ini?')" style="width:100%;">Hapus</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- MODAL FOTO -->
@@ -218,5 +296,80 @@ function showFoto(url, judul) {
     new bootstrap.Modal(document.getElementById('fotoModal')).show();
 }
 </script>
+<!-- MODAL EDIT SERVICE -->
+<div class="modal fade" id="modalEditService" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background:var(--body-card);border:1px solid #7a3a10;">
+      <div class="modal-header" style="border-color:#7a3a10;">
+        <h5 class="modal-title" style="color:#fb923c;font-size:14px;">🔧 Edit Catatan Service</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEditService" action="" method="POST">
+        <div class="modal-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <label class="f-label">Teknisi / PIC *</label>
+              <input type="text" name="teknisi" id="esTeknisi" class="f-input" required>
+            </div>
+            <div>
+              <label class="f-label">Vendor / Bengkel</label>
+              <input type="text" name="vendor" id="esVendor" class="f-input">
+            </div>
+            <div>
+              <label class="f-label">Tanggal Masuk</label>
+              <input type="date" name="tanggal" id="esTanggal" class="f-input">
+            </div>
+            <div>
+              <label class="f-label">Tanggal Selesai</label>
+              <input type="date" name="tanggalSelesai" id="esTanggalSelesai" class="f-input">
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="f-label">Keluhan / Kerusakan *</label>
+              <textarea name="keluhan" id="esKeluhan" class="f-input" rows="2" required style="resize:vertical;"></textarea>
+            </div>
+            <div style="grid-column:1/-1;">
+              <label class="f-label">Hasil / Tindakan</label>
+              <textarea name="hasil" id="esHasil" class="f-input" rows="2" style="resize:vertical;"></textarea>
+            </div>
+            <div>
+              <label class="f-label">Biaya Service (Rp)</label>
+              <input type="number" name="biaya" id="esBiaya" class="f-input" min="0">
+            </div>
+            <div>
+              <label class="f-label">Status</label>
+              <select name="status" id="esStatus" class="f-input">
+                <option value="Proses">Proses</option>
+                <option value="Selesai">Selesai</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-color:#7a3a10;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn fw-bold" style="background:#fb923c;color:#0f1117;">💾 Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openEditService(id, teknisi, vendor, keluhan, hasil, biaya, status, tanggal, tanggalSelesai) {
+    document.getElementById('formEditService').action = '/aset/service-edit/' + id;
+    document.getElementById('esTeknisi').value       = teknisi;
+    document.getElementById('esVendor').value        = vendor;
+    document.getElementById('esKeluhan').value       = keluhan;
+    document.getElementById('esHasil').value         = hasil;
+    document.getElementById('esBiaya').value         = biaya;
+    document.getElementById('esTanggal').value       = tanggal;
+    document.getElementById('esTanggalSelesai').value = tanggalSelesai;
+    var sel = document.getElementById('esStatus');
+    for (var i = 0; i < sel.options.length; i++) {
+        sel.options[i].selected = (sel.options[i].value === status);
+    }
+    new bootstrap.Modal(document.getElementById('modalEditService')).show();
+}
+</script>
+
 </body>
 </html>

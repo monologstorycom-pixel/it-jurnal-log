@@ -119,15 +119,34 @@
     </div>
     <% } %>
 
+    <!-- DIVISI TABS -->
+    <% if (typeof allDivisi !== 'undefined' && allDivisi.length > 1) { %>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;">
+      <a href="/aset-public<%= q || kategori ? '?q='+q+'&kategori='+kategori : '' %>"
+         style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;border:1px solid;transition:all 0.15s;
+         <%= divisi === '' ? 'background:var(--body-accent);color:var(--body-bg);border-color:var(--body-accent);' : 'background:var(--body-bg);color:var(--body-text2);border-color:var(--body-border2);' %>">
+        Semua Divisi
+      </a>
+      <% allDivisi.forEach(function(d) { %>
+      <a href="/aset-public?divisi=<%= d %><%= q ? '&q='+q : '' %><%= kategori ? '&kategori='+kategori : '' %>"
+         style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;border:1px solid;transition:all 0.15s;
+         <%= divisi === d ? 'background:var(--body-accent);color:var(--body-bg);border-color:var(--body-accent);' : 'background:var(--body-bg);color:var(--body-text2);border-color:var(--body-border2);' %>">
+        📦 <%= d %>
+      </a>
+      <% }) %>
+    </div>
+    <% } %>
+
     <!-- MAIN PANEL -->
     <div class="panel">
         <div class="panel-hd">
             <div>
-                <div class="panel-title">Inventaris Aset IT</div>
+                <div class="panel-title">Inventaris Aset <%= divisi ? divisi : 'Semua Divisi' %></div>
                 <div style="font-size:12px;color:var(--body-text3);margin-top:2px;"><%= aset.length %> item terdaftar</div>
             </div>
             <div class="search-row">
                 <form action="/aset-public" method="GET" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <% if (divisi) { %><input type="hidden" name="divisi" value="<%= divisi %>"><% } %>
                     <input type="text" name="q" value="<%= q %>" class="s-input" placeholder="Cari nama / kategori..." style="width:180px;">
                     <select name="kategori" class="s-input">
                         <option value="">Semua Kategori</option>
@@ -136,7 +155,7 @@
                         <% }) %>
                     </select>
                     <button type="submit" class="s-btn s-btn-primary">Cari</button>
-                    <% if (q || kategori) { %><a href="/aset-public" class="s-btn">Reset</a><% } %>
+                    <% if (q || kategori) { %><a href="/aset-public<%= divisi ? '?divisi='+divisi : '' %>" class="s-btn">Reset</a><% } %>
                 </form>
             </div>
         </div>

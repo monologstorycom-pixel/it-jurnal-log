@@ -37,6 +37,7 @@ model Note {
 model Aset {
   id          Int              @id @default(autoincrement())
   nama        String
+  divisi      String           @default("IT")
   kategori    String           @default("Umum")
   satuan      String           @default("unit")
   stokAwal    Int              @default(0)
@@ -47,6 +48,7 @@ model Aset {
   createdAt   DateTime         @default(now())
   penggunaan  AsetPenggunaan[]
   pinjaman    AsetPinjam[]
+  service     AsetService[]
 }
 
 model AsetPenggunaan {
@@ -77,12 +79,29 @@ model AsetPinjam {
   createdAt       DateTime  @default(now())
 }
 
+model AsetService {
+  id             Int       @id @default(autoincrement())
+  asetId         Int
+  aset           Aset      @relation(fields: [asetId], references: [id], onDelete: Cascade)
+  teknisi        String
+  vendor         String?
+  keluhan        String    @db.Text
+  hasil          String?   @db.Text
+  biaya          Int?      @default(0)
+  status         String    @default("Proses")
+  tanggal        DateTime  @default(now())
+  tanggalSelesai DateTime?
+  fotoUrl        String?
+  createdAt      DateTime  @default(now())
+}
+
 model User {
   id          Int      @id @default(autoincrement())
   username    String   @unique
   password    String
   nama        String
   role        String   @default("user")
+  divisi      String   @default("IT")
   permissions String?  @db.Text
   createdAt   DateTime @default(now())
 }

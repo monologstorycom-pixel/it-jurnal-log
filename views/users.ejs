@@ -141,6 +141,9 @@
           <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
           <input type="text" name="role" class="f-input" placeholder="cth: IT Support, Supervisor, Operator..." value="user">
 
+          <label class="f-label">Divisi <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(menentukan akses data aset)</span></label>
+          <input type="text" name="divisi" class="f-input" placeholder="cth: IT, GA, FINANCE, HR..." value="IT" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+
           <!-- PERMISSION BUILDER -->
           <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; margin-bottom: 0.75rem; background: var(--body-bg);">
             <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">
@@ -225,6 +228,7 @@
                 <th>#</th>
                 <th>Nama</th>
                 <th>Username</th>
+                <th>Divisi</th>
                 <th>Hak Akses</th>
                 <th>Dibuat</th>
                 <th>Aksi</th>
@@ -256,6 +260,11 @@
                 </td>
                 <td><code style="color:#4ade80;background:var(--body-bg);padding:2px 6px;border-radius:3px;font-size:0.78rem;"><%= u.username %></code></td>
                 <td>
+                  <span style="display:inline-block;padding:2px 9px;border-radius:4px;font-size:0.68rem;font-weight:700;background:var(--body-bg3);color:var(--body-text2);border:1px solid var(--body-border2);letter-spacing:0.05em;">
+                    <%= u.divisi || 'IT' %>
+                  </span>
+                </td>
+                <td>
                   <div class="perm-tags">
                     <% if(perms.canView)   { %><span class="pt pt-view">👁 Lihat</span><% } %>
                     <% if(perms.canAdd)    { %><span class="pt pt-add">➕ Tambah</span><% } %>
@@ -277,6 +286,7 @@
                       `<%= u.nama.replace(/`/g,'\\`') %>`,
                       `<%= u.username %>`,
                       `<%= u.role %>`,
+                      `<%= u.divisi || 'IT' %>`,
                       <%= JSON.stringify(perms) %>
                     )">Edit</button>
                     <% if (!currentUser || u.id !== currentUser.id) { %>
@@ -314,6 +324,8 @@
               <input type="text" name="username" id="edit_username" class="f-input" required pattern="[a-z0-9_]+">
               <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
               <input type="text" name="role" id="edit_role" class="f-input" placeholder="cth: IT Support, Supervisor...">
+              <label class="f-label">Divisi <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(menentukan akses data aset)</span></label>
+              <input type="text" name="divisi" id="edit_divisi" class="f-input" placeholder="cth: IT, GA, FINANCE..." style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
               <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
               <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrength(this.value, 'passStrengthBarEdit')">
               <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
@@ -503,11 +515,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===========================
 // MODALS
 // ===========================
-function openEditModal(id, nama, username, role, perms) {
+function openEditModal(id, nama, username, role, divisi, perms) {
   document.getElementById('formEdit').action     = '/users/edit/' + id;
   document.getElementById('edit_nama').value     = nama;
   document.getElementById('edit_username').value = username;
   document.getElementById('edit_role').value     = role;
+  document.getElementById('edit_divisi').value   = divisi || 'IT';
   document.getElementById('edit_pass').value     = '';
   document.getElementById('passStrengthBarEdit').style.width = '0%';
   setPermState('edit', perms || {});
