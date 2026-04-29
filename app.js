@@ -48,18 +48,19 @@ function getUserPerms(user) {
             const p = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
             // Pastikan semua key ada (default false kalau tidak ada)
             return {
-                canView:   p.canView   === true,
-                canAdd:    p.canAdd    === true,
-                canEdit:   p.canEdit   === true,
-                canDelete: p.canDelete === true,
-                canAsset:  p.canAsset  === true,
-                canExport: p.canExport === true,
-                canUsers:  p.canUsers  === true,
+                canView:    p.canView    === true,
+                canAdd:     p.canAdd     === true,
+                canEdit:    p.canEdit    === true,
+                canDelete:  p.canDelete  === true,
+                canAsset:   p.canAsset   === true,
+                canExport:  p.canExport  === true,
+                canUsers:   p.canUsers   === true,
+                canViewLog: p.canViewLog === true,
             };
         } catch(e) {}
     }
     // User lama tanpa permissions field: semua false (aman)
-    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false };
+    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false };
 }
 
 function hasPerm(user, perm) {
@@ -248,6 +249,11 @@ app.post('/login', async (req, res) => {
             role: user.role,
             permissions: user.permissions || null
         };
+        // Kalau user tidak punya akses log tapi punya akses aset → langsung ke /aset
+        const permsAfterLogin = getUserPerms(req.session.user);
+        if (!permsAfterLogin.canViewLog && permsAfterLogin.canAsset) {
+            return res.redirect('/aset');
+        }
         res.redirect('/kerja');
     } catch (error) {
         console.error('[LOGIN ERROR]', error.message);
@@ -267,6 +273,14 @@ app.get('/403', (req, res) => {
 // 1. VIEWER MODE
 // ==========================================
 app.get('/', async (req, res) => {
+    // Kalau user login tapi tidak punya canViewLog → redirect ke /aset (kalau punya canAsset) atau /login
+    if (req.session && req.session.user) {
+        const u = req.session.user;
+        if (!hasPerm(u, 'canViewLog')) {
+            if (hasPerm(u, 'canAsset')) return res.redirect('/aset');
+            return res.redirect('/login');
+        }
+    }
     try {
         const { date, q } = req.query;
         const now = new Date();
@@ -353,6 +367,11 @@ app.get('/aset-public', async (req, res) => {
 // 2. DASHBOARD
 // ==========================================
 app.get('/kerja', requireLogin, async (req, res) => {
+    // Cek permission canViewLog — kalau tidak punya, redirect ke /aset kalau punya canAsset, atau 403
+    if (!hasPerm(req.session.user, 'canViewLog')) {
+        if (hasPerm(req.session.user, 'canAsset')) return res.redirect('/aset');
+        return res.status(403).render('403', { message: 'Anda tidak punya izin melihat Log Jurnal.' });
+    }
     try {
         const { month, year, status, saved } = req.query;
         let whereClause = {};
@@ -819,13 +838,14 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
 
         // Permissions murni dari checkbox — tidak ada auto-assign role
         const permissions = {
-            canView:   req.body.canView   === 'on',
-            canAdd:    req.body.canAdd    === 'on',
-            canEdit:   req.body.canEdit   === 'on',
-            canDelete: req.body.canDelete === 'on',
-            canAsset:  req.body.canAsset  === 'on',
-            canExport: req.body.canExport === 'on',
-            canUsers:  req.body.canUsers  === 'on',
+            canView:    req.body.canView    === 'on',
+            canAdd:     req.body.canAdd     === 'on',
+            canEdit:    req.body.canEdit    === 'on',
+            canDelete:  req.body.canDelete  === 'on',
+            canAsset:   req.body.canAsset   === 'on',
+            canExport:  req.body.canExport  === 'on',
+            canUsers:   req.body.canUsers   === 'on',
+            canViewLog: req.body.canViewLog === 'on',
         };
 
         // role hanya label tampilan, tidak menentukan akses
@@ -864,13 +884,14 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
 
         // Permissions murni dari checkbox — tidak ada auto-assign role
         const permissions = {
-            canView:   req.body.canView   === 'on',
-            canAdd:    req.body.canAdd    === 'on',
-            canEdit:   req.body.canEdit   === 'on',
-            canDelete: req.body.canDelete === 'on',
-            canAsset:  req.body.canAsset  === 'on',
-            canExport: req.body.canExport === 'on',
-            canUsers:  req.body.canUsers  === 'on',
+            canView:    req.body.canView    === 'on',
+            canAdd:     req.body.canAdd     === 'on',
+            canEdit:    req.body.canEdit    === 'on',
+            canDelete:  req.body.canDelete  === 'on',
+            canAsset:   req.body.canAsset   === 'on',
+            canExport:  req.body.canExport  === 'on',
+            canUsers:   req.body.canUsers   === 'on',
+            canViewLog: req.body.canViewLog === 'on',
         };
 
         // role hanya label tampilan, tidak menentukan akses

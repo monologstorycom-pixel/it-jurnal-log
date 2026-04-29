@@ -2,7 +2,7 @@
   "name": "Jurnal IT RSBY",
   "short_name": "Jurnal IT",
   "description": "Aplikasi Log Kerja Support IT RSBY",
-  "start_url": "/kerja",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0d0d0d",
   "theme_color": "#161b22",

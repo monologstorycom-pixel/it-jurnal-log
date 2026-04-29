@@ -3,13 +3,15 @@
 // Strategy: Cache-First untuk assets, Network-First untuk data
 // ============================================================
 
-const CACHE_NAME = 'itlog-rsby-v3';
+const CACHE_NAME = 'itlog-rsby-v4';
 const OFFLINE_URL = '/offline.html';
 
 // Assets yang di-cache agar offline tetap bisa buka halaman
 const STATIC_ASSETS = [
     '/',
     '/kerja',
+    '/aset',
+    '/aset-public',
     '/offline.html',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',

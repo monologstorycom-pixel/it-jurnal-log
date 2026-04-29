@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen User — IT Support Log</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f1117">
+    <link rel="apple-touch-icon" href="/icon-192.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
@@ -28,15 +31,18 @@
         .perm-check.checked { border-color: #2d6a4a; background: #0d2a18; }
         .perm-check.checked-delete { border-color: #5c1a1a; background: #2a0d0d; }
         .perm-check.checked-users { border-color: #4c3780; background: #1a0d3d; }
+        .perm-check.checked-viewlog { border-color: #0e4d6a; background: #0d2234; }
         .perm-check input[type="checkbox"] { display: none; }
         .perm-box { width: 16px; height: 16px; border: 1.5px solid var(--body-border2); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-size: 10px; }
         .perm-check.checked .perm-box { background: #4ade80; border-color: #4ade80; color: #0d2a18; }
         .perm-check.checked-delete .perm-box { background: #f87171; border-color: #f87171; color: #2a0d0d; }
         .perm-check.checked-users .perm-box { background: #a78bfa; border-color: #a78bfa; color: #1a0d3d; }
+        .perm-check.checked-viewlog .perm-box { background: #67e8f9; border-color: #67e8f9; color: #0d2234; }
         .perm-label-text { font-size: 0.72rem; font-weight: 600; color: var(--body-text2); }
         .perm-check.checked .perm-label-text { color: #4ade80; }
         .perm-check.checked-delete .perm-label-text { color: #f87171; }
         .perm-check.checked-users .perm-label-text { color: #a78bfa; }
+        .perm-check.checked-viewlog .perm-label-text { color: #67e8f9; }
         .perm-icon { font-size: 12px; }
 
         /* PRESET BUTTONS */
@@ -73,6 +79,7 @@
         .pt-asset  { background: #1a1a0d; color: #fde68a; border: 1px solid #5c4a00; }
         .pt-export { background: #1a0d2a; color: #d8b4fe; border: 1px solid #4c1a7a; }
         .pt-users  { background: #1a0d3d; color: #a78bfa; border: 1px solid #4c3780; }
+        .pt-viewlog { background: #0d2234; color: #67e8f9; border: 1px solid #0e4d6a; }
 
         /* ROLE BADGE */
         .role-admin  { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a0d3d;color:#a78bfa;border:1px solid #4c3780; }
@@ -191,6 +198,12 @@
                 <span class="perm-icon">👥</span>
                 <span class="perm-label-text">Kelola User</span>
               </div>
+              <div class="perm-check" id="lbl_add_canViewLog" data-form="add" data-perm="canViewLog">
+                <input type="checkbox" name="canViewLog" id="add_canViewLog">
+                <div class="perm-box" id="box_add_canViewLog"></div>
+                <span class="perm-icon">📋</span>
+                <span class="perm-label-text">Lihat Log</span>
+              </div>
             </div>
           </div>
 
@@ -225,9 +238,9 @@
                 }
                 if (!Object.keys(perms).length) {
                   const defaults = {
-                    admin:  { canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true },
-                    user:   { canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false },
-                    viewer: { canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false }
+                    admin:  { canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true,canViewLog:true },
+                    user:   { canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false,canViewLog:true },
+                    viewer: { canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true }
                   };
                   perms = defaults[u.role] || defaults.viewer;
                 }
@@ -251,6 +264,7 @@
                     <% if(perms.canAsset)  { %><span class="pt pt-asset">📦 Aset</span><% } %>
                     <% if(perms.canExport) { %><span class="pt pt-export">📊 Export</span><% } %>
                     <% if(perms.canUsers)  { %><span class="pt pt-users">👥 User</span><% } %>
+                    <% if(perms.canViewLog){ %><span class="pt pt-viewlog">📋 Lihat Log</span><% } %>
                   </div>
                 </td>
                 <td style="color:var(--body-text2);font-size:0.75rem;white-space:nowrap;">
@@ -350,6 +364,11 @@
                     <div class="perm-box" id="box_edit_canUsers"></div>
                     <span class="perm-icon">👥</span><span class="perm-label-text">Kelola User</span>
                   </div>
+                  <div class="perm-check" id="lbl_edit_canViewLog" data-form="edit" data-perm="canViewLog">
+                    <input type="checkbox" name="canViewLog" id="edit_canViewLog">
+                    <div class="perm-box" id="box_edit_canViewLog"></div>
+                    <span class="perm-icon">📋</span><span class="perm-label-text">Lihat Log</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -393,18 +412,18 @@
 // PERMISSION STATE
 // ===========================
 var permState = {
-  add:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false },
-  edit: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false }
+  add:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false },
+  edit: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false }
 };
 
 var PRESETS = {
-  admin:  { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true },
-  user:   { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false },
-  viewer: { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false },
-  clear:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false }
+  admin:  { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true, canViewLog:true },
+  user:   { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false, canViewLog:true },
+  viewer: { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true },
+  clear:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false }
 };
 
-var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers'];
+var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog'];
 
 // Toggle satu permission
 function togglePerm(form, perm) {
@@ -443,6 +462,8 @@ function renderPerms(form) {
         el.className = 'perm-check checked-delete';
       } else if (perm === 'canUsers') {
         el.className = 'perm-check checked-users';
+      } else if (perm === 'canViewLog') {
+        el.className = 'perm-check checked-viewlog';
       } else {
         el.className = 'perm-check checked';
       }
@@ -515,6 +536,14 @@ function checkStrength(v, barId) {
   var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
   el.style.width = pct + '%';
   el.style.background = colors[Math.max(0, score - 1)] || '#f87171';
+}
+</script>
+<script src="/offline-sync.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js').catch(function() {});
+    });
 }
 </script>
 </body>
