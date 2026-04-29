@@ -100,10 +100,16 @@ app.use((req, res, next) => {
 // ==========================================
 // MULTER + SHARP AUTO COMPRESS
 // ==========================================
-// Pakai memoryStorage supaya Sharp bisa kompress sebelum disimpan ke disk
+// Pakai diskStorage (kompatibel multer 1.x & 2.x) — Sharp baca dari file.path
+const uploadTmpDir = path.join(__dirname, 'uploads', 'tmp');
+if (!fs.existsSync(uploadTmpDir)) fs.mkdirSync(uploadTmpDir, { recursive: true });
+
 const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 20 * 1024 * 1024 }, // toleransi 20MB sebelum kompress
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, uploadTmpDir),
+        filename: (req, file, cb) => cb(null, 'tmp-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname))
+    }),
+    limits: { fileSize: 20 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) cb(null, true);
         else cb(new Error('Hanya file gambar yang diizinkan'));
@@ -124,12 +130,9 @@ async function saveCompressedPhoto(file, fieldname) {
     const filename = prefix + uniqueSuffix + '.webp';
     const outPath  = path.join(uploadDir, filename);
 
-    // Support memoryStorage (buffer) maupun diskStorage lama (path)
-    const source = (file.buffer && file.buffer.length > 0)
-        ? file.buffer
-        : file.path;
-
-    if (!source) return null; // tidak ada data sama sekali
+    // Baca dari file.path (diskStorage) atau file.buffer (memoryStorage)
+    const source = file.path || file.buffer;
+    if (!source) return null;
 
     await sharp(source)
         .rotate()
@@ -137,7 +140,7 @@ async function saveCompressedPhoto(file, fieldname) {
         .webp({ quality: 75 })
         .toFile(outPath);
 
-    // Hapus file temp diskStorage kalau ada
+    // Hapus file tmp setelah dikompres
     if (file.path && fs.existsSync(file.path)) {
         try { fs.unlinkSync(file.path); } catch(e) {}
     }
@@ -1185,10 +1188,14 @@ app.post('/aset/tambah', requireLogin, (req, res, next) => {
     next();
 }, upload.single('foto'), async (req, res) => {
     try {
-        const { nama, kategori, satuan, stok, kondisi, keterangan } = req.body;
-        const stokNum = parseInt(stok) || 0;
-        const fotoUrl = await saveCompressedPhoto(req.file, 'foto');
-        await prisma.aset.create({ data: { nama, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan: keterangan || null, fotoUrl } });
+        const nama      = (req.body.nama      || '').toString().trim();
+        const kategori  = (req.body.kategori  || '').toString().trim();
+        const satuan    = (req.body.satuan    || '').toString().trim();
+        const kondisi   = (req.body.kondisi   || 'Baik').toString().trim();
+        const keterangan = req.body.keterangan ? req.body.keterangan.toString().trim() : null;
+        const stokNum   = parseInt(req.body.stok) || 0;
+        const fotoUrl   = await saveCompressedPhoto(req.file, 'foto');
+        await prisma.aset.create({ data: { nama, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan, fotoUrl } });
         res.redirect('/aset?saved=1');
     } catch (error) { console.error(error); res.status(500).send("Gagal tambah aset: " + error.message); }
 });
@@ -1201,21 +1208,38 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
     try {
         const asetId = parseInt(req.params.id);
         if (isNaN(asetId)) return res.status(400).send("ID aset tidak valid");
-        const { nama, kategori, satuan, stokAwal, kondisi, keterangan } = req.body;
-        const stokAwalNum = parseInt(stokAwal) || 0;
-        // Pakai findMany+reduce — lebih kompatibel dengan Prisma 5 + MySQL
+
+        // Ambil semua field dengan nilai default aman
+        const nama      = (req.body.nama      || '').toString().trim();
+        const kategori  = (req.body.kategori  || '').toString().trim();
+        const satuan    = (req.body.satuan    || '').toString().trim();
+        const kondisi   = (req.body.kondisi   || 'Baik').toString().trim();
+        const keterangan = req.body.keterangan ? req.body.keterangan.toString().trim() : null;
+        const stokAwalNum = parseInt(req.body.stokAwal) || 0;
+
         const rowsPakai  = await prisma.asetPenggunaan.findMany({ where: { asetId }, select: { jumlah: true } });
         const rowsPinjam = await prisma.asetPinjam.findMany({ where: { asetId, status: 'Dipinjam' }, select: { jumlah: true } });
         const totalPakai  = rowsPakai.reduce((s, r) => s + r.jumlah, 0);
         const totalPinjam = rowsPinjam.reduce((s, r) => s + r.jumlah, 0);
         const stokBaru    = stokAwalNum - totalPakai - totalPinjam;
 
-        const updateData = { nama, kategori, satuan, stokAwal: stokAwalNum, stok: stokBaru, kondisi, keterangan: keterangan || null };
+        const updateData = {
+            nama,
+            kategori,
+            satuan,
+            stokAwal: stokAwalNum,
+            stok: stokBaru,
+            kondisi,
+            keterangan
+        };
         if (req.file) updateData.fotoUrl = await saveCompressedPhoto(req.file, 'foto');
 
         await prisma.aset.update({ where: { id: asetId }, data: updateData });
         res.redirect('/aset');
-    } catch (error) { console.error(error); res.status(500).send("Gagal edit aset: " + error.message); }
+    } catch (error) {
+        console.error('[EDIT ASET ERROR]', error);
+        res.status(500).send("Gagal edit aset: " + error.message);
+    }
 });
 
 app.post('/aset/hapus/:id', requireLogin, (req, res, next) => {
