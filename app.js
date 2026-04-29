@@ -127,27 +127,39 @@ async function saveCompressedPhoto(file, fieldname) {
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     const prefix = fieldname === 'fotoAwal' ? 'IT-AWAL-' : 'IT-LOG-';
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = prefix + uniqueSuffix + '.jpg';
-    const outPath  = path.join(uploadDir, filename);
 
-    // Baca dari file.path (diskStorage) atau file.buffer (memoryStorage)
-    const source = file.path || file.buffer;
-    if (!source) return null;
-
-    // Pakai toBuffer() + writeFileSync — kompatibel semua versi Sharp
-    const buffer = await sharp(source)
-        .rotate()
-        .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 75 })
-        .toBuffer();
-    fs.writeFileSync(outPath, buffer);
-
-    // Hapus file tmp setelah dikompres
-    if (file.path && fs.existsSync(file.path)) {
-        try { fs.unlinkSync(file.path); } catch(e) {}
+    try {
+        // Coba compress dengan Sharp dulu
+        const source = file.path || file.buffer;
+        if (!source) return null;
+        const filename = prefix + uniqueSuffix + '.jpg';
+        const outPath  = path.join(uploadDir, filename);
+        const buffer = await sharp(source)
+            .rotate()
+            .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
+            .jpeg({ quality: 75 })
+            .toBuffer();
+        fs.writeFileSync(outPath, buffer);
+        if (file.path && fs.existsSync(file.path)) { try { fs.unlinkSync(file.path); } catch(e) {} }
+        return '/uploads/' + filename;
+    } catch(sharpErr) {
+        // Fallback: simpan file langsung tanpa compress
+        console.warn('[Sharp fallback]', sharpErr.message);
+        const ext = file.originalname ? require('path').extname(file.originalname) : '.jpg';
+        const filename = prefix + uniqueSuffix + ext;
+        const outPath  = path.join(uploadDir, filename);
+        if (file.path) {
+            // diskStorage: rename/move file
+            fs.copyFileSync(file.path, outPath);
+            try { fs.unlinkSync(file.path); } catch(e) {}
+        } else if (file.buffer) {
+            // memoryStorage: tulis buffer
+            fs.writeFileSync(outPath, file.buffer);
+        } else {
+            return null;
+        }
+        return '/uploads/' + filename;
     }
-
-    return '/uploads/' + filename;
 }
 
 // ==========================================
