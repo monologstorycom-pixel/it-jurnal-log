@@ -123,11 +123,25 @@ async function saveCompressedPhoto(file, fieldname) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const filename = prefix + uniqueSuffix + '.webp';
     const outPath  = path.join(uploadDir, filename);
-    await sharp(file.buffer)
-        .rotate()                        // auto-rotate dari EXIF (fix foto miring HP)
+
+    // Support memoryStorage (buffer) maupun diskStorage lama (path)
+    const source = (file.buffer && file.buffer.length > 0)
+        ? file.buffer
+        : file.path;
+
+    if (!source) return null; // tidak ada data sama sekali
+
+    await sharp(source)
+        .rotate()
         .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
         .webp({ quality: 75 })
         .toFile(outPath);
+
+    // Hapus file temp diskStorage kalau ada
+    if (file.path && fs.existsSync(file.path)) {
+        try { fs.unlinkSync(file.path); } catch(e) {}
+    }
+
     return '/uploads/' + filename;
 }
 
