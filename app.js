@@ -127,18 +127,20 @@ async function saveCompressedPhoto(file, fieldname) {
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
     const prefix = fieldname === 'fotoAwal' ? 'IT-AWAL-' : 'IT-LOG-';
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = prefix + uniqueSuffix + '.webp';
+    const filename = prefix + uniqueSuffix + '.jpg';
     const outPath  = path.join(uploadDir, filename);
 
     // Baca dari file.path (diskStorage) atau file.buffer (memoryStorage)
     const source = file.path || file.buffer;
     if (!source) return null;
 
-    await sharp(source)
+    // Pakai toBuffer() + writeFileSync — kompatibel semua versi Sharp
+    const buffer = await sharp(source)
         .rotate()
         .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
-        .webp({ quality: 75 })
-        .toFile(outPath);
+        .jpeg({ quality: 75 })
+        .toBuffer();
+    fs.writeFileSync(outPath, buffer);
 
     // Hapus file tmp setelah dikompres
     if (file.path && fs.existsSync(file.path)) {
@@ -1217,28 +1219,28 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         const keterangan = req.body.keterangan ? req.body.keterangan.toString().trim() : null;
         const stokAwalNum = parseInt(req.body.stokAwal) || 0;
 
-        const rowsPakai  = await prisma.asetPenggunaan.findMany({ where: { asetId }, select: { jumlah: true } });
-        const rowsPinjam = await prisma.asetPinjam.findMany({ where: { asetId, status: 'Dipinjam' }, select: { jumlah: true } });
-        const totalPakai  = rowsPakai.reduce((s, r) => s + r.jumlah, 0);
-        const totalPinjam = rowsPinjam.reduce((s, r) => s + r.jumlah, 0);
+        // Raw SQL unsafe — kompatibel semua versi Prisma
+        const resPakai  = await prisma.$queryRawUnsafe('SELECT COALESCE(SUM(jumlah),0) as total FROM AsetPenggunaan WHERE asetId = ?', asetId);
+        const resPinjam = await prisma.$queryRawUnsafe("SELECT COALESCE(SUM(jumlah),0) as total FROM AsetPinjam WHERE asetId = ? AND status = 'Dipinjam'", asetId);
+        const totalPakai  = Number(resPakai[0].total)  || 0;
+        const totalPinjam = Number(resPinjam[0].total) || 0;
         const stokBaru    = stokAwalNum - totalPakai - totalPinjam;
 
-        const updateData = {
-            nama,
-            kategori,
-            satuan,
-            stokAwal: stokAwalNum,
-            stok: stokBaru,
-            kondisi,
-            keterangan
-        };
-        if (req.file) updateData.fotoUrl = await saveCompressedPhoto(req.file, 'foto');
+        let fotoUrl = null;
+        if (req.file) fotoUrl = await saveCompressedPhoto(req.file, 'foto');
 
-        await prisma.aset.update({ where: { id: asetId }, data: updateData });
+        if (fotoUrl) {
+            await prisma.$executeRawUnsafe('UPDATE Aset SET nama=?, kategori=?, satuan=?, stokAwal=?, stok=?, kondisi=?, keterangan=?, fotoUrl=? WHERE id=?',
+                nama, kategori, satuan, stokAwalNum, stokBaru, kondisi, keterangan, fotoUrl, asetId);
+        } else {
+            await prisma.$executeRawUnsafe('UPDATE Aset SET nama=?, kategori=?, satuan=?, stokAwal=?, stok=?, kondisi=?, keterangan=? WHERE id=?',
+                nama, kategori, satuan, stokAwalNum, stokBaru, kondisi, keterangan, asetId);
+        }
+
         res.redirect('/aset');
     } catch (error) {
-        console.error('[EDIT ASET ERROR]', error);
-        res.status(500).send("Gagal edit aset: " + error.message);
+        console.error('[EDIT ASET ERROR]', error.message);
+        res.status(500).send("Gagal edit aset: " + error.message + " | body: " + JSON.stringify(req.body));
     }
 });
 
