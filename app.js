@@ -1153,9 +1153,12 @@ app.get('/aset', requireLogin, async (req, res) => {
 });
 
 app.get('/aset/:id', requireLogin, async (req, res) => {
+    // Guard: id harus angka, hindari tangkap route seperti /aset/edit atau /aset/export-pdf
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.redirect('/aset');
     try {
         const aset = await prisma.aset.findUnique({
-            where: { id: parseInt(req.params.id) },
+            where: { id },
             include: { penggunaan: { orderBy: { tanggal: 'desc' } }, pinjaman: { orderBy: { tanggalPinjam: 'desc' } } }
         });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
@@ -1183,16 +1186,18 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
     next();
 }, upload.single('foto'), async (req, res) => {
     try {
+        const asetId = parseInt(req.params.id);
+        if (isNaN(asetId)) return res.status(400).send("ID aset tidak valid");
         const { nama, kategori, satuan, stokAwal, kondisi, keterangan } = req.body;
         const stokAwalNum = parseInt(stokAwal) || 0;
-        const totalPakai  = await prisma.asetPenggunaan.aggregate({ where: { asetId: parseInt(req.params.id) }, _sum: { jumlah: true } });
-        const totalPinjam = await prisma.asetPinjam.aggregate({ where: { asetId: parseInt(req.params.id), status: 'Dipinjam' }, _sum: { jumlah: true } });
+        const totalPakai  = await prisma.asetPenggunaan.aggregate({ where: { asetId }, _sum: { jumlah: true } });
+        const totalPinjam = await prisma.asetPinjam.aggregate({ where: { asetId, status: 'Dipinjam' }, _sum: { jumlah: true } });
         const stokBaru    = stokAwalNum - (totalPakai._sum.jumlah || 0) - (totalPinjam._sum.jumlah || 0);
 
         const updateData = { nama, kategori, satuan, stokAwal: stokAwalNum, stok: stokBaru, kondisi, keterangan: keterangan || null };
         if (req.file) updateData.fotoUrl = await saveCompressedPhoto(req.file, 'foto');
 
-        await prisma.aset.update({ where: { id: parseInt(req.params.id) }, data: updateData });
+        await prisma.aset.update({ where: { id: asetId }, data: updateData });
         res.redirect('/aset');
     } catch (error) { console.error(error); res.status(500).send("Gagal edit aset: " + error.message); }
 });
