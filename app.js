@@ -1190,9 +1190,12 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         if (isNaN(asetId)) return res.status(400).send("ID aset tidak valid");
         const { nama, kategori, satuan, stokAwal, kondisi, keterangan } = req.body;
         const stokAwalNum = parseInt(stokAwal) || 0;
-        const totalPakai  = await prisma.asetPenggunaan.aggregate({ where: { asetId }, _sum: { jumlah: true } });
-        const totalPinjam = await prisma.asetPinjam.aggregate({ where: { asetId, status: 'Dipinjam' }, _sum: { jumlah: true } });
-        const stokBaru    = stokAwalNum - (totalPakai._sum.jumlah || 0) - (totalPinjam._sum.jumlah || 0);
+        // Pakai findMany+reduce — lebih kompatibel dengan Prisma 5 + MySQL
+        const rowsPakai  = await prisma.asetPenggunaan.findMany({ where: { asetId }, select: { jumlah: true } });
+        const rowsPinjam = await prisma.asetPinjam.findMany({ where: { asetId, status: 'Dipinjam' }, select: { jumlah: true } });
+        const totalPakai  = rowsPakai.reduce((s, r) => s + r.jumlah, 0);
+        const totalPinjam = rowsPinjam.reduce((s, r) => s + r.jumlah, 0);
+        const stokBaru    = stokAwalNum - totalPakai - totalPinjam;
 
         const updateData = { nama, kategori, satuan, stokAwal: stokAwalNum, stok: stokBaru, kondisi, keterangan: keterangan || null };
         if (req.file) updateData.fotoUrl = await saveCompressedPhoto(req.file, 'foto');
