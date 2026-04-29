@@ -726,17 +726,28 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
     next();
 }, async (req, res) => {
     try {
+        const isAdmin    = hasPerm(req.session.user, 'canUsers');
+        const userDivisi = req.session.user.divisi || 'IT';
+        // Super admin bisa pilih divisi via query ?divisi=HRGA, user biasa hanya divisinya sendiri
+        const targetDivisi = isAdmin ? (req.query.divisi || null) : userDivisi;
+
+        let whereClause = {};
+        if (targetDivisi) whereClause.divisi = targetDivisi;
+
         const asets = await prisma.aset.findMany({
+            where: whereClause,
             orderBy: { kategori: 'asc' },
             include: { penggunaan: true }
         });
 
-        const workbook  = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Data Aset IT');
+        const labelDivisi = targetDivisi || 'Semua Divisi';
+        const workbook    = new ExcelJS.Workbook();
+        const worksheet   = workbook.addWorksheet('Data Aset ' + labelDivisi);
 
         worksheet.columns = [
             { header: 'NO',        key: 'no',        width: 6  },
             { header: 'NAMA ASET', key: 'nama',      width: 30 },
+            { header: 'DIVISI',    key: 'divisi',    width: 12 },
             { header: 'KATEGORI',  key: 'kategori',  width: 16 },
             { header: 'SATUAN',    key: 'satuan',    width: 10 },
             { header: 'STOK AWAL', key: 'stokAwal',  width: 12 },
@@ -760,6 +771,7 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
             const row = worksheet.addRow({
                 no:         i + 1,
                 nama:       a.nama,
+                divisi:     a.divisi,
                 kategori:   a.kategori,
                 satuan:     a.satuan,
                 stokAwal:   a.stokAwal,
@@ -783,11 +795,12 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
         const now = new Date();
         const tgl = now.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
         worksheet.addRow([]);
-        const infoRow = worksheet.addRow([`Diekspor pada: ${tgl}`, '', '', '', '', '', '', '', `Total: ${asets.length} aset`]);
+        const infoRow = worksheet.addRow([`Divisi: ${labelDivisi} | Diekspor pada: ${tgl}`, '', '', '', '', '', '', '', '', `Total: ${asets.length} aset`]);
         infoRow.font = { italic: true, color: { argb: 'FF888888' }, size: 9 };
 
+        const safeLabel = labelDivisi.replace(/[^a-zA-Z0-9]/g, '-');
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', 'attachment; filename="Data-Aset-IT.xlsx"');
+        res.setHeader('Content-Disposition', `attachment; filename="Data-Aset-${safeLabel}.xlsx"`);
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) { console.error(error); res.status(500).send('Gagal export aset: ' + error.message); }
@@ -1008,60 +1021,107 @@ async function callGemini(systemPrompt, userMessage, history = []) {
 // Helper: ambil konteks aset dari DB (lengkap: stok + pemasangan + pinjaman)
 async function getAsetContext() {
     const asetList = await prisma.aset.findMany({
-        orderBy: { nama: 'asc' },
+        orderBy: [{ divisi: 'asc' }, { nama: 'asc' }],
         select: {
-            id: true, nama: true, kategori: true, satuan: true,
+            id: true, nama: true, divisi: true, kategori: true, satuan: true,
             stokAwal: true, stok: true, kondisi: true, keterangan: true,
             penggunaan: {
                 orderBy: { tanggal: 'desc' },
                 take: 10,
-                select: { jumlah: true, divisi: true, lokasi: true, keterangan: true, tanggal: true }
+                select: { id: true, jumlah: true, divisi: true, lokasi: true, keterangan: true, tanggal: true, fotoUrl: true }
             },
             pinjaman: {
                 orderBy: { tanggalPinjam: 'desc' },
                 take: 10,
-                select: { peminjam: true, divisi: true, jumlah: true, tanggalPinjam: true, tanggalKembali: true, keperluan: true, status: true }
+                select: { id: true, peminjam: true, divisi: true, jumlah: true, tanggalPinjam: true, tanggalKembali: true, keperluan: true, status: true, fotoUrl: true }
+            },
+            service: {
+                orderBy: { tanggal: 'desc' },
+                take: 5,
+                select: { id: true, teknisi: true, vendor: true, keluhan: true, hasil: true, biaya: true, status: true, tanggal: true, tanggalSelesai: true, fotoUrl: true }
             }
         }
     });
 
-    if (!asetList.length) return 'Belum ada data aset.';
+    if (!asetList.length) return { text: 'Belum ada data aset.', photoMap: {} };
 
-    return asetList.map(a => {
-        const tglFmt = (d) => d ? new Date(d).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'}) : '-';
+    const tglFmt = (d) => d ? new Date(d).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '-';
 
-        let lines = [];
-        lines.push(`[ASET] ${a.nama} | Kategori: ${a.kategori} | Stok sisa: ${a.stok}/${a.stokAwal} ${a.satuan} | Kondisi: ${a.kondisi}${a.keterangan ? ' | Ket: ' + a.keterangan.substring(0,60) : ''}`);
+    // photoMap: id → url, supaya AI bisa reference foto by ID
+    const photoMap = {};
 
-        // Riwayat pemasangan/penggunaan
-        if (a.penggunaan.length > 0) {
-            const pakaiInfo = a.penggunaan.map(p =>
-                `  - ${tglFmt(p.tanggal)}: ${p.jumlah} ${a.satuan} dipasang di ${p.lokasi || '-'} (Divisi: ${p.divisi || '-'})${p.keterangan ? ', ket: ' + p.keterangan.substring(0,50) : ''}`
-            ).join('\n');
-            lines.push(`  Riwayat pemasangan (${a.penggunaan.length} terakhir):\n${pakaiInfo}`);
-        } else {
-            lines.push('  Riwayat pemasangan: belum ada.');
-        }
+    const grouped = {};
+    asetList.forEach(a => {
+        const div = a.divisi || 'UNKNOWN';
+        if (!grouped[div]) grouped[div] = [];
+        grouped[div].push(a);
+    });
 
-        // Riwayat pinjaman
-        const pinjamanAktif = a.pinjaman.filter(p => p.status === 'Dipinjam');
-        const pinjamanSelesai = a.pinjaman.filter(p => p.status !== 'Dipinjam');
-        if (pinjamanAktif.length > 0) {
-            const aktifInfo = pinjamanAktif.map(p =>
-                `  - AKTIF: ${p.jumlah} ${a.satuan} dipinjam oleh ${p.peminjam} (${p.divisi || '-'}) sejak ${tglFmt(p.tanggalPinjam)}${p.keperluan ? ', keperluan: ' + p.keperluan.substring(0,50) : ''}`
-            ).join('\n');
-            lines.push(`  Pinjaman aktif:\n${aktifInfo}`);
-        }
-        if (pinjamanSelesai.length > 0) {
-            const selesaiInfo = pinjamanSelesai.map(p =>
-                `  - ${p.jumlah} ${a.satuan} dipinjam ${p.peminjam} (${p.divisi || '-'}), kembali ${tglFmt(p.tanggalKembali)}`
-            ).join('\n');
-            lines.push(`  Riwayat pinjaman selesai:\n${selesaiInfo}`);
-        }
-        if (a.pinjaman.length === 0) lines.push('  Riwayat pinjaman: belum ada.');
+    const sections = Object.keys(grouped).sort().map(divName => {
+        const items = grouped[divName];
+        const itemLines = items.map(a => {
+            let lines = [];
+            lines.push(`  [ASET] ${a.nama} | Divisi: ${a.divisi} | Kategori: ${a.kategori} | Stok: ${a.stok}/${a.stokAwal} ${a.satuan} | Kondisi: ${a.kondisi}${a.keterangan ? ' | Ket: ' + a.keterangan.substring(0, 80) : ''}`);
 
-        return lines.join('\n');
-    }).join('\n\n');
+            // Penggunaan / pemasangan
+            if (a.penggunaan.length > 0) {
+                const info = a.penggunaan.map(p => {
+                    const photoNote = p.fotoUrl ? ` [FOTO:pasang-${p.id}]` : '';
+                    if (p.fotoUrl) photoMap[`pasang-${p.id}`] = p.fotoUrl;
+                    return `    • ${tglFmt(p.tanggal)}: ${p.jumlah} ${a.satuan} dipasang di "${p.lokasi || '-'}" oleh divisi ${p.divisi || '-'}${p.keterangan ? ' — ' + p.keterangan.substring(0, 60) : ''}${photoNote}`;
+                }).join('\n');
+                lines.push(`    Pemasangan:\n${info}`);
+            }
+
+            // Pinjaman
+            const pinjamanAktif   = a.pinjaman.filter(p => p.status === 'Dipinjam');
+            const pinjamanSelesai = a.pinjaman.filter(p => p.status !== 'Dipinjam');
+            if (pinjamanAktif.length > 0) {
+                const info = pinjamanAktif.map(p => {
+                    const photoNote = p.fotoUrl ? ` [FOTO:pinjam-${p.id}]` : '';
+                    if (p.fotoUrl) photoMap[`pinjam-${p.id}`] = p.fotoUrl;
+                    return `    • ⚠️ SEDANG DIPINJAM: ${p.jumlah} ${a.satuan} oleh ${p.peminjam} (${p.divisi || '-'}) sejak ${tglFmt(p.tanggalPinjam)}${p.keperluan ? ', keperluan: ' + p.keperluan.substring(0, 60) : ''}${photoNote}`;
+                }).join('\n');
+                lines.push(`    Pinjaman aktif:\n${info}`);
+            }
+            if (pinjamanSelesai.length > 0) {
+                const info = pinjamanSelesai.map(p => {
+                    const photoNote = p.fotoUrl ? ` [FOTO:pinjam-${p.id}]` : '';
+                    if (p.fotoUrl) photoMap[`pinjam-${p.id}`] = p.fotoUrl;
+                    return `    • ${p.jumlah} ${a.satuan} dipinjam ${p.peminjam} (${p.divisi || '-'}), dikembalikan ${tglFmt(p.tanggalKembali)}${photoNote}`;
+                }).join('\n');
+                lines.push(`    Riwayat pinjaman selesai:\n${info}`);
+            }
+
+            // Service
+            if (a.service && a.service.length > 0) {
+                const serviceAktif   = a.service.filter(sv => sv.status !== 'Selesai');
+                const serviceSelesai = a.service.filter(sv => sv.status === 'Selesai');
+                if (serviceAktif.length > 0) {
+                    const info = serviceAktif.map(sv => {
+                        const photoNote = sv.fotoUrl ? ` [FOTO:service-${sv.id}]` : '';
+                        if (sv.fotoUrl) photoMap[`service-${sv.id}`] = sv.fotoUrl;
+                        return `    • 🔧 SEDANG SERVICE (${sv.status}): mulai ${tglFmt(sv.tanggal)}, teknisi: ${sv.teknisi}${sv.vendor ? ' / vendor: ' + sv.vendor : ''}, keluhan: ${sv.keluhan.substring(0, 80)}${sv.hasil ? ', progress: ' + sv.hasil.substring(0, 60) : ''}${sv.biaya > 0 ? ', biaya: Rp ' + sv.biaya.toLocaleString('id-ID') : ''}${photoNote}`;
+                    }).join('\n');
+                    lines.push(`    Service berjalan:\n${info}`);
+                }
+                if (serviceSelesai.length > 0) {
+                    const info = serviceSelesai.map(sv => {
+                        const photoNote = sv.fotoUrl ? ` [FOTO:service-${sv.id}]` : '';
+                        if (sv.fotoUrl) photoMap[`service-${sv.id}`] = sv.fotoUrl;
+                        return `    • Selesai ${tglFmt(sv.tanggalSelesai)}: ${sv.keluhan.substring(0, 60)} — teknisi: ${sv.teknisi}${sv.vendor ? '/'+sv.vendor : ''}${sv.hasil ? ', hasil: ' + sv.hasil.substring(0, 60) : ''}${sv.biaya > 0 ? ', biaya: Rp ' + sv.biaya.toLocaleString('id-ID') : ''}${photoNote}`;
+                    }).join('\n');
+                    lines.push(`    Riwayat service selesai:\n${info}`);
+                }
+            }
+
+            return lines.join('\n');
+        });
+
+        return `--- DIVISI: ${divName} (${items.length} aset) ---\n${itemLines.join('\n\n')}`;
+    });
+
+    return { text: sections.join('\n\n'), photoMap };
 }
 
 // Route: Auto-generate deskripsi (login required)
@@ -1093,7 +1153,7 @@ app.post('/api/ai-chat-public', async (req, res) => {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
 
-        const [recentLogs, asetContext] = await Promise.all([
+        const [recentLogs, asetResult] = await Promise.all([
             prisma.journal.findMany({
                 orderBy: { tanggalManual: 'desc' },
                 take: 15,
@@ -1102,27 +1162,49 @@ app.post('/api/ai-chat-public', async (req, res) => {
             getAsetContext()
         ]);
 
+        const { text: asetContext, photoMap } = asetResult;
+
         const logContext = recentLogs.map(l =>
             `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}`
         ).join('\n');
 
-        const systemPrompt = `Kamu adalah AI asisten IT Support publik bernama "RSBY-AI" untuk sistem IT Jurnal Log RSBY.
-Jawab pertanyaan seputar log aktivitas IT, status tiket, aset IT, stok, pemasangan, dan peminjaman.
+        const systemPrompt = `Kamu adalah AI asisten bernama "RSBY-AI" untuk sistem manajemen aset & IT Support Log PT. Auri Steel Metalindo.
+Kamu memiliki akses data aset SEMUA DIVISI (IT, HRGA, GA, Finance, Produksi, dll) beserta riwayat lengkapnya.
 Jawab dalam Bahasa Indonesia, singkat dan informatif. Jangan reveal data sensitif seperti password atau konfigurasi sistem.
+
+PENTING — FORMAT RESPONS DENGAN FOTO:
+Jika pertanyaan menyebut foto/gambar/bukti/dokumentasi, ATAU jika jawaban kamu menyinggung data yang punya [FOTO:xxx], kamu WAJIB return JSON berikut:
+{"text":"jawaban teks kamu di sini","photos":["pasang-12","pinjam-5"]}
+ID foto diambil dari tag [FOTO:id] di data. Jika tidak ada foto relevan, return teks biasa (bukan JSON).
+
 Kamu bisa menjawab pertanyaan seperti:
-- Aset X dipasang di ruangan mana / oleh divisi mana?
-- Siapa yang sedang meminjam aset Y?
-- Aset mana yang stoknya menipis?
-- Kapan terakhir aset Z digunakan?
+- Aset divisi HRGA / GA / IT apa saja?
+- Switch dipasang di ruangan mana? Ada fotonya?
+- Siapa yang sedang meminjam aset Y? Ada bukti fotonya?
+- Aset mana yang sedang service? Di bengkel mana?
 
 === DATA LOG IT TERBARU ===
 ${logContext || 'Belum ada data.'}
 
-=== DATA ASET IT (termasuk riwayat pemasangan & peminjaman) ===
+=== DATA ASET SEMUA DIVISI (dikelompokkan per divisi, termasuk pemasangan, pinjaman, dan service. Tag [FOTO:id] = ada dokumentasi foto) ===
 ${asetContext}`;
 
-        const reply = await callGemini(systemPrompt, message, history || []);
-        res.json({ reply });
+        const rawReply = await callGemini(systemPrompt, message, history || []);
+
+        // Parse apakah AI return JSON dengan foto
+        let replyText = rawReply.trim();
+        let photos = [];
+        try {
+            const jsonMatch = replyText.match(/\{[\s\S]*"text"[\s\S]*\}/);
+            if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                replyText = parsed.text || replyText;
+                const ids = parsed.photos || [];
+                photos = ids.map(id => photoMap[id]).filter(Boolean);
+            }
+        } catch(e) { /* bukan JSON, pakai teks biasa */ }
+
+        res.json({ reply: replyText, photos });
     } catch (err) {
         console.error('AI Public Chat error:', err);
         res.status(500).json({ error: '⚠️ ' + err.message });
@@ -1136,7 +1218,7 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
 
-        const [recentLogs, asetContext] = await Promise.all([
+        const [recentLogs, asetResult] = await Promise.all([
             prisma.journal.findMany({
                 orderBy: { tanggalManual: 'desc' },
                 take: 20,
@@ -1145,29 +1227,52 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
             getAsetContext()
         ]);
 
+        const { text: asetContext, photoMap } = asetResult;
+
         const logContext = recentLogs.map(l =>
             `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}${l.deskripsi ? ' | ' + l.deskripsi.substring(0, 80) : ''}`
         ).join('\n');
 
-        const systemPrompt = `Kamu adalah AI asisten IT Support bernama "RSBY-AI" untuk sistem IT Jurnal Log.
-Jawab dalam Bahasa Indonesia, singkat dan to the point.
+        const systemPrompt = `Kamu adalah AI asisten bernama "RSBY-AI" untuk sistem manajemen aset & IT Support Log PT. Auri Steel Metalindo.
+Kamu memiliki akses data aset SEMUA DIVISI (IT, HRGA, GA, Finance, Produksi, dll) beserta riwayat lengkap: pemasangan, pinjaman, service/perbaikan.
+Jawab dalam Bahasa Indonesia, singkat dan to the point. Maksimal 3-4 kalimat kecuali diminta detail.
+
+PENTING — FORMAT RESPONS DENGAN FOTO:
+Jika pertanyaan menyebut foto/gambar/bukti/dokumentasi, ATAU jika data yang relevan punya tag [FOTO:xxx], kamu WAJIB return format JSON berikut (tidak ada teks lain di luar JSON):
+{"text":"jawaban teks kamu","photos":["pasang-12","pinjam-5","service-3"]}
+ID foto diambil persis dari tag [FOTO:id] yang ada di data konteks. Boleh include semua foto yang relevan dengan pertanyaan.
+Jika tidak ada foto relevan atau tidak ditanya soal foto, return teks biasa saja (bukan JSON).
 
 === DATA LOG IT TERBARU (20 tiket) ===
 ${logContext || 'Belum ada data log.'}
 
-=== DATA ASET IT (lengkap: stok, pemasangan per lokasi/ruangan, pinjaman aktif & riwayat) ===
+=== DATA ASET SEMUA DIVISI (per divisi, lengkap. Tag [FOTO:id] = ada foto dokumentasi yang bisa ditampilkan) ===
 ${asetContext}
 
-Panduan:
-- Jawab pertanyaan soal tiket/log dari data log di atas
-- Jawab pertanyaan soal aset: stok, kondisi, dipasang di ruangan/lokasi mana, oleh divisi apa, siapa yang meminjam, sejak kapan, kapan kembali
-- Kamu bisa menjawab: "Aset X saat ini dipasang di [lokasi] oleh divisi [Y]", atau "Aset Z sedang dipinjam oleh [nama] sejak [tanggal]"
-- Berikan tips troubleshooting IT praktis jika diminta
-- Jangan buat data fiktif di luar konteks yang diberikan
-- Jawab max 3-4 kalimat kecuali diminta detail`;
+Panduan menjawab:
+- Bisa jawab pertanyaan aset divisi manapun
+- Untuk aset SERVICE: sebutkan keluhan, teknisi/vendor, tanggal mulai, status
+- Untuk aset DIPINJAM: sebutkan peminjam, divisi, tanggal pinjam, keperluan
+- Untuk pemasangan: sebutkan lokasi dan tanggal
+- Jika ada foto relevan, sertakan ID-nya di array "photos" dalam JSON
+- Jangan buat data fiktif di luar konteks yang diberikan`;
 
-        const reply = await callGemini(systemPrompt, message, history || []);
-        res.json({ reply });
+        const rawReply = await callGemini(systemPrompt, message, history || []);
+
+        // Parse apakah AI return JSON dengan foto
+        let replyText = rawReply.trim();
+        let photos = [];
+        try {
+            const jsonMatch = replyText.match(/\{[\s\S]*"text"[\s\S]*\}/);
+            if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                replyText = parsed.text || replyText;
+                const ids = parsed.photos || [];
+                photos = ids.map(id => photoMap[id]).filter(Boolean);
+            }
+        } catch(e) { /* bukan JSON, pakai teks biasa */ }
+
+        res.json({ reply: replyText, photos });
 
     } catch (err) {
         console.error('AI Chat error:', err);
@@ -1195,14 +1300,21 @@ app.listen(3001, '0.0.0.0', () => {
 // ==========================================
 app.get('/aset/export-pdf', requireLogin, async (req, res) => {
     try {
+        const isAdmin    = hasPerm(req.session.user, 'canUsers');
+        const userDivisi = req.session.user.divisi || 'IT';
+        const targetDivisi = isAdmin ? (req.query.divisi || null) : userDivisi;
+        let whereClause = {};
+        if (targetDivisi) whereClause.divisi = targetDivisi;
         const aset = await prisma.aset.findMany({
+            where: whereClause,
             orderBy: { nama: 'asc' },
             include: {
                 penggunaan: { orderBy: { tanggal: 'desc' } },
-                pinjaman:   { orderBy: { tanggalPinjam: 'desc' } }
+                pinjaman:   { orderBy: { tanggalPinjam: 'desc' } },
+                service:    { orderBy: { tanggal: 'desc' } }
             }
         });
-        res.render('aset-export', { aset });
+        res.render('aset-export', { aset, divisiLabel: targetDivisi || 'Semua Divisi' });
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 

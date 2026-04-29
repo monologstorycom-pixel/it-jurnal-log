@@ -657,12 +657,45 @@
   #ai-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
   #ai-send svg { width: 17px; height: 17px; }
 
-  /* Mobile adjustment */
-  @media (max-width: 480px) {
-    #ai-panel { width: calc(100vw - 24px); right: 12px; bottom: 80px; }
-    #ai-fab { right: 16px; bottom: 16px; }
+  /* Foto grid di bubble AI */
+  .ai-photo-grid {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
   }
+  .ai-photo-item {
+    position: relative; border-radius: 8px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.15); cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .ai-photo-item:hover { transform: scale(1.03); }
+  .ai-photo-item img {
+    width: 110px; height: 80px; object-fit: cover; display: block;
+  }
+  .ai-photo-item .ai-photo-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,0.55); color: #fff;
+    font-size: 9px; padding: 2px 5px; text-align: center;
+  }
+  /* Lightbox */
+  #ai-lightbox {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+    z-index: 99999; align-items: center; justify-content: center; flex-direction: column;
+  }
+  #ai-lightbox.show { display: flex; }
+  #ai-lightbox img { max-width: 90vw; max-height: 80vh; border-radius: 10px; box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+  #ai-lightbox-close {
+    position: absolute; top: 18px; right: 22px;
+    background: rgba(255,255,255,0.12); border: none; color: #fff;
+    border-radius: 50%; width: 36px; height: 36px; font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  #ai-lightbox-close:hover { background: rgba(255,255,255,0.25); }
 </style>
+
+<!-- Lightbox global -->
+<div id="ai-lightbox" onclick="closeAiLightbox()">
+  <button id="ai-lightbox-close" onclick="closeAiLightbox()">✕</button>
+  <img id="ai-lightbox-img" src="" alt="Foto Aset">
+</div>
 
 <!-- FAB Button -->
 <button id="ai-fab" onclick="toggleAiPanel()" title="AI Assistant">
@@ -752,15 +785,45 @@
     document.getElementById('aiQuickPrompts').style.display = 'none';
   };
 
-  function appendMsg(role, text) {
+  function appendMsg(role, text, photos) {
     var msgs = document.getElementById('ai-messages');
     var div = document.createElement('div');
     div.className = 'ai-msg ' + role;
     var avatar = role === 'bot' ? 'AI' : '<%= typeof currentUser !== "undefined" && currentUser ? currentUser.nama.substring(0,2).toUpperCase() : "U" %>';
-    div.innerHTML = '<div class="ai-avatar">' + avatar + '</div><div class="ai-bubble">' + escHtml(text) + '</div>';
+
+    var bubbleHtml = '<div class="ai-bubble">' + escHtml(text);
+    if (photos && photos.length > 0) {
+      bubbleHtml += '<div class="ai-photo-grid">';
+      photos.forEach(function(url, idx) {
+        bubbleHtml += '<div class="ai-photo-item" onclick="openAiLightbox(\'' + escAttr(url) + '\')">'
+          + '<img src="' + escAttr(url) + '" alt="Foto ' + (idx+1) + '" loading="lazy">'
+          + '<div class="ai-photo-label">📷 Foto ' + (idx+1) + '</div>'
+          + '</div>';
+      });
+      bubbleHtml += '</div>';
+    }
+    bubbleHtml += '</div>';
+
+    div.innerHTML = '<div class="ai-avatar">' + avatar + '</div>' + bubbleHtml;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
     return div;
+  }
+
+  window.openAiLightbox = function(url) {
+    document.getElementById('ai-lightbox-img').src = url;
+    document.getElementById('ai-lightbox').classList.add('show');
+  };
+  window.closeAiLightbox = function() {
+    document.getElementById('ai-lightbox').classList.remove('show');
+    document.getElementById('ai-lightbox-img').src = '';
+  };
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAiLightbox();
+  });
+
+  function escAttr(s) {
+    return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   function showTyping() {
@@ -808,7 +871,8 @@
       removeTyping();
 
       var reply = data.reply || data.error || 'Tidak ada respons.';
-      appendMsg('bot', reply);
+      var photos = data.photos || [];
+      appendMsg('bot', reply, photos);
 
       // Update history (max 10 turns)
       aiHistory.push({ role: 'user', content: msg });

@@ -465,7 +465,22 @@
   #pub-ai-send { width:38px;height:38px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;transition:opacity 0.15s; }
   #pub-ai-send:disabled { opacity:0.5;cursor:not-allowed; }
   @media(max-width:480px){#pub-ai-panel{width:calc(100vw - 24px);right:12px;bottom:80px;}#pub-ai-fab{right:16px;bottom:16px;}}
+  .pub-ai-photo-grid { display:flex;flex-wrap:wrap;gap:6px;margin-top:8px; }
+  .pub-ai-photo-item { position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(0,0,0,0.1);cursor:pointer;transition:transform 0.15s; }
+  .pub-ai-photo-item:hover { transform:scale(1.03); }
+  .pub-ai-photo-item img { width:110px;height:80px;object-fit:cover;display:block; }
+  .pub-ai-photo-item .pub-photo-label { position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:9px;padding:2px 5px;text-align:center; }
+  #pub-ai-lightbox { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;align-items:center;justify-content:center; }
+  #pub-ai-lightbox.show { display:flex; }
+  #pub-ai-lightbox img { max-width:90vw;max-height:80vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.6); }
+  #pub-lb-close { position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+  #pub-lb-close:hover { background:rgba(255,255,255,0.25); }
 </style>
+
+<div id="pub-ai-lightbox" onclick="pubCloseLb()">
+  <button id="pub-lb-close" onclick="pubCloseLb()">✕</button>
+  <img id="pub-lb-img" src="" alt="Foto Aset">
+</div>
 
 <button id="pub-ai-fab" onclick="pubToggleAi()" title="Tanya RSBY-AI">
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -531,15 +546,35 @@
     pubSendMsg();
   };
 
-  function pubAppend(role, text){
+  function pubAppend(role, text, photos){
     var msgs = document.getElementById('pub-ai-messages');
     var div = document.createElement('div');
     div.className = 'pub-ai-msg ' + role;
     var av = role === 'bot' ? 'AI' : 'Anda';
-    div.innerHTML = '<div class="pub-ai-avatar">' + av.substring(0,2) + '</div><div class="pub-ai-bubble">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') + '</div>';
+    var esc = function(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); };
+    var escA = function(s){ return s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
+
+    var bubbleHtml = '<div class="pub-ai-bubble">' + esc(text);
+    if (photos && photos.length > 0) {
+      bubbleHtml += '<div class="pub-ai-photo-grid">';
+      photos.forEach(function(url, idx){
+        bubbleHtml += '<div class="pub-ai-photo-item" onclick="pubOpenLb(\'' + escA(url) + '\')">'
+          + '<img src="' + escA(url) + '" alt="Foto ' + (idx+1) + '" loading="lazy">'
+          + '<div class="pub-photo-label">📷 Foto ' + (idx+1) + '</div>'
+          + '</div>';
+      });
+      bubbleHtml += '</div>';
+    }
+    bubbleHtml += '</div>';
+
+    div.innerHTML = '<div class="pub-ai-avatar">' + av.substring(0,2) + '</div>' + bubbleHtml;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
+
+  window.pubOpenLb = function(url){ document.getElementById('pub-lb-img').src=url; document.getElementById('pub-ai-lightbox').classList.add('show'); };
+  window.pubCloseLb = function(){ document.getElementById('pub-ai-lightbox').classList.remove('show'); document.getElementById('pub-lb-img').src=''; };
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') pubCloseLb(); });
 
   function pubTyping(show){
     var existing = document.getElementById('pub-typing');
@@ -572,7 +607,8 @@
       var data = await res.json();
       pubTyping(false);
       var reply = data.reply || data.error || 'Tidak ada respons.';
-      pubAppend('bot', reply);
+      var photos = data.photos || [];
+      pubAppend('bot', reply, photos);
       pubHistory.push({role:'user',content:msg},{role:'assistant',content:reply});
       if(pubHistory.length > 20) pubHistory = pubHistory.slice(-20);
     } catch(e){

@@ -35,6 +35,8 @@
         /* STATUS BADGE */
         .b-pinjam  { background: #ede9fe; color: #5b21b6; padding: 1px 6px; border-radius: 3px; font-size: 7pt; font-weight: 700; }
         .b-kembali { background: #dcfce7; color: #15803d; padding: 1px 6px; border-radius: 3px; font-size: 7pt; font-weight: 700; }
+        .b-proses  { background: #fff7ed; color: #c2410c; padding: 1px 6px; border-radius: 3px; font-size: 7pt; font-weight: 700; }
+        .b-selesai { background: #f0fdf4; color: #15803d; padding: 1px 6px; border-radius: 3px; font-size: 7pt; font-weight: 700; }
 
         /* FOOTER */
         .doc-footer { margin-top: 30px; border-top: 1px solid #dde0ee; padding-top: 20px; display: flex; justify-content: space-between; }
@@ -75,6 +77,7 @@
     </div>
     <div class="doc-meta">
         <div>Tanggal Cetak: <strong><%= new Date().toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'}) %></strong></div>
+        <div>Divisi: <strong><%= typeof divisiLabel !== 'undefined' ? divisiLabel : 'Semua Divisi' %></strong></div>
         <div>Total Item: <strong><%= aset.length %> aset</strong></div>
         <div>Dibuat oleh: <strong>IT Support</strong></div>
     </div>
@@ -86,12 +89,14 @@
     var stokHabis = aset.filter(a => a.stok <= 0).length;
     var totalPinjamAktif = aset.reduce((s, a) => s + a.pinjaman.filter(p => p.status==='Dipinjam').reduce((ss, p) => ss+p.jumlah, 0), 0);
     var totalPenggunaan  = aset.reduce((s, a) => s + a.penggunaan.length, 0);
+    var totalServiceProses = aset.reduce((s, a) => s + (a.service ? a.service.filter(sv => sv.status !== 'Selesai').length : 0), 0);
 %>
 <div class="summary-row">
     <div class="sum-card"><div class="sum-val"><%= totalAset %></div><div class="sum-lbl">Total Aset</div></div>
     <div class="sum-card"><div class="sum-val" style="color:#b91c1c"><%= stokHabis %></div><div class="sum-lbl">Stok Habis</div></div>
     <div class="sum-card"><div class="sum-val" style="color:#5b21b6"><%= totalPinjamAktif %></div><div class="sum-lbl">Item Dipinjam</div></div>
     <div class="sum-card"><div class="sum-val" style="color:#1d4ed8"><%= totalPenggunaan %></div><div class="sum-lbl">Total Catatan Pakai</div></div>
+    <div class="sum-card"><div class="sum-val" style="color:#c2410c"><%= totalServiceProses %></div><div class="sum-lbl">Service Berjalan</div></div>
 </div>
 
 <!-- SECTION 1: MASTER STOK -->
@@ -218,6 +223,66 @@
             <td style="white-space:nowrap;color:#555;"><%= new Date(p.tanggalPinjam).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
             <td style="white-space:nowrap;color:#15803d;"><%= p.tanggalKembali ? new Date(p.tanggalKembali).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—' %></td>
             <td><span class="<%= p.status==='Dipinjam'?'b-pinjam':'b-kembali' %>"><%= p.status %></span></td>
+        </tr>
+        <% }) %>
+        </tbody>
+    </table>
+    <% } %>
+</div>
+
+<!-- SECTION 4: RIWAYAT SERVICE -->
+<div class="section pb">
+    <div class="section-title">D. Riwayat Service / Perbaikan Aset</div>
+    <%
+        var allService = [];
+        aset.forEach(function(item) {
+            if (item.service) {
+                item.service.forEach(function(sv) {
+                    allService.push({
+                        asetNama: item.nama,
+                        teknisi:  sv.teknisi,
+                        vendor:   sv.vendor,
+                        keluhan:  sv.keluhan,
+                        hasil:    sv.hasil,
+                        biaya:    sv.biaya,
+                        status:   sv.status,
+                        tanggal:  sv.tanggal,
+                        tanggalSelesai: sv.tanggalSelesai
+                    });
+                });
+            }
+        });
+        allService.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+    %>
+    <% if(allService.length === 0) { %>
+        <div style="padding:16px;color:#aaa;font-size:8.5pt;text-align:center;">Belum ada catatan service / perbaikan.</div>
+    <% } else { %>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:24px;">No</th>
+                <th>Nama Aset</th>
+                <th>Tanggal</th>
+                <th>Teknisi / Vendor</th>
+                <th>Keluhan</th>
+                <th>Hasil</th>
+                <th style="text-align:right;">Biaya (Rp)</th>
+                <th>Tgl Selesai</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% allService.forEach((sv, i) => { %>
+        <tr>
+            <td style="color:#aaa;text-align:center;"><%= i+1 %></td>
+            <td style="font-weight:600;"><%= sv.asetNama %></td>
+            <td style="white-space:nowrap;color:#555;"><%= new Date(sv.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+            <td><%= sv.teknisi %><%= sv.vendor ? ' / ' + sv.vendor : '' %></td>
+            <td style="color:#666;max-width:120px;"><%= sv.keluhan %></td>
+            <td style="color:#555;max-width:120px;"><%= sv.hasil || '—' %></td>
+            <td style="text-align:right;font-weight:600;color:<%= sv.biaya > 0 ? '#b45309' : '#aaa' %>"><%= sv.biaya > 0 ? sv.biaya.toLocaleString('id-ID') : '—' %></td>
+            <td style="white-space:nowrap;color:#15803d;"><%= sv.tanggalSelesai ? new Date(sv.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—' %></td>
+            <td><span class="<%= sv.status === 'Selesai' ? 'b-selesai' : 'b-proses' %>"><%= sv.status %></span></td>
         </tr>
         <% }) %>
         </tbody>

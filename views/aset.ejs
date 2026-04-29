@@ -210,7 +210,24 @@
               <button type="submit" class="s-btn s-btn-primary">Cari</button>
               <% if (q || kategori || divisi) { %><a href="/aset" class="s-btn">Reset</a><% } %>
             </form>
-            <a href="/aset/export-pdf" target="_blank" class="s-btn s-btn-export">⬇ Export PDF</a>
+            <a href="/aset/export-pdf<%= (typeof isAdmin !== 'undefined' && isAdmin) ? (divisi ? '?divisi=' + divisi : '') : '?divisi=' + (typeof userDivisi !== 'undefined' ? userDivisi : 'IT') %>" target="_blank" class="s-btn s-btn-export">⬇ Export PDF</a>
+            <% if (typeof userPerms !== 'undefined' && userPerms.canExport) { %>
+            <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+            <div style="position:relative;display:inline-block;" id="exportDropWrap">
+              <button class="s-btn s-btn-export" onclick="document.getElementById('exportDropMenu').classList.toggle('show')" type="button">⬇ Export Excel ▾</button>
+              <div id="exportDropMenu" style="display:none;position:absolute;right:0;top:110%;background:var(--body-card);border:1px solid var(--body-border);border-radius:8px;z-index:999;min-width:160px;padding:6px 0;box-shadow:0 4px 16px #0006;">
+                <a href="/export-aset" class="export-drop-item" style="display:block;padding:8px 14px;font-size:0.8rem;color:var(--body-text);text-decoration:none;white-space:nowrap;" onmouseover="this.style.background='var(--body-bg3)'" onmouseout="this.style.background=''">📦 Semua Divisi</a>
+                <% allDivisi.forEach(function(d) { %>
+                <a href="/export-aset?divisi=<%= d %>" class="export-drop-item" style="display:block;padding:8px 14px;font-size:0.8rem;color:var(--body-text);text-decoration:none;white-space:nowrap;" onmouseover="this.style.background='var(--body-bg3)'" onmouseout="this.style.background=''">📂 <%= d %></a>
+                <% }); %>
+              </div>
+            </div>
+            <script>document.addEventListener('click',function(e){var w=document.getElementById('exportDropWrap');if(w&&!w.contains(e.target)){var m=document.getElementById('exportDropMenu');if(m)m.classList.remove('show');}});</script>
+            <style>#exportDropMenu.show{display:block!important;}</style>
+            <% } else { %>
+            <a href="/export-aset" class="s-btn s-btn-export">⬇ Export Excel</a>
+            <% } %>
+            <% } %>
           </div>
         </div>
 
