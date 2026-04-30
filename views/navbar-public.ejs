@@ -1,621 +1,94 @@
 <style>
-  /* ===== GLOBAL THEME VARS ===== */
-  :root {
-    --nav-bg: #ffffff; --nav-border: rgba(0,0,0,0.08);
-    --nav-text: #111827; --nav-text2: #6b7280;
-    --nav-hover-bg: #f9fafb; --nav-active-bg: #f3f4f6;
-    --body-bg: #f9fafb; --body-bg2: #ffffff; --body-bg3: #f3f4f6;
-    --body-text: #111827; --body-text2: #6b7280; --body-text3: #9ca3af;
-    --body-border: rgba(0,0,0,0.08); --body-border2: rgba(0,0,0,0.14);
-    --body-card: #ffffff; --body-input: #f9fafb;
-    --body-input-border: rgba(0,0,0,0.1); --body-input-focus: #6366f1;
-    --body-accent: #16a34a; --body-accent-bg: #dcfce7;
-    --body-table-row: #ffffff; --body-table-row-alt: #f9fafb;
-    --body-table-text: #111827; --body-table-border: rgba(0,0,0,0.07);
-    --body-table-head: #f9fafb; --body-table-head-text: #374151;
-  }
-  [data-theme="dark"] {
-    --nav-bg: #0f1117; --nav-border: rgba(255,255,255,0.07);
-    --nav-text: #f1f5f9; --nav-text2: #94a3b8;
-    --nav-hover-bg: #1e2130; --nav-active-bg: #1a1d2e;
-    --body-bg: #080a10; --body-bg2: #0f1117; --body-bg3: #13161f;
-    --body-text: #e2e8f0; --body-text2: #8b8fa8; --body-text3: #3b4263;
-    --body-border: rgba(255,255,255,0.07); --body-border2: rgba(255,255,255,0.12);
-    --body-card: #0f1117; --body-input: #080a10;
-    --body-input-border: rgba(255,255,255,0.08); --body-input-focus: #818cf8;
-    --body-accent: #4ade80; --body-accent-bg: #0d2a18;
-    --body-table-row: #ffffff; --body-table-row-alt: #f4f4f4;
-    --body-table-text: #000000; --body-table-border: #dddddd;
-    --body-table-head: #1f242b; --body-table-head-text: #ffffff;
-  }
-  body {
-    background-color: var(--body-bg) !important;
-    color: var(--body-text) !important;
-    transition: background-color 0.2s, color 0.2s;
-  }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', sans-serif; margin: 0; transition: background 0.2s, color 0.2s; }
+        .page-wrap { max-width: 1300px; margin: 0 auto; padding: 1.5rem; }
 
-  /* NAV */
-  .it-nav {
-    position: sticky; top: 0; z-index: 999;
-    background: var(--nav-bg);
-    border-bottom: 0.5px solid var(--nav-border);
-    height: 56px; display: flex; align-items: center;
-    padding: 0 24px; transition: background 0.2s, border-color 0.2s;
-  }
-  .it-nav-brand {
-    font-size: 13px; font-weight: 600; color: var(--nav-text);
-    letter-spacing: 0.03em; text-decoration: none;
-    margin-right: 28px; white-space: nowrap; flex-shrink: 0;
-  }
-  .it-nav-brand span { color: var(--body-accent); }
-  .it-nav-links { display: flex; align-items: center; gap: 2px; flex: 1; }
-  .it-nav-link {
-    display: flex; align-items: center; gap: 6px;
-    padding: 6px 12px; border-radius: 8px;
-    font-size: 13px; color: var(--nav-text2);
-    text-decoration: none; transition: background 0.12s, color 0.12s;
-    white-space: nowrap;
-  }
-  .it-nav-link:hover { background: var(--nav-hover-bg); color: var(--nav-text); }
-  .it-nav-link.active { background: var(--nav-active-bg); color: var(--nav-text); font-weight: 500; }
-  .it-nav-link svg { width: 14px; height: 14px; flex-shrink: 0; }
-  .it-nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
-  .it-nav-divider { width: 0.5px; height: 20px; background: var(--nav-border); margin: 0 2px; }
+        /* LOGIN PROMPT */
+        .login-prompt { background: var(--body-accent-bg); border: 0.5px solid var(--body-accent); border-radius: 10px; padding: 12px 16px; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .login-prompt-text { font-size: 13px; color: var(--body-accent); font-weight: 500; }
+        .login-prompt a { padding: 6px 14px; border-radius: 8px; background: var(--body-accent); color: var(--body-bg); font-size: 13px; font-weight: 600; text-decoration: none; }
+        .login-prompt a:hover { opacity: 0.88; }
 
-  /* THEME BTN */
-  .it-nav-theme {
-    display: flex; align-items: center; gap: 6px;
-    padding: 5px 10px; border-radius: 20px;
-    border: 0.5px solid var(--nav-border);
-    cursor: pointer; font-size: 12px; color: var(--nav-text2);
-    background: transparent; transition: border-color 0.12s, color 0.12s;
-  }
-  .it-nav-theme:hover { border-color: var(--body-border2); color: var(--nav-text); }
-  .t-track { width: 26px; height: 14px; background: var(--nav-border); border-radius: 7px; position: relative; flex-shrink: 0; }
-  .t-thumb { position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--nav-text2); transition: transform 0.2s, background 0.2s; }
-  [data-theme="light"] .t-track { background: #16a34a; }
-  [data-theme="light"] .t-thumb { transform: translateX(12px); background: #ffffff; }
+        /* PANEL */
+        .panel { background: var(--body-card); border: 0.5px solid var(--body-border); border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem; }
+        .panel-hd { padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--body-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .panel-title { font-size: 12px; font-weight: 600; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; }
 
-  /* LOGIN BTN */
-  .it-nav-login {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 14px; border-radius: 8px;
-    background: var(--body-accent-bg);
-    border: 0.5px solid var(--body-accent);
-    color: var(--body-accent);
-    font-size: 13px; font-weight: 600;
-    text-decoration: none; transition: all 0.12s;
-    white-space: nowrap;
-  }
-  .it-nav-login:hover { opacity: 0.85; }
-  .it-nav-login svg { width: 13px; height: 13px; }
+        /* SEARCH */
+        .search-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .s-input { background: var(--body-input); border: 0.5px solid var(--body-input-border); border-radius: 8px; color: var(--body-text); padding: 6px 10px; font-size: 13px; outline: none; }
+        .s-input:focus { border-color: var(--body-input-focus); }
+        .s-btn { padding: 6px 12px; border-radius: 8px; border: 0.5px solid var(--body-border); background: var(--body-bg3); color: var(--body-text2); font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; }
+        .s-btn:hover { color: var(--body-text); border-color: var(--body-border2); }
+        .s-btn-primary { background: var(--body-accent-bg); border-color: var(--body-accent); color: var(--body-accent); }
 
-  /* PUBLIC BADGE */
-  .it-nav-public-badge {
-    font-size: 11px; color: var(--body-text3);
-    padding: 3px 8px; border-radius: 20px;
-    border: 0.5px solid var(--nav-border);
-    white-space: nowrap;
-  }
+        /* STATS */
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 1px; background: var(--body-border); }
+        .stat-item { background: var(--body-card); padding: 1rem; text-align: center; }
+        .stat-val { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+        .stat-lbl { font-size: 11px; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 4px; font-weight: 600; }
 
-  /* HAMBURGER */
-  .it-nav-hamburger {
-    display: none; background: none;
-    border: 0.5px solid var(--nav-border);
-    border-radius: 8px; padding: 6px 9px;
-    color: var(--nav-text2); cursor: pointer; margin-left: auto;
-  }
-  .it-nav-hamburger:hover { color: var(--nav-text); }
-  .it-nav-mobile {
-    display: none; background: var(--nav-bg);
-    border-top: 0.5px solid var(--nav-border);
-    padding: 10px 16px 14px;
-  }
-  .it-nav-mobile.open { display: block; }
-  .it-nav-mobile a {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px; border-radius: 8px;
-    color: var(--nav-text2); font-size: 13px;
-    font-weight: 500; text-decoration: none;
-    margin-bottom: 2px; transition: background 0.12s, color 0.12s;
-  }
-  .it-nav-mobile a:hover, .it-nav-mobile a.active { background: var(--nav-active-bg); color: var(--nav-text); }
-  .it-nav-mobile a svg { width: 14px; height: 14px; }
-  .it-nav-mobile .m-sep { border: none; border-top: 0.5px solid var(--nav-border); margin: 8px 0; }
+        /* ASET TABLE */
+        .aset-table { width: 100%; border-collapse: collapse; }
+        .aset-table thead tr { background: var(--body-bg3); }
+        .aset-table th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 0.5px solid var(--body-border); white-space: nowrap; }
+        .aset-table tbody tr { border-bottom: 0.5px solid var(--body-border); transition: background 0.1s; }
+        .aset-table tbody tr:hover td { background: var(--body-bg3); }
+        .aset-table td { padding: 11px 14px; font-size: 13px; color: var(--body-text); vertical-align: middle; }
 
-  @media (max-width: 768px) {
-    .it-nav-links, .it-nav-right { display: none; }
-    .it-nav-hamburger { display: flex; align-items: center; }
-    .it-nav { padding: 0 16px; }
-  }
+        /* STOK BAR */
+        .stok-val { font-weight: 600; font-size: 14px; }
+        .stok-bar { width: 60px; height: 3px; background: var(--body-border); border-radius: 2px; margin-top: 4px; overflow: hidden; display: inline-block; }
+        .stok-fill { height: 100%; border-radius: 2px; }
 
-  /* EXPORT MODAL */
-  #exportModal {
-    display: none;
-    position: fixed; inset: 0; z-index: 9999;
-    background: rgba(0,0,0,0.5);
-    align-items: center; justify-content: center;
-    padding: 1rem;
-  }
-  .export-modal-box {
-    background: var(--body-card);
-    border: 0.5px solid var(--body-border);
-    border-radius: 16px;
-    padding: 1.75rem;
-    width: 100%; max-width: 380px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  }
-  .export-modal-title {
-    font-size: 15px; font-weight: 700;
-    color: var(--body-text); margin-bottom: 4px;
-  }
-  .export-modal-sub {
-    font-size: 12px; color: var(--body-text2); margin-bottom: 1.25rem;
-  }
-  .export-form-row { display: flex; gap: 10px; margin-bottom: 1rem; }
-  .export-form-row select {
-    flex: 1;
-    background: var(--body-input);
-    border: 0.5px solid var(--body-input-border);
-    border-radius: 8px;
-    color: var(--body-text);
-    padding: 8px 10px;
-    font-size: 13px;
-    outline: none;
-  }
-  .export-form-row select:focus { border-color: var(--body-input-focus); }
-  .export-modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; }
-  .btn-export-confirm {
-    flex: 1; padding: 9px 0; border-radius: 8px;
-    background: var(--body-accent); border: none;
-    color: var(--body-bg); font-size: 13px; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
-    transition: opacity 0.12s;
-  }
-  .btn-export-confirm:hover { opacity: 0.85; }
-  .btn-export-cancel {
-    padding: 9px 16px; border-radius: 8px;
-    background: transparent; border: 0.5px solid var(--body-border);
-    color: var(--body-text2); font-size: 13px; cursor: pointer;
-    transition: all 0.12s;
-  }
-  .btn-export-cancel:hover { border-color: var(--body-border2); color: var(--body-text); }
+        /* BADGES */
+        .badge-kondisi { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .k-baik    { background: #dcfce7; color: #15803d; }
+        .k-rusak   { background: #fee2e2; color: #dc2626; }
+        .k-service { background: #fef3c7; color: #d97706; }
+        .badge-pinjam { display: inline-block; background: #ede9fe; color: #6d28d9; border-radius: 4px; padding: 1px 7px; font-size: 11px; font-weight: 600; }
+
+        /* HISTORI TABLE */
+        .rw-table { width: 100%; border-collapse: collapse; }
+        .rw-table th { padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 0.5px solid var(--body-border); text-align: left; }
+        .rw-table td { padding: 9px 12px; font-size: 12px; color: var(--body-text); border-bottom: 0.5px solid var(--body-bg3); vertical-align: middle; }
+        .rw-table tr:last-child td { border-bottom: none; }
+
+        .bp-aktif   { display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600;background:#ede9fe;color:#6d28d9; }
+        .bp-kembali { display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600;background:#dcfce7;color:#15803d; }
+
+        /* ACCORDION */
+        .aset-row-detail { display: none; background: var(--body-bg3) !important; }
+        .aset-row-detail.show { display: table-row; }
+        .aset-row-detail td { padding: 0 !important; }
+        .detail-inner { padding: 1rem 1.25rem; }
+        .detail-tabs { display: flex; gap: 6px; margin-bottom: 1rem; }
+        .detail-tab { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--body-border); background: var(--body-card); color: var(--body-text2); }
+        .detail-tab.active { background: var(--body-accent-bg); border-color: var(--body-accent); color: var(--body-accent); }
+        .detail-tab-content { display: none; }
+        .detail-tab-content.active { display: block; }
+
+        .btn-toggle-detail { background: none; border: 0.5px solid var(--body-border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--body-text2); cursor: pointer; }
+        .btn-toggle-detail:hover { color: var(--body-text); border-color: var(--body-border2); }
+
+        .empty-row td { text-align: center; padding: 3rem; color: var(--body-text3); font-size: 13px; }
+
+        /* FOTO THUMBNAIL */
+        .aset-thumb { width:40px;height:40px;border-radius:6px;object-fit:cover;border:0.5px solid var(--body-border);cursor:pointer;transition:transform 0.15s; }
+        .aset-thumb:hover { transform:scale(1.12); }
+        .aset-no-thumb { width:40px;height:40px;border-radius:6px;background:var(--body-bg3);border:0.5px dashed var(--body-border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--body-text3); }
+        .rw-thumb { width:36px;height:36px;border-radius:5px;object-fit:cover;border:0.5px solid var(--body-border);cursor:pointer;transition:transform 0.15s; }
+        .rw-thumb:hover { transform:scale(1.12); }
+        .rw-no-thumb { width:36px;height:36px;border-radius:5px;background:var(--body-bg3);border:0.5px dashed var(--body-border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--body-text3); }
+        /* FOTO MODAL */
+        .foto-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px; }
+        .foto-overlay.show { display:flex; }
+        .foto-overlay img { max-width:92vw;max-height:85vh;border-radius:10px;object-fit:contain; }
+        .foto-overlay-caption { color:#fff;font-size:13px;opacity:0.8; }
+        .foto-overlay-close { position:absolute;top:16px;right:20px;color:#fff;font-size:28px;cursor:pointer;line-height:1;opacity:0.7; }
+        .foto-overlay-close:hover { opacity:1; }
+
+        @media (max-width: 768px) { .page-wrap { padding: 1rem; } }
 </style>
 
-<nav class="it-nav" id="mainNav">
-  <a href="/" class="it-nav-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
-
-  <div class="it-nav-links">
-    <a href="/" class="it-nav-link <%= activePage === 'home' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-      Home
-    </a>
-    <a href="/aset-public" class="it-nav-link <%= activePage === 'aset-public' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
-      Inventaris Aset
-    </a>
-    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-    <a href="/kerja" class="it-nav-link">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
-      Dashboard
-    </a>
-    <% } %>
-  </div>
-
-  <div class="it-nav-right">
-    <% if (typeof currentUser === 'undefined' || !currentUser) { %>
-      <span class="it-nav-public-badge">👁 Public View</span>
-    <% } %>
-
-    <button class="it-nav-theme" onclick="toggleTheme()" id="navThemeBtn">
-      <div class="t-track"><div class="t-thumb" id="navThumb"></div></div>
-      <span id="navThemeLabel">Light</span>
-    </button>
-
-    <div class="it-nav-divider"></div>
-
-    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-      <%
-        var initials = currentUser.nama
-          ? currentUser.nama.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase()
-          : currentUser.username.slice(0,2).toUpperCase();
-        var roleClass = currentUser.role === 'admin' ? 'role-admin'
-                      : currentUser.role === 'user'   ? 'role-user'
-                      : currentUser.role === 'viewer' ? 'role-viewer'
-                      : 'role-custom';
-      %>
-      <div class="it-nav-user" style="display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;border-radius:24px;border:0.5px solid var(--nav-border);">
-        <div class="it-nav-avatar" style="width:28px;height:28px;border-radius:50%;background:var(--body-accent-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--body-accent);"><%= initials %></div>
-        <span style="font-size:13px;font-weight:500;color:var(--nav-text);"><%= currentUser.nama || currentUser.username %></span>
-        <span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;" class="<%= roleClass %>"><%= currentUser.role.toUpperCase() %></span>
-      </div>
-      <% if (typeof userPerms !== 'undefined' && userPerms && userPerms.canExport) { %>
-      <button onclick="openExportModal()" class="it-nav-login" style="border:none;cursor:pointer;">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
-        Export Excel
-      </button>
-      <% } %>
-      <a href="/logout" style="padding:5px 12px;border-radius:8px;border:0.5px solid var(--nav-border);font-size:12px;font-weight:500;color:var(--nav-text2);text-decoration:none;display:inline-flex;align-items:center;">Keluar</a>
-    <% } else { %>
-      <a href="/login" class="it-nav-login">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H3m0 0l2.5-2.5M3 8l2.5 2.5"/><path d="M7 5V3a1 1 0 011-1h4a1 1 0 011 1v10a1 1 0 01-1 1H8a1 1 0 01-1-1v-2"/></svg>
-        Login
-      </a>
-    <% } %>
-  </div>
-
-  <button class="it-nav-hamburger" onclick="toggleMobileNav()">
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>
-    </svg>
-  </button>
-</nav>
-
-<div class="it-nav-mobile" id="mobileNav">
-  <a href="/" class="<%= activePage === 'home' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-    Home
-  </a>
-  <a href="/aset-public" class="<%= activePage === 'aset-public' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
-    Aset IT
-  </a>
-  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-  <a href="/kerja">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
-    Dashboard
-  </a>
-  <% } %>
-  <hr class="m-sep">
-  <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;color:var(--nav-text2);">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--body-accent-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--body-accent);"><%= initials %></div>
-      <span style="font-size:13px;font-weight:500;color:var(--nav-text);"><%= currentUser.nama || currentUser.username %></span>
-    </div>
-    <% if (typeof userPerms !== 'undefined' && userPerms && userPerms.canExport) { %>
-    <a href="#" onclick="openExportModal();document.getElementById('mobileNav').classList.remove('open');return false;" style="color:var(--body-accent) !important;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
-      Export Excel
-    </a>
-    <% } %>
-    <a href="/logout" style="color:#dc2626 !important;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h7m0 0l-2.5-2.5M13 8l-2.5 2.5"/><path d="M9 5V3a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h4a1 1 0 001-1v-2"/></svg>
-      Keluar
-    </a>
-  <% } else { %>
-    <a href="/login" style="color:var(--body-accent) !important;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H3m0 0l2.5-2.5M3 8l2.5 2.5"/><path d="M7 5V3a1 1 0 011-1h4a1 1 0 011 1v10a1 1 0 01-1 1H8a1 1 0 01-1-1v-2"/></svg>
-      Login ke Dashboard
-    </a>
-  <% } %>
-</div>
-
-
-<!-- EXPORT MODAL -->
-<div id="exportModal">
-  <div class="export-modal-box">
-
-    <!-- MODE: LOG (muncul kalau di halaman Home) -->
-    <div id="exportModeLog">
-      <div class="export-modal-title">📊 Export Log IT ke Excel</div>
-      <div class="export-modal-sub">Pilih bulan dan tahun untuk tim audit.</div>
-      <div class="export-form-row">
-        <select id="exportMonth">
-          <option value="1">Januari</option>
-          <option value="2">Februari</option>
-          <option value="3">Maret</option>
-          <option value="4">April</option>
-          <option value="5">Mei</option>
-          <option value="6">Juni</option>
-          <option value="7">Juli</option>
-          <option value="8">Agustus</option>
-          <option value="9">September</option>
-          <option value="10">Oktober</option>
-          <option value="11">November</option>
-          <option value="12">Desember</option>
-        </select>
-        <select id="exportYear"></select>
-      </div>
-      <div class="export-modal-actions">
-        <button class="btn-export-confirm" onclick="doExportLog()">
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
-          Download Excel
-        </button>
-        <button class="btn-export-cancel" onclick="document.getElementById('exportModal').style.display='none'">Batal</button>
-      </div>
-    </div>
-
-    <!-- MODE: ASET (muncul kalau di halaman Aset) -->
-    <div id="exportModeAset" style="display:none;">
-      <div class="export-modal-title">🗂 Export Data Aset IT ke Excel</div>
-      <div class="export-modal-sub">Akan mengunduh seluruh data aset IT saat ini.</div>
-      <div style="padding:12px;background:var(--body-bg);border-radius:8px;margin-bottom:1rem;font-size:12px;color:var(--body-text2);">
-        📋 Berisi: Nama Aset, Kategori, Satuan, Stok, Kondisi, Jumlah Dipakai, Keterangan
-      </div>
-      <div class="export-modal-actions">
-        <button class="btn-export-confirm" onclick="doExportAset()">
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8m0 0l-3-3m3 3l3-3"/><path d="M3 12h10"/></svg>
-          Download Excel
-        </button>
-        <button class="btn-export-cancel" onclick="document.getElementById('exportModal').style.display='none'">Batal</button>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-(function() {
-  // Isi dropdown tahun
-  var now = new Date();
-  var curMonth = now.getMonth() + 1;
-  var curYear  = now.getFullYear();
-  var sel = document.getElementById('exportYear');
-  for (var y = curYear; y >= curYear - 5; y--) {
-    var opt = document.createElement('option');
-    opt.value = y; opt.textContent = y;
-    sel.appendChild(opt);
-  }
-  document.getElementById('exportMonth').value = curMonth;
-
-  // Deteksi halaman aktif lewat activePage yang di-render EJS
-  var isAsetPage = '<%= typeof activePage !== "undefined" && activePage === "aset-public" %>' === 'true';
-
-  // Buka modal: tampilkan mode yang sesuai
-  window.openExportModal = function() {
-    document.getElementById('exportModeLog').style.display  = isAsetPage ? 'none'  : 'block';
-    document.getElementById('exportModeAset').style.display = isAsetPage ? 'block' : 'none';
-    document.getElementById('exportModal').style.display = 'flex';
-  };
-
-  window.doExportLog = function() {
-    var m = document.getElementById('exportMonth').value;
-    var y = document.getElementById('exportYear').value;
-    document.getElementById('exportModal').style.display = 'none';
-    window.location.href = '/export?month=' + m + '&year=' + y;
-  };
-
-  window.doExportAset = function() {
-    document.getElementById('exportModal').style.display = 'none';
-    window.location.href = '/export-aset';
-  };
-
-  // Tutup modal kalau klik di luar box
-  document.getElementById('exportModal').addEventListener('click', function(e) {
-    if (e.target === this) this.style.display = 'none';
-  });
-})();
-</script>
-
-<script>
-(function() {
-  function getTheme() { return localStorage.getItem('itlog-theme') || 'dark'; }
-  function applyTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('itlog-theme', t);
-    var lbl   = document.getElementById('navThemeLabel');
-    var thumb = document.getElementById('navThumb');
-    if (lbl)   lbl.textContent = t === 'dark' ? 'Light' : 'Dark';
-    if (thumb) {
-      thumb.style.transform  = t === 'light' ? 'translateX(12px)' : '';
-      thumb.style.background = t === 'light' ? '#ffffff' : '';
-    }
-  }
-  window.toggleTheme = function() { applyTheme(getTheme() === 'dark' ? 'light' : 'dark'); };
-  window.toggleMobileNav = function() {
-    var el = document.getElementById('mobileNav');
-    if (el) el.classList.toggle('open');
-  };
-  applyTheme(getTheme());
-})();
-</script>
-
-<!-- ============================================================ -->
-<!-- RSBY-AI PUBLIC CHATBOT                                        -->
-<!-- ============================================================ -->
-<style>
-  #pub-ai-fab {
-    position: fixed; bottom: 24px; right: 24px;
-    width: 52px; height: 52px; border-radius: 50%;
-    background: linear-gradient(135deg,#6366f1,#8b5cf6);
-    color:#fff; border:none; cursor:pointer;
-    box-shadow: 0 4px 18px rgba(99,102,241,0.45);
-    display:flex; align-items:center; justify-content:center;
-    z-index:9998; transition:transform 0.2s,box-shadow 0.2s;
-  }
-  #pub-ai-fab:hover { transform:scale(1.08); box-shadow:0 6px 24px rgba(99,102,241,0.55); }
-  #pub-ai-panel {
-    position:fixed; bottom:88px; right:24px; width:360px; max-height:520px;
-    background:var(--body-card,#fff);
-    border:1px solid var(--body-border,rgba(0,0,0,0.1));
-    border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,0.18);
-    display:none; flex-direction:column; z-index:9999; overflow:hidden;
-  }
-  #pub-ai-panel.open { display:flex; }
-  .pub-ai-header {
-    display:flex; align-items:center; gap:10px; padding:14px 16px;
-    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff;
-    border-radius:16px 16px 0 0; flex-shrink:0;
-  }
-  .pub-ai-header-icon { width:34px;height:34px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
-  .pub-ai-header-close { margin-left:auto;background:none;border:none;color:#fff;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;opacity:0.8; }
-  .pub-ai-header-close:hover { opacity:1;background:rgba(255,255,255,0.15); }
-  #pub-ai-messages { flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth; }
-  #pub-ai-messages::-webkit-scrollbar { width:4px; }
-  #pub-ai-messages::-webkit-scrollbar-thumb { background:var(--body-border2,#ccc);border-radius:4px; }
-  .pub-ai-msg { display:flex;gap:8px;align-items:flex-start;animation:pubMsgIn 0.2s ease; }
-  @keyframes pubMsgIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
-  .pub-ai-msg.user { flex-direction:row-reverse; }
-  .pub-ai-bubble { max-width:80%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.55;word-break:break-word;white-space:pre-wrap; }
-  .pub-ai-msg.bot .pub-ai-bubble { background:var(--body-bg3,#f3f4f6);color:var(--body-text,#111827);border-radius:4px 14px 14px 14px; }
-  .pub-ai-msg.user .pub-ai-bubble { background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:14px 4px 14px 14px; }
-  .pub-ai-avatar { width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0; }
-  .pub-ai-msg.bot .pub-ai-avatar { background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff; }
-  .pub-ai-msg.user .pub-ai-avatar { background:var(--body-bg3,#e5e7eb);color:var(--body-text,#374151); }
-  .pub-ai-typing .pub-ai-bubble { display:flex;gap:4px;align-items:center;padding:12px 16px; }
-  .pub-ai-typing .dot { width:7px;height:7px;border-radius:50%;background:var(--body-text2,#6b7280);animation:typDot 1.2s infinite; }
-  .pub-ai-typing .dot:nth-child(2){animation-delay:0.2s}.pub-ai-typing .dot:nth-child(3){animation-delay:0.4s}
-  @keyframes typDot{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-5px);opacity:1}}
-  .pub-ai-quick { display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;flex-shrink:0; }
-  .pub-ai-quick-btn { font-size:11px;padding:5px 10px;border:1px solid var(--body-border2,rgba(0,0,0,0.14));background:var(--body-bg,#f9fafb);color:var(--body-text2,#6b7280);border-radius:20px;cursor:pointer;transition:all 0.15s;white-space:nowrap; }
-  .pub-ai-quick-btn:hover { background:#6366f1;color:#fff;border-color:#6366f1; }
-  .pub-ai-input-area { display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;border-top:1px solid var(--body-border,rgba(0,0,0,0.08));flex-shrink:0;background:var(--body-card,#fff); }
-  #pub-ai-input { flex:1;border:1px solid var(--body-input-border,rgba(0,0,0,0.12));background:var(--body-input,#f9fafb);color:var(--body-text,#111827);border-radius:10px;padding:9px 12px;font-size:13px;resize:none;outline:none;max-height:100px;min-height:38px;font-family:inherit;line-height:1.4;transition:border-color 0.15s; }
-  #pub-ai-input:focus { border-color:#6366f1; }
-  #pub-ai-send { width:38px;height:38px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;transition:opacity 0.15s; }
-  #pub-ai-send:disabled { opacity:0.5;cursor:not-allowed; }
-  @media(max-width:480px){#pub-ai-panel{width:calc(100vw - 24px);right:12px;bottom:80px;}#pub-ai-fab{right:16px;bottom:16px;}}
-  .pub-ai-photo-grid { display:flex;flex-wrap:wrap;gap:6px;margin-top:8px; }
-  .pub-ai-photo-item { position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(0,0,0,0.1);cursor:pointer;transition:transform 0.15s; }
-  .pub-ai-photo-item:hover { transform:scale(1.03); }
-  .pub-ai-photo-item img { width:110px;height:80px;object-fit:cover;display:block; }
-  .pub-ai-photo-item .pub-photo-label { position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);color:#fff;font-size:9px;padding:2px 5px;text-align:center; }
-  #pub-ai-lightbox { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;align-items:center;justify-content:center; }
-  #pub-ai-lightbox.show { display:flex; }
-  #pub-ai-lightbox img { max-width:90vw;max-height:80vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,0.6); }
-  #pub-lb-close { position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.12);border:none;color:#fff;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center; }
-  #pub-lb-close:hover { background:rgba(255,255,255,0.25); }
-</style>
-
-<div id="pub-ai-lightbox" onclick="pubCloseLb()">
-  <button id="pub-lb-close" onclick="pubCloseLb()">✕</button>
-  <img id="pub-lb-img" src="" alt="Foto Aset">
-</div>
-
-<button id="pub-ai-fab" onclick="pubToggleAi()" title="Tanya RSBY-AI">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/>
-    <circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/>
-    <circle cx="12" cy="7" r="1" fill="currentColor" stroke="none"/>
-    <circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/>
-  </svg>
-</button>
-
-<div id="pub-ai-panel">
-  <div class="pub-ai-header">
-    <div class="pub-ai-header-icon">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-    </div>
-    <div>
-      <div style="font-weight:700;font-size:14px;">RSBY-AI Assistant</div>
-      <div style="font-size:11px;opacity:0.8;">Powered by Gemini · IT Support</div>
-    </div>
-    <button class="pub-ai-header-close" onclick="pubToggleAi()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
-  </div>
-
-  <div id="pub-ai-messages">
-    <div class="pub-ai-msg bot">
-      <div class="pub-ai-avatar">AI</div>
-      <div class="pub-ai-bubble">Halo! Saya <strong>RSBY-AI</strong> 👋<br>Tanya saya seputar log IT, status tiket, atau troubleshooting!</div>
-    </div>
-  </div>
-
-  <div class="pub-ai-quick" id="pubAiQuick">
-    <button class="pub-ai-quick-btn" onclick="pubSendQuick('Tiket IT apa saja yang pending?')">📋 Tiket pending</button>
-    <button class="pub-ai-quick-btn" onclick="pubSendQuick('Aset IT apa yang tersedia dan stoknya berapa?')">🖥️ Stok aset</button>
-    <button class="pub-ai-quick-btn" onclick="pubSendQuick('Aset apa yang sedang dipinjam sekarang?')">🔄 Aset dipinjam</button>
-    <button class="pub-ai-quick-btn" onclick="pubSendQuick('Tips komputer lemot?')">💡 Tips IT</button>
-  </div>
-
-  <div class="pub-ai-input-area">
-    <textarea id="pub-ai-input" placeholder="Tanya sesuatu..." rows="1"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();pubSendMsg();}"
-      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
-    <button id="pub-ai-send" onclick="pubSendMsg()">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
-    </button>
-  </div>
-</div>
-
-<script>
-(function(){
-  var pubHistory = [];
-  var pubOpen = false;
-
-  window.pubToggleAi = function(){
-    pubOpen = !pubOpen;
-    document.getElementById('pub-ai-panel').classList.toggle('open', pubOpen);
-    if(pubOpen) document.getElementById('pub-ai-input').focus();
-  };
-
-  window.pubSendQuick = function(msg){
-    document.getElementById('pub-ai-input').value = msg;
-    document.getElementById('pubAiQuick').style.display = 'none';
-    pubSendMsg();
-  };
-
-  function pubAppend(role, text, photos){
-    var msgs = document.getElementById('pub-ai-messages');
-    var div = document.createElement('div');
-    div.className = 'pub-ai-msg ' + role;
-    var av = role === 'bot' ? 'AI' : 'Anda';
-    var esc = function(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); };
-    var escA = function(s){ return s.replace(/"/g,'&quot;').replace(/'/g,'&#39;'); };
-
-    var bubbleHtml = '<div class="pub-ai-bubble">' + esc(text);
-    if (photos && photos.length > 0) {
-      bubbleHtml += '<div class="pub-ai-photo-grid">';
-      photos.forEach(function(url, idx){
-        bubbleHtml += '<div class="pub-ai-photo-item" onclick="pubOpenLb(\'' + escA(url) + '\')">'
-          + '<img src="' + escA(url) + '" alt="Foto ' + (idx+1) + '" loading="lazy"'
-          + ' onerror="this.closest(\'.pub-ai-photo-item\').style.display=\'none\'">'
-          + '<div class="pub-photo-label">📷 Foto ' + (idx+1) + '</div>'
-          + '</div>';
-      });
-      bubbleHtml += '</div>';
-    }
-    bubbleHtml += '</div>';
-
-    div.innerHTML = '<div class="pub-ai-avatar">' + av.substring(0,2) + '</div>' + bubbleHtml;
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  window.pubOpenLb = function(url){ document.getElementById('pub-lb-img').src=url; document.getElementById('pub-ai-lightbox').classList.add('show'); };
-  window.pubCloseLb = function(){ document.getElementById('pub-ai-lightbox').classList.remove('show'); document.getElementById('pub-lb-img').src=''; };
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape') pubCloseLb(); });
-
-  function pubTyping(show){
-    var existing = document.getElementById('pub-typing');
-    if(show && !existing){
-      var msgs = document.getElementById('pub-ai-messages');
-      var div = document.createElement('div');
-      div.id = 'pub-typing';
-      div.className = 'pub-ai-msg bot pub-ai-typing';
-      div.innerHTML = '<div class="pub-ai-avatar">AI</div><div class="pub-ai-bubble"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
-      msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-    } else if(!show && existing){ existing.remove(); }
-  }
-
-  window.pubSendMsg = async function(){
-    var input = document.getElementById('pub-ai-input');
-    var msg = input.value.trim();
-    if(!msg) return;
-    var btn = document.getElementById('pub-ai-send');
-    input.value = ''; input.style.height = 'auto';
-    btn.disabled = true;
-    pubAppend('user', msg);
-    pubTyping(true);
-    document.getElementById('pubAiQuick').style.display = 'none';
-    try {
-      var res = await fetch('/api/ai-chat-public',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({message:msg, history:pubHistory})
-      });
-      var data = await res.json();
-      pubTyping(false);
-      var reply = data.reply || data.error || 'Tidak ada respons.';
-      var photos = data.photos || [];
-      pubAppend('bot', reply, photos);
-      pubHistory.push({role:'user',content:msg},{role:'assistant',content:reply});
-      if(pubHistory.length > 20) pubHistory = pubHistory.slice(-20);
-    } catch(e){
-      pubTyping(false);
-      pubAppend('bot','⚠️ Gagal koneksi ke AI.');
-    } finally { btn.disabled=false; input.focus(); }
-  };
-})();
-</script>
+<%- include('navbar', {activePage: activePage || 'aset-public'}) %>

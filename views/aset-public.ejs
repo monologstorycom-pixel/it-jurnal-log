@@ -109,26 +109,21 @@
     <!-- LOGIN PROMPT / KELOLA PROMPT -->
     <% if (typeof currentUser !== 'undefined' && currentUser) { %>
     <div class="login-prompt" style="background:var(--body-bg3);border-color:var(--body-border);">
-        <span class="login-prompt-text" style="color:var(--body-text2);">👋 Halo <strong style="color:var(--body-text);"><%= currentUser.nama || currentUser.username %></strong> — kelola data aset IT di dashboard.</span>
+        <span class="login-prompt-text" style="color:var(--body-text2);">👋 Halo <strong style="color:var(--body-text);"><%= currentUser.nama || currentUser.username %></strong> — melihat aset divisi <strong style="color:var(--body-accent);"><%= typeof divisiLabel !== 'undefined' ? divisiLabel : divisi %></strong></span>
         <a href="/aset" style="background:var(--body-accent);color:var(--body-bg);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:13px;font-weight:600;">🗂 Kelola Aset</a>
     </div>
     <% } else { %>
     <div class="login-prompt">
-        <span class="login-prompt-text">🔐 Ingin mengelola aset? Login sebagai tim IT.</span>
-        <a href="/login">Login ke Dashboard</a>
+        <span class="login-prompt-text">🔐 Ingin melihat aset divisi Anda? Login terlebih dahulu.</span>
+        <a href="/login">Login</a>
     </div>
     <% } %>
 
-    <!-- DIVISI TABS -->
-    <% if (typeof allDivisi !== 'undefined' && allDivisi.length > 1) { %>
+    <!-- DIVISI TABS — hanya untuk admin/audit/IT yang bisa lihat semua -->
+    <% if (typeof seeAll !== 'undefined' && seeAll && typeof allDivisi !== 'undefined' && allDivisi.length > 1) { %>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;">
-      <a href="/aset-public<%= q || kategori ? '?q='+q+'&kategori='+kategori : '' %>"
-         style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;border:1px solid;transition:all 0.15s;
-         <%= divisi === '' ? 'background:var(--body-accent);color:var(--body-bg);border-color:var(--body-accent);' : 'background:var(--body-bg);color:var(--body-text2);border-color:var(--body-border2);' %>">
-        Semua Divisi
-      </a>
       <% allDivisi.forEach(function(d) { %>
-      <a href="/aset-public?divisi=<%= d %><%= q ? '&q='+q : '' %><%= kategori ? '&kategori='+kategori : '' %>"
+      <a href="/aset-public/<%= encodeURIComponent(d) %><%= q ? '?q='+q : '' %><%= kategori ? (q?'&':'?')+'kategori='+kategori : '' %>"
          style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;border:1px solid;transition:all 0.15s;
          <%= divisi === d ? 'background:var(--body-accent);color:var(--body-bg);border-color:var(--body-accent);' : 'background:var(--body-bg);color:var(--body-text2);border-color:var(--body-border2);' %>">
         📦 <%= d %>
@@ -141,7 +136,7 @@
     <div class="panel">
         <div class="panel-hd">
             <div>
-                <div class="panel-title">Inventaris Aset <%= divisi ? divisi : 'Semua Divisi' %></div>
+                <div class="panel-title">Inventaris Aset <%= typeof divisiLabel !== 'undefined' ? divisiLabel : divisi %></div>
                 <div style="font-size:12px;color:var(--body-text3);margin-top:2px;"><%= aset.length %> item terdaftar</div>
             </div>
             <div class="search-row">
@@ -243,6 +238,9 @@
                                     <div class="detail-tab" id="tab-pinjam-<%= item.id %>" onclick="switchTab(<%= item.id %>,'pinjam')">
                                         Daftar Pinjam (<%= item.pinjaman.length %>)
                                     </div>
+                                    <div class="detail-tab" id="tab-servis-<%= item.id %>" onclick="switchTab(<%= item.id %>,'servis')">
+                                        Histori Servis (<%= item.service ? item.service.length : 0 %>)
+                                    </div>
                                 </div>
 
                                 <!-- HISTORI PAKAI -->
@@ -314,6 +312,38 @@
                                     </div>
                                     <% } %>
                                 </div>
+
+                                <!-- HISTORI SERVIS -->
+                                <div class="detail-tab-content" id="content-servis-<%= item.id %>">
+                                    <% if(!item.service || item.service.length === 0) { %>
+                                        <div style="color:var(--body-text3);font-size:13px;padding:1rem 0;">Belum ada catatan servis.</div>
+                                    <% } else { %>
+                                    <div style="overflow-x:auto;">
+                                        <table class="rw-table">
+                                            <thead><tr><th>Foto</th><th>Tanggal</th><th>Teknisi</th><th>Vendor</th><th>Keluhan</th><th>Hasil</th><th>Status</th></tr></thead>
+                                            <tbody>
+                                            <% item.service.forEach(function(sv) { %>
+                                            <tr>
+                                                <td style="width:48px;">
+                                                    <% if(sv.fotoUrl){ %>
+                                                        <img src="<%= sv.fotoUrl %>" class="rw-thumb" alt="foto">
+                                                    <% } else { %>
+                                                        <div class="rw-no-thumb">🔧</div>
+                                                    <% } %>
+                                                </td>
+                                                <td style="white-space:nowrap;color:var(--body-text2)"><%= new Date(sv.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
+                                                <td style="font-weight:600;"><%= sv.teknisi %></td>
+                                                <td style="color:var(--body-text2);font-size:12px;"><%= sv.vendor || '—' %></td>
+                                                <td style="color:var(--body-text3);font-size:12px;"><%= sv.keluhan %></td>
+                                                <td style="color:var(--body-text3);font-size:12px;"><%= sv.hasil || '—' %></td>
+                                                <td><span class="<%= sv.status === 'Selesai' ? 'bp-kembali' : 'k-service' %>"><%= sv.status %></span></td>
+                                            </tr>
+                                            <% }) %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <% } %>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -358,7 +388,7 @@ function toggleDetail(id) {
 }
 
 function switchTab(id, tab) {
-    ['pakai','pinjam'].forEach(function(t) {
+    ['pakai','pinjam','servis'].forEach(function(t) {
         document.getElementById('tab-' + t + '-' + id).classList.toggle('active', t === tab);
         document.getElementById('content-' + t + '-' + id).classList.toggle('active', t === tab);
     });

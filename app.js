@@ -46,7 +46,6 @@ function getUserPerms(user) {
     if (user.permissions) {
         try {
             const p = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
-            // Pastikan semua key ada (default false kalau tidak ada)
             return {
                 canView:    p.canView    === true,
                 canAdd:     p.canAdd     === true,
@@ -56,17 +55,25 @@ function getUserPerms(user) {
                 canExport:  p.canExport  === true,
                 canUsers:   p.canUsers   === true,
                 canViewLog: p.canViewLog === true,
+                canAudit:   p.canAudit   === true,
             };
         } catch(e) {}
     }
-    // User lama tanpa permissions field: semua false (aman)
-    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false };
+    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false };
 }
 
 function hasPerm(user, perm) {
     if (!user) return false;
     const perms = getUserPerms(user);
     return perms[perm] === true;
+}
+
+// User bisa lihat semua aset lintas divisi jika: admin ATAU canAudit
+function canSeeAllAset(user) {
+    if (!user) return false;
+    if (hasPerm(user, 'canUsers')) return true;   // admin
+    if (hasPerm(user, 'canAudit')) return true;   // audit checkbox
+    return false;
 }
 
 // ==========================================
@@ -347,8 +354,14 @@ app.get('/', async (req, res) => {
 // ==========================================
 app.get('/aset-public', async (req, res) => {
     try {
+        // Kalau sudah login, redirect ke halaman aset divisi mereka sendiri
+        if (req.session && req.session.user) {
+            const divisi = req.session.user.divisi || 'IT';
+            return res.redirect('/aset-public/' + encodeURIComponent(divisi));
+        }
+
+        // Belum login — tampil aset IT saja (seperti sebelumnya)
         const { q, kategori } = req.query;
-        // Public view — selalu hanya tampil aset divisi IT
         let where = { divisi: 'IT' };
         if (q) where.OR = [{ nama: { contains: q } }, { kategori: { contains: q } }];
         if (kategori && kategori !== '') where.kategori = kategori;
@@ -359,6 +372,7 @@ app.get('/aset-public', async (req, res) => {
             include: {
                 penggunaan: { orderBy: { tanggal: 'desc' }, take: 10 },
                 pinjaman:   { orderBy: { tanggalPinjam: 'desc' }, take: 10 },
+                service:    { orderBy: { tanggal: 'desc' }, take: 10 },
             }
         });
         const allKategori = await prisma.aset.findMany({
@@ -369,10 +383,63 @@ app.get('/aset-public', async (req, res) => {
         res.render('aset-public', {
             aset,
             allKategori: allKategori.map(k => k.kategori),
-            allDivisi: [], // tabs divisi tidak ditampilkan di public
+            allDivisi: [],
             q: q || '',
             kategori: kategori || '',
-            divisi: 'IT'
+            divisi: 'IT',
+            divisiLabel: 'IT'
+        });
+    } catch (error) { console.error(error); res.status(500).send('Error: ' + error.message); }
+});
+
+// Aset public per divisi — hanya bisa diakses user yang sudah login sesuai divisinya
+app.get('/aset-public/:divisi', requireLogin, async (req, res) => {
+    try {
+        const targetDivisi = decodeURIComponent(req.params.divisi).toUpperCase();
+        const userDivisi   = (req.session.user.divisi || 'IT').toUpperCase();
+        const seeAll       = canSeeAllAset(req.session.user);
+
+        // Hanya boleh akses divisi sendiri, kecuali admin/audit/IT
+        if (!seeAll && userDivisi !== targetDivisi) {
+            return res.status(403).render('403', { message: `Anda hanya bisa melihat aset divisi ${userDivisi}.` });
+        }
+
+        const { q, kategori } = req.query;
+        let where = { divisi: targetDivisi };
+        if (q) where.OR = [{ nama: { contains: q }, divisi: targetDivisi }, { kategori: { contains: q }, divisi: targetDivisi }];
+        if (kategori && kategori !== '') where.kategori = kategori;
+
+        const aset = await prisma.aset.findMany({
+            where,
+            orderBy: { nama: 'asc' },
+            include: {
+                penggunaan: { orderBy: { tanggal: 'desc' }, take: 10 },
+                pinjaman:   { orderBy: { tanggalPinjam: 'desc' }, take: 10 },
+                service:    { orderBy: { tanggal: 'desc' }, take: 10 },
+            }
+        });
+        const allKategori = await prisma.aset.findMany({
+            where: { divisi: targetDivisi },
+            select: { kategori: true },
+            distinct: ['kategori']
+        });
+
+        // Kalau admin/audit/IT → tampilkan juga list divisi lain untuk navigasi
+        let allDivisiList = [];
+        if (seeAll) {
+            const divisiRows = await prisma.aset.findMany({ select: { divisi: true }, distinct: ['divisi'], orderBy: { divisi: 'asc' } });
+            allDivisiList = divisiRows.map(d => d.divisi);
+        }
+
+        res.render('aset-public', {
+            aset,
+            allKategori: allKategori.map(k => k.kategori),
+            allDivisi:   allDivisiList,
+            q: q || '',
+            kategori: kategori || '',
+            divisi: targetDivisi,
+            divisiLabel: targetDivisi,
+            seeAll
         });
     } catch (error) { console.error(error); res.status(500).send('Error: ' + error.message); }
 });
@@ -726,10 +793,9 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
     next();
 }, async (req, res) => {
     try {
-        const isAdmin    = hasPerm(req.session.user, 'canUsers');
+        const seeAll     = canSeeAllAset(req.session.user);
         const userDivisi = req.session.user.divisi || 'IT';
-        // Super admin bisa pilih divisi via query ?divisi=HRGA, user biasa hanya divisinya sendiri
-        const targetDivisi = isAdmin ? (req.query.divisi || null) : userDivisi;
+        const targetDivisi = seeAll ? (req.query.divisi || null) : userDivisi;
 
         let whereClause = {};
         if (targetDivisi) whereClause.divisi = targetDivisi;
@@ -873,12 +939,12 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
             canExport:  req.body.canExport  === 'on',
             canUsers:   req.body.canUsers   === 'on',
             canViewLog: req.body.canViewLog === 'on',
+            canAudit:   req.body.canAudit   === 'on',
         };
 
         // role hanya label tampilan, tidak menentukan akses
-        const role = req.body.role || 'user';
+        const role   = req.body.role || 'user';
         const divisi = (req.body.divisi || 'IT').toString().trim().toUpperCase();
-
         const hashed = await bcrypt.hash(password, 10);
         await prisma.user.create({
             data: {
@@ -921,6 +987,7 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             canExport:  req.body.canExport  === 'on',
             canUsers:   req.body.canUsers   === 'on',
             canViewLog: req.body.canViewLog === 'on',
+            canAudit:   req.body.canAudit   === 'on',
         };
 
         // role hanya label tampilan, tidak menentukan akses
@@ -1173,64 +1240,69 @@ Pemesan: ${pemesan || '-'}`;
     }
 });
 
+// ==========================================
+// AI SCOPE HELPER — tentukan akses AI berdasarkan user/divisi
+// ==========================================
+function getAiScope(user) {
+    if (!user) {
+        return { role: 'public', canLog: false, canAsetAll: false, divisiFilter: null };
+    }
+
+    const isAdmin  = hasPerm(user, 'canUsers');
+    const isAudit  = hasPerm(user, 'canAudit');
+    const divisi   = (user.divisi || '').trim().toLowerCase();
+    const isIT     = divisi === 'it';
+
+    if (isAdmin) {
+        return { role: 'admin', canLog: true, canAsetAll: true, divisiFilter: null };
+    }
+    if (isAudit) {
+        // Audit: lihat semua aset semua divisi, tapi tidak bisa akses log IT
+        return { role: 'audit', canLog: false, canAsetAll: true, divisiFilter: null };
+    }
+    if (isIT) {
+        return { role: 'it', canLog: true, canAsetAll: false, divisiFilter: user.divisi };
+    }
+    return { role: 'user', canLog: false, canAsetAll: false, divisiFilter: user.divisi };
+}
+
 // Route: Public AI Chat (tanpa login)
 app.post('/api/ai-chat-public', async (req, res) => {
     try {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
 
-        const [recentLogs, asetResult] = await Promise.all([
-            prisma.journal.findMany({
-                orderBy: { tanggalManual: 'desc' },
-                take: 15,
-                select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, status: true }
-            }),
-            getAsetContext()
-        ]);
+        // Public scope: hanya info umum aset, tanpa log, tanpa foto, tanpa detail pinjaman/service
+        const { text: asetContext } = await getAsetContext();
 
-        const { text: asetContext, photoMap } = asetResult;
+        // Untuk public: strip baris yang mengandung detail sensitif
+        const publicContext = asetContext.split('\n').map(line => {
+            // Sembunyikan baris pinjaman, service, pemasangan detail, dan tag foto
+            if (/(SEDANG DIPINJAM|SEDANG SERVICE|Pinjaman aktif|Service berjalan|Pemasangan:|Riwayat pinjaman|Riwayat service|\[FOTO:)/i.test(line)) {
+                return null;
+            }
+            return line.replace(/\[FOTO:[^\]]+\]/g, ''); // hapus tag foto
+        }).filter(l => l !== null).join('\n');
 
-        const logContext = recentLogs.map(l =>
-            `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}`
-        ).join('\n');
+        const systemPrompt = `Kamu adalah AI asisten bernama "RSBY-AI" untuk sistem manajemen aset PT. Auri Steel Metalindo.
+Kamu diakses oleh pengguna PUBLIK (belum login).
 
-        const systemPrompt = `Kamu adalah AI asisten bernama "RSBY-AI" untuk sistem manajemen aset & IT Support Log PT. Auri Steel Metalindo.
-Kamu memiliki akses data aset SEMUA DIVISI (IT, HRGA, GA, Finance, Produksi, dll) beserta riwayat lengkapnya.
-Jawab dalam Bahasa Indonesia, singkat dan informatif. Jangan reveal data sensitif seperti password atau konfigurasi sistem.
+BATASAN KETAT untuk public:
+- Hanya boleh jawab info UMUM: nama aset, kategori, jumlah stok, kondisi per divisi
+- Jika ditanya detail (siapa yang pinjam, foto, lokasi pemasangan, riwayat service, nama orang): jawab singkat bahwa info detail hanya untuk pengguna yang sudah login, lalu sarankan login
+- Jangan sebutkan nama orang, vendor, atau detail transaksi apapun
+- Jangan tampilkan foto
+- Tetap ramah dan helpful dalam batas di atas
 
-PENTING — FORMAT RESPONS DENGAN FOTO:
-Jika pertanyaan menyebut foto/gambar/bukti/dokumentasi, ATAU jika jawaban kamu menyinggung data yang punya [FOTO:xxx], kamu WAJIB return JSON berikut:
-{"text":"jawaban teks kamu di sini","photos":["pasang-12","pinjam-5"]}
-ID foto diambil dari tag [FOTO:id] di data. Jika tidak ada foto relevan, return teks biasa (bukan JSON).
+Contoh respons yang benar untuk pertanyaan detail:
+"Info tersebut tersedia, tapi hanya bisa diakses oleh pengguna yang sudah login. Silakan login di https://log.rsby.my.id untuk melihat detail lengkapnya. 🔐"
 
-Kamu bisa menjawab pertanyaan seperti:
-- Aset divisi HRGA / GA / IT apa saja?
-- Switch dipasang di ruangan mana? Ada fotonya?
-- Siapa yang sedang meminjam aset Y? Ada bukti fotonya?
-- Aset mana yang sedang service? Di bengkel mana?
-
-=== DATA LOG IT TERBARU ===
-${logContext || 'Belum ada data.'}
-
-=== DATA ASET SEMUA DIVISI (dikelompokkan per divisi, termasuk pemasangan, pinjaman, dan service. Tag [FOTO:id] = ada dokumentasi foto) ===
-${asetContext}`;
+=== DATA ASET (ringkasan umum per divisi) ===
+${publicContext}`;
 
         const rawReply = await callGemini(systemPrompt, message, history || []);
+        res.json({ reply: rawReply.trim(), photos: [] });
 
-        // Parse apakah AI return JSON dengan foto
-        let replyText = rawReply.trim();
-        let photos = [];
-        try {
-            const jsonMatch = replyText.match(/\{[\s\S]*"text"[\s\S]*\}/);
-            if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
-                replyText = parsed.text || replyText;
-                const ids = parsed.photos || [];
-                photos = ids.map(id => photoMap[id]).filter(Boolean);
-            }
-        } catch(e) { /* bukan JSON, pakai teks biasa */ }
-
-        res.json({ reply: replyText, photos });
     } catch (err) {
         console.error('AI Public Chat error:', err);
         res.status(500).json({ error: '⚠️ ' + err.message });
@@ -1244,59 +1316,104 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
 
+        const user  = req.session.user;
+        const scope = getAiScope(user);
+
+        // Ambil data sesuai scope
         const [recentLogs, asetResult] = await Promise.all([
-            prisma.journal.findMany({
-                orderBy: { tanggalManual: 'desc' },
-                take: 20,
-                select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, deskripsi: true, status: true }
-            }),
+            // Log: hanya kalau scope boleh
+            scope.canLog
+                ? prisma.journal.findMany({
+                    orderBy: { tanggalManual: 'desc' },
+                    take: 20,
+                    select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, deskripsi: true, status: true }
+                  })
+                : Promise.resolve([]),
             getAsetContext()
         ]);
 
-        const { text: asetContext, photoMap } = asetResult;
+        const { text: asetContextFull, photoMap } = asetResult;
 
-        const logContext = recentLogs.map(l =>
-            `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}${l.deskripsi ? ' | ' + l.deskripsi.substring(0, 80) : ''}`
-        ).join('\n');
+        // Filter aset context sesuai divisi jika bukan admin/IT/audit
+        let asetContext = asetContextFull;
+        let filteredPhotoMap = photoMap;
+        if (!scope.canAsetAll && scope.divisiFilter) {
+            // Hanya tampilkan section divisi user sendiri
+            const sections = asetContextFull.split(/\n(?=--- DIVISI:)/);
+            const filtered = sections.filter(s =>
+                s.includes(`--- DIVISI: ${scope.divisiFilter.toUpperCase()}`) ||
+                s.startsWith('--- DIVISI: ' + scope.divisiFilter.toUpperCase())
+            );
+            asetContext = filtered.join('\n') || `Tidak ada data aset untuk divisi ${scope.divisiFilter}.`;
+
+            // Filter photoMap juga — hanya foto yang URL-nya masih ada di asetContext
+            filteredPhotoMap = {};
+            Object.entries(photoMap).forEach(([id, url]) => {
+                if (asetContext.includes(`[FOTO:${id}]`)) filteredPhotoMap[id] = url;
+            });
+        }
+
+        const logContext = recentLogs.length
+            ? recentLogs.map(l =>
+                `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}${l.deskripsi ? ' | ' + l.deskripsi.substring(0, 80) : ''}`
+              ).join('\n')
+            : null;
+
+        // Bangun system prompt sesuai scope
+        let scopeDesc = '';
+        let logSection = '';
+        let asetSection = '';
+
+        if (scope.role === 'admin') {
+            scopeDesc = `Kamu diakses oleh ADMINISTRATOR (${user.nama}). Kamu bisa membahas SEMUA hal: log IT, aset semua divisi, detail lengkap.`;
+        } else if (scope.role === 'audit') {
+            scopeDesc = `Kamu diakses oleh tim AUDIT (${user.nama}). Kamu bisa membahas semua log IT dan semua aset semua divisi untuk keperluan audit.`;
+        } else if (scope.role === 'it') {
+            scopeDesc = `Kamu diakses oleh staf IT (${user.nama}). Kamu bisa membahas log IT jurnal. Untuk data aset, kamu hanya bisa melihat aset divisi IT.\nJika ditanya aset divisi lain, tolak dengan sopan: "Maaf, informasi aset divisi lain di luar akses kamu. Hubungi Administrator untuk info lintas divisi. 🔒"`;
+        } else {
+            scopeDesc = `Kamu diakses oleh staf divisi ${user.divisi} (${user.nama}).
+BATASAN: Kamu HANYA boleh membahas aset milik divisi ${user.divisi}. 
+Jika ditanya tentang LOG IT jurnal atau aset divisi lain, tolak dengan sopan:
+"Maaf, informasi tersebut di luar akses divisi ${user.divisi}. Untuk info log IT atau aset divisi lain, silakan hubungi tim IT atau Administrator. 🔒"`;
+        }
+
+        if (logContext) {
+            logSection = `\n=== LOG JURNAL IT (20 tiket terbaru) ===\n${logContext}`;
+        }
+
+        asetSection = scope.canAsetAll
+            ? `\n=== DATA ASET SEMUA DIVISI (lengkap: stok, kondisi, pemasangan, pinjaman, service. Tag [FOTO:id] = ada foto) ===\n${asetContext}`
+            : `\n=== DATA ASET DIVISI ${(scope.divisiFilter||'').toUpperCase()} (lengkap: stok, kondisi, pemasangan, pinjaman, service. Tag [FOTO:id] = ada foto) ===\n${asetContext}`;
 
         const systemPrompt = `Kamu adalah AI asisten bernama "RSBY-AI" untuk sistem manajemen aset & IT Support Log PT. Auri Steel Metalindo.
-Kamu memiliki akses data aset SEMUA DIVISI (IT, HRGA, GA, Finance, Produksi, dll) beserta riwayat lengkap: pemasangan, pinjaman, service/perbaikan.
+${scopeDesc}
 Jawab dalam Bahasa Indonesia, singkat dan to the point. Maksimal 3-4 kalimat kecuali diminta detail.
 
-PENTING — FORMAT RESPONS DENGAN FOTO:
-Jika pertanyaan menyebut foto/gambar/bukti/dokumentasi, ATAU jika data yang relevan punya tag [FOTO:xxx], kamu WAJIB return format JSON berikut (tidak ada teks lain di luar JSON):
-{"text":"jawaban teks kamu","photos":["pasang-12","pinjam-5","service-3"]}
-ID foto diambil persis dari tag [FOTO:id] yang ada di data konteks. Boleh include semua foto yang relevan dengan pertanyaan.
-Jika tidak ada foto relevan atau tidak ditanya soal foto, return teks biasa saja (bukan JSON).
+FORMAT RESPONS DENGAN FOTO:
+Jika pertanyaan menyebut foto/gambar/bukti/dokumentasi ATAU data relevan punya tag [FOTO:xxx], return JSON:
+{"text":"jawaban kamu","photos":["pasang-12","service-3"]}
+ID foto diambil persis dari tag [FOTO:id] di konteks. Jika tidak ada foto relevan, return teks biasa.
+${logSection}${asetSection}
 
-=== DATA LOG IT TERBARU (20 tiket) ===
-${logContext || 'Belum ada data log.'}
-
-=== DATA ASET SEMUA DIVISI (per divisi, lengkap. Tag [FOTO:id] = ada foto dokumentasi yang bisa ditampilkan) ===
-${asetContext}
-
-Panduan menjawab:
-- Bisa jawab pertanyaan aset divisi manapun
-- Untuk aset SERVICE: sebutkan keluhan, teknisi/vendor, tanggal mulai, status
-- Untuk aset DIPINJAM: sebutkan peminjam, divisi, tanggal pinjam, keperluan
-- Untuk pemasangan: sebutkan lokasi dan tanggal
-- Jika ada foto relevan, sertakan ID-nya di array "photos" dalam JSON
-- Jangan buat data fiktif di luar konteks yang diberikan`;
+Panduan tambahan:
+- Untuk aset SERVICE: sebutkan keluhan, teknisi/vendor, tanggal, status
+- Untuk aset DIPINJAM: sebutkan peminjam, divisi, tanggal, keperluan
+- Jangan buat data fiktif di luar konteks
+- Berikan tips troubleshooting IT praktis jika diminta (khusus scope IT/admin)`;
 
         const rawReply = await callGemini(systemPrompt, message, history || []);
 
-        // Parse apakah AI return JSON dengan foto
         let replyText = rawReply.trim();
         let photos = [];
         try {
-            const jsonMatch = replyText.match(/\{[\s\S]*"text"[\s\S]*\}/);
+            const jsonMatch = replyText.match(/\{[\s\S]*?"text"[\s\S]*?\}/);
             if (jsonMatch) {
                 const parsed = JSON.parse(jsonMatch[0]);
                 replyText = parsed.text || replyText;
                 const ids = parsed.photos || [];
-                photos = ids.map(id => photoMap[id]).filter(Boolean);
+                photos = ids.map(id => filteredPhotoMap[id]).filter(Boolean);
             }
-        } catch(e) { /* bukan JSON, pakai teks biasa */ }
+        } catch(e) { /* bukan JSON */ }
 
         res.json({ reply: replyText, photos });
 
@@ -1326,9 +1443,9 @@ app.listen(3001, '0.0.0.0', () => {
 // ==========================================
 app.get('/aset/export-pdf', requireLogin, async (req, res) => {
     try {
-        const isAdmin    = hasPerm(req.session.user, 'canUsers');
-        const userDivisi = req.session.user.divisi || 'IT';
-        const targetDivisi = isAdmin ? (req.query.divisi || null) : userDivisi;
+        const seeAll       = canSeeAllAset(req.session.user);
+        const userDivisi   = req.session.user.divisi || 'IT';
+        const targetDivisi = seeAll ? (req.query.divisi || null) : userDivisi;
         let whereClause = {};
         if (targetDivisi) whereClause.divisi = targetDivisi;
         const aset = await prisma.aset.findMany({
@@ -1347,11 +1464,11 @@ app.get('/aset/export-pdf', requireLogin, async (req, res) => {
 app.get('/aset', requireLogin, async (req, res) => {
     try {
         const { q, kategori, divisi } = req.query;
-        const userDivisi = req.session.user.divisi || 'IT';
-        // Admin (canUsers) bisa lihat semua + filter divisi, user biasa hanya divisinya
-        const isAdmin = hasPerm(req.session.user, 'canUsers');
+        const userDivisi  = req.session.user.divisi || 'IT';
+        const seeAll      = canSeeAllAset(req.session.user);
+        const isAdmin     = hasPerm(req.session.user, 'canUsers');
         let where = {};
-        if (!isAdmin) {
+        if (!seeAll) {
             where.divisi = userDivisi;
         } else if (divisi && divisi !== '') {
             where.divisi = divisi;
@@ -1364,7 +1481,7 @@ app.get('/aset', requireLogin, async (req, res) => {
             include: { pinjaman: { where: { status: 'Dipinjam' }, select: { id: true } } }
         });
         const allKategori = await prisma.aset.findMany({
-            where: isAdmin ? (divisi && divisi !== '' ? { divisi } : {}) : { divisi: userDivisi },
+            where: seeAll ? (divisi && divisi !== '' ? { divisi } : {}) : { divisi: userDivisi },
             select: { kategori: true },
             distinct: ['kategori']
         });
@@ -1374,7 +1491,7 @@ app.get('/aset', requireLogin, async (req, res) => {
             allKategori: allKategori.map(k => k.kategori),
             allDivisi: allDivisi.map(d => d.divisi),
             userDivisi,
-            isAdmin,
+            isAdmin: seeAll, // view pakai isAdmin untuk tampilkan dropdown divisi
             q: q || '',
             kategori: kategori || '',
             divisi: divisi || ''

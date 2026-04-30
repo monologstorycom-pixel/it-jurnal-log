@@ -32,17 +32,20 @@
         .perm-check.checked-delete { border-color: #5c1a1a; background: #2a0d0d; }
         .perm-check.checked-users { border-color: #4c3780; background: #1a0d3d; }
         .perm-check.checked-viewlog { border-color: #0e4d6a; background: #0d2234; }
+        .perm-check.checked-audit { border-color: #92400e; background: #2d1a00; }
         .perm-check input[type="checkbox"] { display: none; }
         .perm-box { width: 16px; height: 16px; border: 1.5px solid var(--body-border2); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-size: 10px; }
         .perm-check.checked .perm-box { background: #4ade80; border-color: #4ade80; color: #0d2a18; }
         .perm-check.checked-delete .perm-box { background: #f87171; border-color: #f87171; color: #2a0d0d; }
         .perm-check.checked-users .perm-box { background: #a78bfa; border-color: #a78bfa; color: #1a0d3d; }
         .perm-check.checked-viewlog .perm-box { background: #67e8f9; border-color: #67e8f9; color: #0d2234; }
+        .perm-check.checked-audit .perm-box { background: #f59e0b; border-color: #f59e0b; color: #2d1a00; }
         .perm-label-text { font-size: 0.72rem; font-weight: 600; color: var(--body-text2); }
         .perm-check.checked .perm-label-text { color: #4ade80; }
         .perm-check.checked-delete .perm-label-text { color: #f87171; }
         .perm-check.checked-users .perm-label-text { color: #a78bfa; }
         .perm-check.checked-viewlog .perm-label-text { color: #67e8f9; }
+        .perm-check.checked-audit .perm-label-text { color: #f59e0b; }
         .perm-icon { font-size: 12px; }
 
         /* PRESET BUTTONS */
@@ -80,6 +83,7 @@
         .pt-export { background: #1a0d2a; color: #d8b4fe; border: 1px solid #4c1a7a; }
         .pt-users  { background: #1a0d3d; color: #a78bfa; border: 1px solid #4c3780; }
         .pt-viewlog { background: #0d2234; color: #67e8f9; border: 1px solid #0e4d6a; }
+        .pt-audit  { background: #2d1a00; color: #f59e0b; border: 1px solid #92400e; }
 
         /* ROLE BADGE */
         .role-admin  { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a0d3d;color:#a78bfa;border:1px solid #4c3780; }
@@ -207,6 +211,12 @@
                 <span class="perm-icon">📋</span>
                 <span class="perm-label-text">Lihat Log</span>
               </div>
+              <div class="perm-check" id="lbl_add_canAudit" data-form="add" data-perm="canAudit" style="border:1px solid #7c3aed33;background:rgba(124,58,237,0.06);">
+                <input type="checkbox" name="canAudit" id="add_canAudit">
+                <div class="perm-box" id="box_add_canAudit"></div>
+                <span class="perm-icon">🔍</span>
+                <span class="perm-label-text">Audit (Lihat Semua Aset)</span>
+              </div>
             </div>
           </div>
 
@@ -274,6 +284,7 @@
                     <% if(perms.canExport) { %><span class="pt pt-export">📊 Export</span><% } %>
                     <% if(perms.canUsers)  { %><span class="pt pt-users">👥 User</span><% } %>
                     <% if(perms.canViewLog){ %><span class="pt pt-viewlog">📋 Lihat Log</span><% } %>
+                    <% if(perms.canAudit)  { %><span class="pt pt-audit">🔍 Audit</span><% } %>
                   </div>
                 </td>
                 <td style="color:var(--body-text2);font-size:0.75rem;white-space:nowrap;">
@@ -381,6 +392,11 @@
                     <div class="perm-box" id="box_edit_canViewLog"></div>
                     <span class="perm-icon">📋</span><span class="perm-label-text">Lihat Log</span>
                   </div>
+                  <div class="perm-check" id="lbl_edit_canAudit" data-form="edit" data-perm="canAudit" style="border:1px solid #7c3aed33;background:rgba(124,58,237,0.06);">
+                    <input type="checkbox" name="canAudit" id="edit_canAudit">
+                    <div class="perm-box" id="box_edit_canAudit"></div>
+                    <span class="perm-icon">🔍</span><span class="perm-label-text">Audit (Lihat Semua Aset)</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -424,18 +440,18 @@
 // PERMISSION STATE
 // ===========================
 var permState = {
-  add:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false },
-  edit: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false }
+  add:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false },
+  edit: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false }
 };
 
 var PRESETS = {
-  admin:  { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true, canViewLog:true },
-  user:   { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false, canViewLog:true },
-  viewer: { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true },
-  clear:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false }
+  admin:  { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true, canViewLog:true, canAudit:false },
+  user:   { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false, canViewLog:true, canAudit:false },
+  viewer: { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true, canAudit:false },
+  clear:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false }
 };
 
-var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog'];
+var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit'];
 
 // Toggle satu permission
 function togglePerm(form, perm) {
@@ -476,6 +492,8 @@ function renderPerms(form) {
         el.className = 'perm-check checked-users';
       } else if (perm === 'canViewLog') {
         el.className = 'perm-check checked-viewlog';
+      } else if (perm === 'canAudit') {
+        el.className = 'perm-check checked-audit';
       } else {
         el.className = 'perm-check checked';
       }
