@@ -76,14 +76,22 @@
     <div class="panel">
         <!-- FOTO ASET (maks 3) -->
         <% var fotoList = [aset.fotoUrl, aset.foto2Url, aset.foto3Url].filter(Boolean); %>
+        <% var fotoListJson = JSON.stringify(fotoList); %>
         <% if(fotoList.length > 0) { %>
         <div style="display:grid;grid-template-columns:repeat(<%= fotoList.length %>,1fr);gap:0;border-bottom:1px solid var(--body-border);">
             <% fotoList.forEach(function(url, idx) { %>
-            <img src="<%= url %>"
-                onclick="showFoto('<%= url %>', '<%= aset.nama.replace(/'/g, "&#39;") %> — Foto <%= idx+1 %>')"
-                alt="Foto <%= idx+1 %>"
-                title="Klik untuk perbesar"
-                style="width:100%;max-height:240px;object-fit:cover;display:block;cursor:pointer;<%= idx > 0 ? 'border-left:1px solid var(--body-border);' : '' %>">
+            <div style="position:relative;overflow:hidden;">
+                <img src="<%= url %>"
+                    onclick="showFotoSlider(<%- fotoListJson %>, <%= idx %>, '<%= aset.nama.replace(/'/g, "&#39;") %>')"
+                    alt="Foto <%= idx+1 %>"
+                    title="Klik untuk perbesar"
+                    style="width:100%;max-height:240px;object-fit:cover;display:block;cursor:pointer;<%= idx > 0 ? 'border-left:1px solid var(--body-border);' : '' %>">
+                <% if(fotoList.length > 1) { %>
+                <div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:10px;pointer-events:none;">
+                    <%= idx+1 %>/<%= fotoList.length %>
+                </div>
+                <% } %>
+            </div>
             <% }); %>
         </div>
         <% } else { %>
@@ -280,28 +288,112 @@
     </div>
 </div>
 
-<!-- MODAL FOTO -->
+<!-- MODAL FOTO SLIDER -->
 <div class="modal fade" id="fotoModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
-      <div class="modal-header" style="border-color:var(--body-border);">
-        <h5 class="modal-title" id="fotoModalTitle" style="color:var(--body-text);">Foto</h5>
+      <div class="modal-header" style="border-color:var(--body-border);padding:10px 16px;">
+        <h5 class="modal-title" id="fotoModalTitle" style="color:var(--body-text);font-size:0.9rem;">📷 Foto</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body text-center p-3">
-        <img id="fotoModalImg" src="" class="img-fluid rounded" style="max-height:75vh;">
+      <div class="modal-body p-0" style="position:relative;background:#000;min-height:200px;">
+        <!-- Gambar utama -->
+        <img id="fotoModalImg" src="" class="img-fluid d-block mx-auto" style="max-height:78vh;object-fit:contain;">
+
+        <!-- Tombol PREV -->
+        <button id="fotoModalPrev" onclick="sliderNav(-1)"
+          style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.5rem;
+                 width:40px;height:40px;border-radius:50%;cursor:pointer;z-index:10;
+                 align-items:center;justify-content:center;display:none;">&#8249;</button>
+
+        <!-- Tombol NEXT -->
+        <button id="fotoModalNext" onclick="sliderNav(1)"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.5rem;
+                 width:40px;height:40px;border-radius:50%;cursor:pointer;z-index:10;
+                 align-items:center;justify-content:center;display:none;">&#8250;</button>
       </div>
+
+      <!-- Dot indicator + thumbnail strip -->
+      <div id="fotoModalDots" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:10px 16px;background:var(--body-card);flex-wrap:wrap;"></div>
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function showFoto(url, judul) {
-    document.getElementById('fotoModalImg').src = url;
-    document.getElementById('fotoModalTitle').textContent = '📷 ' + judul;
+// ===== SLIDER STATE =====
+var _sliderUrls  = [];
+var _sliderIdx   = 0;
+var _sliderNama  = '';
+
+function showFotoSlider(urls, startIdx, nama) {
+    _sliderUrls = Array.isArray(urls) ? urls : [urls];
+    _sliderIdx  = startIdx || 0;
+    _sliderNama = nama || 'Foto';
+    _renderSlider();
     new bootstrap.Modal(document.getElementById('fotoModal')).show();
 }
+
+// Fallback: showFoto single (dipanggil dari riwayat penggunaan/pinjaman/service)
+function showFoto(url, judul) {
+    showFotoSlider([url], 0, judul);
+}
+
+function _renderSlider() {
+    var total = _sliderUrls.length;
+    var url   = _sliderUrls[_sliderIdx];
+
+    document.getElementById('fotoModalImg').src = url;
+    document.getElementById('fotoModalTitle').textContent =
+        '📷 ' + _sliderNama + (total > 1 ? ' (' + (_sliderIdx+1) + '/' + total + ')' : '');
+
+    // Prev / Next visibility
+    var btnPrev = document.getElementById('fotoModalPrev');
+    var btnNext = document.getElementById('fotoModalNext');
+    if (total > 1) {
+        btnPrev.style.display = 'flex';
+        btnNext.style.display = 'flex';
+        btnPrev.style.opacity = _sliderIdx === 0 ? '0.3' : '1';
+        btnNext.style.opacity = _sliderIdx === total-1 ? '0.3' : '1';
+    } else {
+        btnPrev.style.display = 'none';
+        btnNext.style.display = 'none';
+    }
+
+    // Dots / thumbnail strip
+    var dotsEl = document.getElementById('fotoModalDots');
+    dotsEl.innerHTML = '';
+    if (total > 1) {
+        _sliderUrls.forEach(function(u, i) {
+            var thumb = document.createElement('img');
+            thumb.src = u;
+            thumb.onclick = (function(idx) { return function() { _sliderIdx = idx; _renderSlider(); }; })(i);
+            Object.assign(thumb.style, {
+                width: '52px', height: '52px', objectFit: 'cover',
+                borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s',
+                border: i === _sliderIdx ? '2px solid #4ade80' : '2px solid transparent',
+                opacity: i === _sliderIdx ? '1' : '0.5'
+            });
+            dotsEl.appendChild(thumb);
+        });
+    }
+}
+
+function sliderNav(dir) {
+    var total = _sliderUrls.length;
+    _sliderIdx = Math.max(0, Math.min(total-1, _sliderIdx + dir));
+    _renderSlider();
+}
+
+// Keyboard arrow support
+document.addEventListener('keydown', function(e) {
+    var modal = document.getElementById('fotoModal');
+    if (!modal || !modal.classList.contains('show')) return;
+    if (e.key === 'ArrowRight') sliderNav(1);
+    if (e.key === 'ArrowLeft')  sliderNav(-1);
+});
 </script>
 
 <!-- MODAL EDIT SERVICE (TERINTEGRASI DENGAN VENDOR) -->
