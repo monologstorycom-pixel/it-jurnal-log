@@ -12,7 +12,6 @@ const session = require('express-session');
 const app = express();
 const prisma = new PrismaClient();
 
-// FIX FOTO HILANG: gunakan path.resolve untuk absolute path yang konsisten
 const uploadDir = path.resolve(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
@@ -20,7 +19,6 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// FIX FOTO HILANG: static harus pakai absolute path
 app.use('/uploads', express.static(uploadDir));
 app.use(express.static(path.resolve(__dirname, 'public')));
 
@@ -35,12 +33,8 @@ app.use(session({
 }));
 
 // ==========================================
-// PERMISSION HELPERS — MURNI DARI CHECKBOX
+// PERMISSION HELPERS
 // ==========================================
-// Tidak ada default role, tidak ada auto-assign.
-// Semua hak akses ditentukan HANYA dari field permissions di DB.
-// Kalau permissions null/kosong (user lama), fallback ke semua false.
-
 function getUserPerms(user) {
     if (!user) return {};
     if (user.permissions) {
@@ -68,11 +62,10 @@ function hasPerm(user, perm) {
     return perms[perm] === true;
 }
 
-// User bisa lihat semua aset lintas divisi jika: admin ATAU canAudit
 function canSeeAllAset(user) {
     if (!user) return false;
-    if (hasPerm(user, 'canUsers')) return true;   // admin
-    if (hasPerm(user, 'canAudit')) return true;   // audit checkbox
+    if (hasPerm(user, 'canUsers')) return true;   
+    if (hasPerm(user, 'canAudit')) return true;   
     return false;
 }
 
@@ -92,13 +85,11 @@ function requireAdmin(req, res, next) {
 function requireUser(req, res, next) {
     if (req.session && req.session.user) {
         const user = req.session.user;
-        // viewer tidak bisa aksi apapun
         if (hasPerm(user, 'canAdd') || hasPerm(user, 'canEdit') || hasPerm(user, 'canAsset')) return next();
     }
     res.status(403).render('403', { message: 'Anda tidak punya izin untuk aksi ini.' });
 }
 
-// Inject user & perms ke semua views
 app.use((req, res, next) => {
     res.locals.currentUser = req.session.user || null;
     res.locals.userPerms   = req.session.user ? getUserPerms(req.session.user) : {};
@@ -108,7 +99,6 @@ app.use((req, res, next) => {
 // ==========================================
 // MULTER + SHARP AUTO COMPRESS
 // ==========================================
-// Pakai diskStorage (kompatibel multer 1.x & 2.x) — Sharp baca dari file.path
 const uploadTmpDir = path.join(__dirname, 'uploads', 'tmp');
 if (!fs.existsSync(uploadTmpDir)) fs.mkdirSync(uploadTmpDir, { recursive: true });
 
@@ -128,8 +118,6 @@ const uploadFields = upload.fields([
     { name: 'foto', maxCount: 1 }
 ]);
 
-// Helper: kompress & simpan foto ke disk, return URL relatif
-// Output: WEBP, max 1200px lebar, quality 75 → biasanya < 200KB
 async function saveCompressedPhoto(file, fieldname) {
     if (!file) return null;
     if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -137,7 +125,6 @@ async function saveCompressedPhoto(file, fieldname) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
 
     try {
-        // Coba compress dengan Sharp dulu
         const source = file.path || file.buffer;
         if (!source) return null;
         const filename = prefix + uniqueSuffix + '.jpg';
@@ -151,17 +138,14 @@ async function saveCompressedPhoto(file, fieldname) {
         if (file.path && fs.existsSync(file.path)) { try { fs.unlinkSync(file.path); } catch(e) {} }
         return '/uploads/' + filename;
     } catch(sharpErr) {
-        // Fallback: simpan file langsung tanpa compress
         console.warn('[Sharp fallback]', sharpErr.message);
         const ext = file.originalname ? require('path').extname(file.originalname) : '.jpg';
         const filename = prefix + uniqueSuffix + ext;
         const outPath  = path.join(uploadDir, filename);
         if (file.path) {
-            // diskStorage: rename/move file
             fs.copyFileSync(file.path, outPath);
             try { fs.unlinkSync(file.path); } catch(e) {}
         } else if (file.buffer) {
-            // memoryStorage: tulis buffer
             fs.writeFileSync(outPath, file.buffer);
         } else {
             return null;
@@ -210,14 +194,12 @@ function formatDurasi(menit) {
     return parts.length > 0 ? parts.join(' ') : '0 menit';
 }
 
-// FIX FORMAT 24 JAM
 function formatTanggal(dt) {
     if (!dt) return '-';
     return new Date(dt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function formatJamMenit(jamStr) {
-    // Input sudah string "HH:MM", return langsung
     return jamStr || '';
 }
 
@@ -257,10 +239,8 @@ app.post('/login', async (req, res) => {
             divisi: user.divisi || 'IT',
             permissions: user.permissions || null
         };
-        // Routing setelah login berdasarkan permission
         const permsAfterLogin = getUserPerms(req.session.user);
         if (permsAfterLogin.canAudit && !permsAfterLogin.canViewLog) {
-            // Audit-only user → langsung ke dashboard audit
             return res.redirect('/audit');
         }
         if (!permsAfterLogin.canViewLog && permsAfterLogin.canAsset) {
@@ -285,7 +265,6 @@ app.get('/403', (req, res) => {
 // 1. VIEWER MODE
 // ==========================================
 app.get('/', async (req, res) => {
-    // Kalau user login tapi tidak punya canViewLog → redirect ke /aset (kalau punya canAsset) atau /login
     if (req.session && req.session.user) {
         const u = req.session.user;
         if (!hasPerm(u, 'canViewLog')) {
@@ -299,7 +278,6 @@ app.get('/', async (req, res) => {
         let selectedDate, journals, isSearch = false;
 
         if (q && q.trim()) {
-            // MODE SEARCH — cari semua waktu by keyword
             isSearch = true;
             const keyword = q.trim();
             journals = await prisma.journal.findMany({
@@ -316,7 +294,6 @@ app.get('/', async (req, res) => {
             });
             selectedDate = now;
         } else {
-            // MODE HARIAN — default
             if (date) {
                 const [year, month, day] = date.split('-');
                 selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
@@ -352,21 +329,20 @@ app.get('/', async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
 });
 
-
 // ==========================================
-// PUBLIC ASET VIEW — tanpa login, read-only
+// PUBLIC ASET VIEW 
 // ==========================================
 app.get('/aset-public', async (req, res) => {
     try {
-        // Kalau sudah login, redirect ke halaman aset divisi mereka sendiri
         if (req.session && req.session.user) {
             const divisi = req.session.user.divisi || 'IT';
             return res.redirect('/aset-public/' + encodeURIComponent(divisi));
         }
 
-        // Belum login — tampil aset IT saja (seperti sebelumnya)
         const { q, kategori } = req.query;
-        let where = { divisi: 'IT' };
+        // FIX: Supaya 'IT' merangkul 'IT & IC'
+        let where = { divisi: { in: ['IT', 'IT & IC'] } };
+        
         if (q) where.OR = [{ nama: { contains: q } }, { kategori: { contains: q } }];
         if (kategori && kategori !== '') where.kategori = kategori;
 
@@ -380,7 +356,7 @@ app.get('/aset-public', async (req, res) => {
             }
         });
         const allKategori = await prisma.aset.findMany({
-            where: { divisi: 'IT' },
+            where: { divisi: { in: ['IT', 'IT & IC'] } },
             select: { kategori: true },
             distinct: ['kategori']
         });
@@ -391,26 +367,32 @@ app.get('/aset-public', async (req, res) => {
             q: q || '',
             kategori: kategori || '',
             divisi: 'IT',
-            divisiLabel: 'IT'
+            divisiLabel: 'IT & IC'
         });
     } catch (error) { console.error(error); res.status(500).send('Error: ' + error.message); }
 });
 
-// Aset public per divisi — hanya bisa diakses user yang sudah login sesuai divisinya
 app.get('/aset-public/:divisi', requireLogin, async (req, res) => {
     try {
         const targetDivisi = decodeURIComponent(req.params.divisi).toUpperCase();
         const userDivisi   = (req.session.user.divisi || 'IT').toUpperCase();
         const seeAll       = canSeeAllAset(req.session.user);
 
-        // Hanya boleh akses divisi sendiri, kecuali admin/audit/IT
         if (!seeAll && userDivisi !== targetDivisi) {
             return res.status(403).render('403', { message: `Anda hanya bisa melihat aset divisi ${userDivisi}.` });
         }
 
         const { q, kategori } = req.query;
-        let where = { divisi: targetDivisi };
-        if (q) where.OR = [{ nama: { contains: q }, divisi: targetDivisi }, { kategori: { contains: q }, divisi: targetDivisi }];
+        
+        // FIX: Supaya targetDivisi mencakup 'IT' & 'IT & IC'
+        let where = {};
+        if (targetDivisi === 'IT' || targetDivisi === 'IT & IC') {
+            where.divisi = { in: ['IT', 'IT & IC'] };
+        } else {
+            where.divisi = targetDivisi;
+        }
+
+        if (q) where.OR = [{ nama: { contains: q }, divisi: where.divisi }, { kategori: { contains: q }, divisi: where.divisi }];
         if (kategori && kategori !== '') where.kategori = kategori;
 
         const aset = await prisma.aset.findMany({
@@ -423,12 +405,11 @@ app.get('/aset-public/:divisi', requireLogin, async (req, res) => {
             }
         });
         const allKategori = await prisma.aset.findMany({
-            where: { divisi: targetDivisi },
+            where: { divisi: where.divisi },
             select: { kategori: true },
             distinct: ['kategori']
         });
 
-        // Kalau admin/audit/IT → tampilkan juga list divisi lain untuk navigasi
         let allDivisiList = [];
         if (seeAll) {
             const divisiRows = await prisma.aset.findMany({ select: { divisi: true }, distinct: ['divisi'], orderBy: { divisi: 'asc' } });
@@ -442,17 +423,16 @@ app.get('/aset-public/:divisi', requireLogin, async (req, res) => {
             q: q || '',
             kategori: kategori || '',
             divisi: targetDivisi,
-            divisiLabel: targetDivisi,
+            divisiLabel: targetDivisi === 'IT' ? 'IT & IC' : targetDivisi,
             seeAll
         });
     } catch (error) { console.error(error); res.status(500).send('Error: ' + error.message); }
 });
 
 // ==========================================
-// 2. DASHBOARD
+// 2. DASHBOARD KERJA (ADMIN/IT)
 // ==========================================
 app.get('/kerja', requireLogin, async (req, res) => {
-    // Cek permission canViewLog — kalau tidak punya, redirect ke /aset kalau punya canAsset, atau 403
     if (!hasPerm(req.session.user, 'canViewLog')) {
         if (hasPerm(req.session.user, 'canAsset')) return res.redirect('/aset');
         return res.status(403).render('403', { message: 'Anda tidak punya izin melihat Log Jurnal.' });
@@ -480,7 +460,6 @@ app.get('/kerja', requireLogin, async (req, res) => {
         }
         const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
 
-        // === STATS: data untuk hari ini ===
         const today = new Date();
         const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
         const todayEnd   = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
@@ -500,7 +479,6 @@ app.get('/kerja', requireLogin, async (req, res) => {
                     tanggalMulai: true, tanggalSelesai: true }
             })
         ]);
-        // Hitung berapa hari pending tiap item
         const pendingWithAge = pendingItems.map(p => {
             const tgl = p.tanggalManual ? new Date(p.tanggalManual) : new Date();
             const diffMs = Date.now() - tgl.getTime();
@@ -517,56 +495,92 @@ app.get('/kerja', requireLogin, async (req, res) => {
 // 2b. DASHBOARD AUDIT / INTERNAL CONTROL
 // ==========================================
 app.get('/audit', requireLogin, async (req, res) => {
-    // Hanya boleh akses jika punya canAudit
     if (!hasPerm(req.session.user, 'canAudit')) {
         return res.status(403).render('403', { message: 'Akses ditolak. Halaman ini hanya untuk Tim Audit / Internal Control.' });
     }
     try {
-        const { month, year, status, divisi } = req.query;
-        let whereClause = {};
+        const { date, status, divisi, asetDivisi, chartPeriod } = req.query;
+        const now = new Date();
 
-        // Filter bulan/tahun
-        if (month && year) {
-            const m = parseInt(month), y = parseInt(year);
-            const startDate = new Date(y, m - 1, 1);
-            const endDate   = new Date(y, m, 0, 23, 59, 59);
-            whereClause = {
-                OR: [
-                    { tipeInput: { not: 'multihari' }, tanggalManual: { gte: startDate, lte: endDate } },
-                    { tipeInput: 'multihari', tanggalMulai: { lte: endDate }, tanggalSelesai: { gte: startDate } }
-                ]
-            };
-        }
-        // Filter status
-        if (status && status !== '') {
-            if (whereClause.OR) {
-                whereClause = { AND: [{ OR: whereClause.OR }, { status }] };
-            } else {
-                whereClause.status = status;
-            }
-        }
-        // Filter divisi
-        if (divisi && divisi !== '') {
-            if (whereClause.AND) {
-                whereClause.AND.push({ divisi });
-            } else if (whereClause.OR) {
-                whereClause = { AND: [{ OR: whereClause.OR }, { divisi }] };
-            } else {
-                whereClause.divisi = divisi;
-            }
-        }
+        // 1. FILTER UNTUK TABEL LOG HARIAN (STRICT BY DAY)
+        let filterDateStr = date || '';
+        let selectedDate = date ? new Date(date) : now;
+        const tStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
+        const tEnd   = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
+
+        let tableWhere = {
+            OR: [
+                { tipeInput: { not: 'multihari' }, tanggalManual: { gte: tStart, lte: tEnd } },
+                { tipeInput: 'multihari', tanggalMulai: { lte: tEnd }, tanggalSelesai: { gte: tStart } }
+            ]
+        };
+
+        if (status && status !== '') tableWhere.status = status;
+        if (divisi && divisi !== '') tableWhere.divisi = divisi;
 
         const journals = await prisma.journal.findMany({
-            where: whereClause,
+            where: tableWhere,
             orderBy: { tanggalManual: 'desc' }
         });
 
-        // STATS GLOBAL (selalu tanpa filter untuk kartu)
-        const now     = new Date();
+        // 2. FILTER UNTUK ANALITIK & CHART (Rata-rata Durasi, dll)
+        let chartWhere = {};
+        let period = chartPeriod || '30'; 
+        
+        if (period !== 'all') {
+            const pastDate = new Date();
+            pastDate.setDate(pastDate.getDate() - parseInt(period));
+            chartWhere.tanggalManual = { gte: pastDate };
+        }
+
+        const chartLogs = await prisma.journal.findMany({
+            where: chartWhere,
+            select: { divisi: true, status: true, aktivitas: true, durasiMenit: true, pemesan: true }
+        });
+
+        let totalDurasi = 0;
+        let durasiCount = 0;
+        const divisiMap = {};
+        const masalahMap = {};
+        const pemesanMap = {};
+
+        chartLogs.forEach(j => {
+            if (!divisiMap[j.divisi]) divisiMap[j.divisi] = { divisi: j.divisi, total: 0, pending: 0 };
+            divisiMap[j.divisi].total++;
+            if (j.status === 'Pending') divisiMap[j.divisi].pending++;
+
+            const act = (j.aktivitas || 'Lainnya').trim();
+            masalahMap[act] = (masalahMap[act] || 0) + 1;
+
+            const pms = (j.pemesan || 'Tanpa Nama').trim();
+            pemesanMap[pms] = (pemesanMap[pms] || 0) + 1;
+
+            if (j.durasiMenit && j.durasiMenit > 0) {
+                totalDurasi += j.durasiMenit;
+                durasiCount++;
+            }
+        });
+
+        const divisiBreakdown = Object.values(divisiMap).sort((a, b) => b.total - a.total);
+        const divisiList = divisiBreakdown.map(d => d.divisi);
+
+        const masalahSering = Object.entries(masalahMap)
+            .map(([nama, total]) => ({ nama, total }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 10);
+            
+        const pemesanSering = Object.entries(pemesanMap)
+            .map(([nama, total]) => ({ nama, total }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 10);
+
+        const rataRataMenit = durasiCount > 0 ? Math.floor(totalDurasi / durasiCount) : 0;
+
+        // 3. STATS KARTU GLOBAL (Semua Waktu & Bulan Ini)
         const bulanStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const bulanEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-        const [totalAllTime, totalSolved, totalPending, bulanIni, allJournals] = await Promise.all([
+        const [totalAllTime, totalSolved, totalPending, bulanIni] = await Promise.all([
             prisma.journal.count(),
             prisma.journal.count({ where: { status: 'Solved' } }),
             prisma.journal.count({ where: { status: 'Pending' } }),
@@ -575,21 +589,9 @@ app.get('/audit', requireLogin, async (req, res) => {
                     { tipeInput: { not: 'multihari' }, tanggalManual: { gte: bulanStart, lte: bulanEnd } },
                     { tipeInput: 'multihari', tanggalMulai: { lte: bulanEnd }, tanggalSelesai: { gte: bulanStart } }
                 ]}
-            }),
-            prisma.journal.findMany({ select: { divisi: true, status: true } })
+            })
         ]);
 
-        // Breakdown per divisi
-        const divisiMap = {};
-        allJournals.forEach(j => {
-            if (!divisiMap[j.divisi]) divisiMap[j.divisi] = { divisi: j.divisi, total: 0, pending: 0 };
-            divisiMap[j.divisi].total++;
-            if (j.status === 'Pending') divisiMap[j.divisi].pending++;
-        });
-        const divisiBreakdown = Object.values(divisiMap).sort((a, b) => b.total - a.total);
-        const divisiList = divisiBreakdown.map(d => d.divisi);
-
-        // Pending items untuk list (top 10)
         const pendingItems = await prisma.journal.findMany({
             where: { status: 'Pending' },
             orderBy: { tanggalManual: 'asc' },
@@ -602,24 +604,56 @@ app.get('/audit', requireLogin, async (req, res) => {
             return { ...p, hariPending };
         });
 
+        // 4. DATA ASET
+        let auditAsets = [];
+        if (asetDivisi && asetDivisi !== '') {
+            // FIX: Map "IT & IC" biar merangkul data "IT"
+            let divWhereAset = asetDivisi;
+            if (asetDivisi === 'IT & IC' || asetDivisi === 'IT') {
+                divWhereAset = { in: ['IT', 'IT & IC'] };
+            }
+
+            auditAsets = await prisma.aset.findMany({
+                where: { divisi: divWhereAset },
+                orderBy: { nama: 'asc' },
+                include: {
+                    penggunaan: true,
+                    pinjaman: { where: { status: 'Dipinjam' } }
+                }
+            });
+        }
+
         const stats = {
             totalAllTime, totalSolved, totalPending, bulanIni,
             divisiCount: divisiList.length,
             divisiList, divisiBreakdown,
+            masalahSering, rataRataMenit, rataRataFormat: formatDurasi(rataRataMenit),
+            pemesanSering,
             pendingItems: pendingWithAge
         };
 
         res.render('audit', {
             journals,
+            auditAsets,
             yearOptions: getYearOptions(),
             formatDurasi,
             stats,
-            filterMonth: month ? parseInt(month) : null,
-            filterYear:  year  ? parseInt(year)  : new Date().getFullYear(),
+            filterDate: filterDateStr,
             filterStatus: status  || '',
-            filterDivisi: divisi  || ''
+            filterDivisi: divisi  || '',
+            filterAsetDivisi: asetDivisi || '',
+            chartPeriod: period
         });
     } catch (error) { console.error(error); res.status(500).send('Database Error: ' + error.message); }
+});
+
+// ==========================================
+// 2c. EXPORT EXCEL AUDIT DASHBOARD (LOG JURNAL BULANAN)
+// ==========================================
+app.get('/audit/export', requireLogin, async (req, res) => {
+    // Kita arahkan form export Excel Audit langsung ke "/export" bawaan Admin
+    // karena user maunya export Log Jurnal biasa berdasarkan Bulan.
+    res.redirect('/export?' + new URLSearchParams(req.query).toString());
 });
 
 // ==========================================
@@ -649,7 +683,6 @@ app.post('/save', requireLogin, (req, res, next) => {
         const fotoFile     = req.files && req.files['foto']     ? req.files['foto'][0]     : null;
         const fotoAwalFile = req.files && req.files['fotoAwal'] ? req.files['fotoAwal'][0] : null;
 
-        // FIX FOTO: verifikasi file benar-benar tersimpan
         if (fotoFile) {
             const fotoPath = path.join(uploadDir, fotoFile.filename);
             if (!fs.existsSync(fotoPath)) {
@@ -865,11 +898,10 @@ app.get('/export', requireLogin, (req, res, next) => {
             cell.alignment = { vertical: 'middle', horizontal: 'center' };
         });
 
-        // FIX FORMAT 24 JAM di Excel
         const fmtDate = (dt, jam) => {
             if (!dt) return '-';
             const d = new Date(dt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-            return jam ? d + ' ' + jam : d; // jam sudah string HH:MM, tidak perlu konversi
+            return jam ? d + ' ' + jam : d; 
         };
 
         const base = 'http://server.rsby.cloud:3001';
@@ -910,8 +942,11 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
         const userDivisi = req.session.user.divisi || 'IT';
         const targetDivisi = seeAll ? (req.query.divisi || null) : userDivisi;
 
+        // FIX: Supaya export aset "IT & IC" juga narik data "IT"
         let whereClause = {};
-        if (targetDivisi) whereClause.divisi = targetDivisi;
+        if (targetDivisi) {
+            whereClause.divisi = (targetDivisi === 'IT & IC' || targetDivisi === 'IT') ? { in: ['IT', 'IT & IC'] } : targetDivisi;
+        }
 
         const asets = await prisma.aset.findMany({
             where: whereClause,
@@ -936,7 +971,6 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
             { header: 'KETERANGAN',key: 'keterangan',width: 30 },
         ];
 
-        // Header style
         worksheet.getRow(1).eachCell(cell => {
             cell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
             cell.font   = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
@@ -964,7 +998,6 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
                 cell.alignment = { vertical: 'middle', wrapText: true };
                 cell.font = { size: 10 };
             });
-            // Warna kondisi
             const kondisiCell = row.getCell('kondisi');
             if (a.kondisi === 'Rusak') kondisiCell.font = { color: { argb: 'FFDC2626' }, size: 10, bold: true };
             else if (a.kondisi === 'Baik') kondisiCell.font = { color: { argb: 'FF16A34A' }, size: 10, bold: true };
@@ -1042,7 +1075,6 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
             return res.redirect('/users?msg=Username+sudah+dipakai%2C+pilih+yang+lain&msgType=error');
         }
 
-        // Permissions murni dari checkbox — tidak ada auto-assign role
         const permissions = {
             canView:    req.body.canView    === 'on',
             canAdd:     req.body.canAdd     === 'on',
@@ -1055,7 +1087,6 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
             canAudit:   req.body.canAudit   === 'on',
         };
 
-        // role hanya label tampilan, tidak menentukan akses
         const role   = req.body.role || 'user';
         const divisi = (req.body.divisi || 'IT').toString().trim().toUpperCase();
         const hashed = await bcrypt.hash(password, 10);
@@ -1090,7 +1121,6 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             return res.redirect('/users?msg=Username+sudah+dipakai+user+lain&msgType=error');
         }
 
-        // Permissions murni dari checkbox — tidak ada auto-assign role
         const permissions = {
             canView:    req.body.canView    === 'on',
             canAdd:     req.body.canAdd     === 'on',
@@ -1103,7 +1133,6 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             canAudit:   req.body.canAudit   === 'on',
         };
 
-        // role hanya label tampilan, tidak menentukan akses
         const role = req.body.role || 'user';
         const divisi = (req.body.divisi || 'IT').toString().trim().toUpperCase();
 
@@ -1124,7 +1153,6 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
 
         await prisma.user.update({ where: { id }, data: updateData });
 
-        // Update session jika edit diri sendiri
         if (req.session.user && req.session.user.id === id) {
             req.session.user.nama        = updateData.nama;
             req.session.user.username    = updateData.username;
@@ -1154,7 +1182,7 @@ app.post('/users/hapus/:id', requireLogin, requireAdmin, async (req, res) => {
 });
 
 // ==========================================
-// API: CEK FOTO (debugging helper)
+// API: CEK FOTO
 // ==========================================
 app.get('/api/check-foto/:filename', requireLogin, (req, res) => {
     const fotoPath = path.join(uploadDir, req.params.filename);
@@ -1166,7 +1194,6 @@ app.get('/api/check-foto/:filename', requireLogin, (req, res) => {
     }
 });
 
-// Debug: lihat semua foto valid yang masuk ke photoMap AI
 app.get('/api/debug-photomap', requireLogin, async (req, res) => {
     try {
         const { photoMap } = await getAsetContext();
@@ -1179,11 +1206,8 @@ app.get('/api/debug-photomap', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// ==========================================
 // AI HELPER — GEMINI API
 // ==========================================
-
-// Helper: call Gemini
 async function callGemini(systemPrompt, userMessage, history = []) {
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY belum diset di .env');
@@ -1201,7 +1225,7 @@ async function callGemini(systemPrompt, userMessage, history = []) {
             body: JSON.stringify({
                 system_instruction: { parts: [{ text: systemPrompt }] },
                 contents: [...geminiHistory, { role: 'user', parts: [{ text: userMessage }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 512 }
+                generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
             })
         }
     );
@@ -1210,7 +1234,6 @@ async function callGemini(systemPrompt, userMessage, history = []) {
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-// Helper: ambil konteks aset dari DB (lengkap: stok + pemasangan + pinjaman)
 async function getAsetContext() {
     const asetList = await prisma.aset.findMany({
         orderBy: [{ divisi: 'asc' }, { nama: 'asc' }],
@@ -1239,7 +1262,6 @@ async function getAsetContext() {
 
     const tglFmt = (d) => d ? new Date(d).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) : '-';
 
-    // Validasi URL foto: harus ada filenya di disk dan bukan dari folder tmp (file tmp sudah dihapus setelah compress)
     const isValidPhoto = (url) => {
         if (!url) return false;
         if (url.includes('/tmp/') || url.includes('tmp-')) return false;
@@ -1263,13 +1285,11 @@ async function getAsetContext() {
         const itemLines = items.map(a => {
             let lines = [];
 
-            // Foto utama aset
             const asetFotoOk = isValidPhoto(a.fotoUrl);
             if (asetFotoOk) photoMap[`aset-${a.id}`] = a.fotoUrl;
 
             lines.push(`  [ASET] ${a.nama} | Divisi: ${a.divisi} | Kategori: ${a.kategori} | Stok: ${a.stok}/${a.stokAwal} ${a.satuan} | Kondisi: ${a.kondisi}${a.keterangan ? ' | Ket: ' + a.keterangan.substring(0, 80) : ''}${asetFotoOk ? ` [FOTO:aset-${a.id}]` : ''}`);
 
-            // Penggunaan / pemasangan
             if (a.penggunaan.length > 0) {
                 const info = a.penggunaan.map(p => {
                     const ok = isValidPhoto(p.fotoUrl);
@@ -1279,7 +1299,6 @@ async function getAsetContext() {
                 lines.push(`    Pemasangan:\n${info}`);
             }
 
-            // Pinjaman aktif
             const pinjamanAktif   = a.pinjaman.filter(p => p.status === 'Dipinjam');
             const pinjamanSelesai = a.pinjaman.filter(p => p.status !== 'Dipinjam');
             if (pinjamanAktif.length > 0) {
@@ -1299,7 +1318,6 @@ async function getAsetContext() {
                 lines.push(`    Riwayat pinjaman selesai:\n${info}`);
             }
 
-            // Service / perbaikan
             if (a.service && a.service.length > 0) {
                 const serviceAktif   = a.service.filter(sv => sv.status !== 'Selesai');
                 const serviceSelesai = a.service.filter(sv => sv.status === 'Selesai');
@@ -1330,7 +1348,6 @@ async function getAsetContext() {
     return { text: sections.join('\n\n'), photoMap };
 }
 
-// Route: Auto-generate deskripsi (login required)
 app.post('/api/ai-describe', requireLogin, async (req, res) => {
     try {
         const { aktivitas, divisi, pemesan } = req.body;
@@ -1354,7 +1371,7 @@ Pemesan: ${pemesan || '-'}`;
 });
 
 // ==========================================
-// AI SCOPE HELPER — tentukan akses AI berdasarkan user/divisi
+// AI SCOPE HELPER
 // ==========================================
 function getAiScope(user) {
     if (!user) {
@@ -1370,7 +1387,6 @@ function getAiScope(user) {
         return { role: 'admin', canLog: true, canAsetAll: true, divisiFilter: null };
     }
     if (isAudit) {
-        // Audit: lihat semua aset semua divisi, tapi tidak bisa akses log IT
         return { role: 'audit', canLog: false, canAsetAll: true, divisiFilter: null };
     }
     if (isIT) {
@@ -1379,22 +1395,18 @@ function getAiScope(user) {
     return { role: 'user', canLog: false, canAsetAll: false, divisiFilter: user.divisi };
 }
 
-// Route: Public AI Chat (tanpa login)
 app.post('/api/ai-chat-public', async (req, res) => {
     try {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
 
-        // Public scope: hanya info umum aset, tanpa log, tanpa foto, tanpa detail pinjaman/service
         const { text: asetContext } = await getAsetContext();
 
-        // Untuk public: strip baris yang mengandung detail sensitif
         const publicContext = asetContext.split('\n').map(line => {
-            // Sembunyikan baris pinjaman, service, pemasangan detail, dan tag foto
             if (/(SEDANG DIPINJAM|SEDANG SERVICE|Pinjaman aktif|Service berjalan|Pemasangan:|Riwayat pinjaman|Riwayat service|\[FOTO:)/i.test(line)) {
                 return null;
             }
-            return line.replace(/\[FOTO:[^\]]+\]/g, ''); // hapus tag foto
+            return line.replace(/\[FOTO:[^\]]+\]/g, ''); 
         }).filter(l => l !== null).join('\n');
 
         const systemPrompt = `Kamu adalah AI asisten bernama "RSBY-AI" untuk sistem manajemen aset PT. Auri Steel Metalindo.
@@ -1422,7 +1434,6 @@ ${publicContext}`;
     }
 });
 
-// Route: AI Chat (login required — dashboard)
 // ==========================================
 app.post('/api/ai-chat', requireLogin, async (req, res) => {
     try {
@@ -1432,14 +1443,12 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
         const user  = req.session.user;
         const scope = getAiScope(user);
 
-        // Ambil data sesuai scope
         const [recentLogs, asetResult] = await Promise.all([
-            // Log: hanya kalau scope boleh
-            scope.canLog
+            scope.canLog || scope.role === 'audit'
                 ? prisma.journal.findMany({
                     orderBy: { tanggalManual: 'desc' },
                     take: 20,
-                    select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, deskripsi: true, status: true }
+                    select: { id: true, tanggalManual: true, pemesan: true, divisi: true, aktivitas: true, deskripsi: true, status: true, durasiMenit: true }
                   })
                 : Promise.resolve([]),
             getAsetContext()
@@ -1447,11 +1456,9 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
 
         const { text: asetContextFull, photoMap } = asetResult;
 
-        // Filter aset context sesuai divisi jika bukan admin/IT/audit
         let asetContext = asetContextFull;
         let filteredPhotoMap = photoMap;
         if (!scope.canAsetAll && scope.divisiFilter) {
-            // Hanya tampilkan section divisi user sendiri
             const sections = asetContextFull.split(/\n(?=--- DIVISI:)/);
             const filtered = sections.filter(s =>
                 s.includes(`--- DIVISI: ${scope.divisiFilter.toUpperCase()}`) ||
@@ -1459,7 +1466,6 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
             );
             asetContext = filtered.join('\n') || `Tidak ada data aset untuk divisi ${scope.divisiFilter}.`;
 
-            // Filter photoMap juga — hanya foto yang URL-nya masih ada di asetContext
             filteredPhotoMap = {};
             Object.entries(photoMap).forEach(([id, url]) => {
                 if (asetContext.includes(`[FOTO:${id}]`)) filteredPhotoMap[id] = url;
@@ -1468,19 +1474,25 @@ app.post('/api/ai-chat', requireLogin, async (req, res) => {
 
         const logContext = recentLogs.length
             ? recentLogs.map(l =>
-                `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status}${l.deskripsi ? ' | ' + l.deskripsi.substring(0, 80) : ''}`
+                `[ID:${l.id}] ${new Date(l.tanggalManual).toLocaleDateString('id-ID')} | ${l.pemesan} (${l.divisi}) | ${l.aktivitas} | ${l.status} | Durasi: ${l.durasiMenit ? l.durasiMenit + ' mnt' : '-'}${l.deskripsi ? ' | ' + l.deskripsi.substring(0, 80) : ''}`
               ).join('\n')
             : null;
 
-        // Bangun system prompt sesuai scope
         let scopeDesc = '';
         let logSection = '';
         let asetSection = '';
+        let rulePanjang = 'Jawab dalam Bahasa Indonesia, singkat dan to the point. Maksimal 3-4 kalimat kecuali diminta detail.';
 
         if (scope.role === 'admin') {
             scopeDesc = `Kamu diakses oleh ADMINISTRATOR (${user.nama}). Kamu bisa membahas SEMUA hal: log IT, aset semua divisi, detail lengkap.`;
         } else if (scope.role === 'audit') {
-            scopeDesc = `Kamu diakses oleh tim AUDIT (${user.nama}). Kamu bisa membahas semua log IT dan semua aset semua divisi untuk keperluan audit.`;
+            scopeDesc = `Kamu diakses oleh tim AUDIT / INTERNAL CONTROL (${user.nama}). PERANMU ADALAH SEBAGAI AUDITOR IT SENIOR.
+TUGAS UTAMAMU:
+1. Analisis data dengan sangat kritis, tajam, dan mendalam.
+2. Cari anomali, inefisiensi, indikasi pemborosan, atau ketidakwajaran (misal: aset ditangani berkali-kali, pending berhari-hari, stok janggal, masalah berulang pada user yang sama).
+3. Cross-check data pemakaian aset dengan log jurnal IT.
+4. Berikan insight, kesimpulan, dan rekomendasi audit yang berbobot berdasarkan data yang ada.`;
+            rulePanjang = 'Jawab dalam Bahasa Indonesia dengan SANGAT DETAIL, komprehensif, dan profesional layaknya Auditor. Gunakan format poin-poin/list untuk menjabarkan temuan audit agar mudah dibaca. JANGAN batasi panjang kalimatmu.';
         } else if (scope.role === 'it') {
             scopeDesc = `Kamu diakses oleh staf IT (${user.nama}). Kamu bisa membahas log IT jurnal. Untuk data aset, kamu hanya bisa melihat aset divisi IT.\nJika ditanya aset divisi lain, tolak dengan sopan: "Maaf, informasi aset divisi lain di luar akses kamu. Hubungi Administrator untuk info lintas divisi. 🔒"`;
         } else {
@@ -1500,7 +1512,7 @@ Jika ditanya tentang LOG IT jurnal atau aset divisi lain, tolak dengan sopan:
 
         const systemPrompt = `Kamu adalah AI asisten bernama "RSBY-AI" untuk sistem manajemen aset & IT Support Log PT. Auri Steel Metalindo.
 ${scopeDesc}
-Jawab dalam Bahasa Indonesia, singkat dan to the point. Maksimal 3-4 kalimat kecuali diminta detail.
+${rulePanjang}
 
 FORMAT RESPONS DENGAN FOTO:
 Jika pertanyaan menyebut foto/gambar/bukti/dokumentasi ATAU data relevan punya tag [FOTO:xxx], return JSON:
@@ -1526,7 +1538,7 @@ Panduan tambahan:
                 const ids = parsed.photos || [];
                 photos = ids.map(id => filteredPhotoMap[id]).filter(Boolean);
             }
-        } catch(e) { /* bukan JSON */ }
+        } catch(e) { }
 
         res.json({ reply: replyText, photos });
 
@@ -1539,17 +1551,11 @@ Panduan tambahan:
 app.listen(3001, '0.0.0.0', () => {
     console.log('🚀 SYSTEM READY AT PORT 3001');
     console.log('📁 Upload directory:', uploadDir);
-    // Verifikasi folder upload saat startup
     if (!fs.existsSync(uploadDir)) {
         console.warn('⚠️ Upload directory tidak ditemukan, membuat...');
         fs.mkdirSync(uploadDir, { recursive: true });
     }
 });
-
-// ============================================================
-// GANTI BAGIAN ASET ROUTES di app.js kamu (dari baris "// ASET ROUTES" sampai akhir file)
-// dengan kode di bawah ini
-// ============================================================
 
 // ==========================================
 // ASET ROUTES
@@ -1559,8 +1565,12 @@ app.get('/aset/export-pdf', requireLogin, async (req, res) => {
         const seeAll       = canSeeAllAset(req.session.user);
         const userDivisi   = req.session.user.divisi || 'IT';
         const targetDivisi = seeAll ? (req.query.divisi || null) : userDivisi;
+        
         let whereClause = {};
-        if (targetDivisi) whereClause.divisi = targetDivisi;
+        if (targetDivisi) {
+            whereClause.divisi = (targetDivisi === 'IT & IC' || targetDivisi === 'IT') ? { in: ['IT', 'IT & IC'] } : targetDivisi;
+        }
+
         const aset = await prisma.aset.findMany({
             where: whereClause,
             orderBy: { nama: 'asc' },
@@ -1580,21 +1590,25 @@ app.get('/aset', requireLogin, async (req, res) => {
         const userDivisi  = req.session.user.divisi || 'IT';
         const seeAll      = canSeeAllAset(req.session.user);
         const isAdmin     = hasPerm(req.session.user, 'canUsers');
+        
         let where = {};
         if (!seeAll) {
-            where.divisi = userDivisi;
+            where.divisi = (userDivisi === 'IT & IC' || userDivisi === 'IT') ? { in: ['IT', 'IT & IC'] } : userDivisi;
         } else if (divisi && divisi !== '') {
-            where.divisi = divisi;
+            where.divisi = (divisi === 'IT & IC' || divisi === 'IT') ? { in: ['IT', 'IT & IC'] } : divisi;
         }
+        
         if (q) where.OR = [{ nama: { contains: q } }, { kategori: { contains: q } }];
         if (kategori && kategori !== '') where.kategori = kategori;
+        
         const aset = await prisma.aset.findMany({
             where,
             orderBy: { nama: 'asc' },
             include: { pinjaman: { where: { status: 'Dipinjam' }, select: { id: true } } }
         });
+        
         const allKategori = await prisma.aset.findMany({
-            where: seeAll ? (divisi && divisi !== '' ? { divisi } : {}) : { divisi: userDivisi },
+            where: seeAll ? (divisi && divisi !== '' ? { divisi: where.divisi } : {}) : { divisi: where.divisi },
             select: { kategori: true },
             distinct: ['kategori']
         });
@@ -1604,7 +1618,7 @@ app.get('/aset', requireLogin, async (req, res) => {
             allKategori: allKategori.map(k => k.kategori),
             allDivisi: allDivisi.map(d => d.divisi),
             userDivisi,
-            isAdmin: seeAll, // view pakai isAdmin untuk tampilkan dropdown divisi
+            isAdmin: seeAll, 
             q: q || '',
             kategori: kategori || '',
             divisi: divisi || ''
@@ -1613,7 +1627,6 @@ app.get('/aset', requireLogin, async (req, res) => {
 });
 
 app.get('/aset/:id', requireLogin, async (req, res) => {
-    // Guard: id harus angka, hindari tangkap route seperti /aset/edit atau /aset/export-pdf
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.redirect('/aset');
     try {
@@ -1630,7 +1643,6 @@ app.get('/aset/:id', requireLogin, async (req, res) => {
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 
-// TAMBAH ASET — support foto
 app.post('/aset/tambah', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
@@ -1649,7 +1661,6 @@ app.post('/aset/tambah', requireLogin, (req, res, next) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal tambah aset: " + error.message); }
 });
 
-// EDIT ASET — support ganti foto
 app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
@@ -1658,7 +1669,6 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         const asetId = parseInt(req.params.id);
         if (isNaN(asetId)) return res.status(400).send("ID aset tidak valid");
 
-        // Ambil semua field dengan nilai default aman
         const nama      = (req.body.nama      || '').toString().trim();
         const kategori  = (req.body.kategori  || '').toString().trim();
         const satuan    = (req.body.satuan    || '').toString().trim();
@@ -1666,7 +1676,6 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         const keterangan = req.body.keterangan ? req.body.keterangan.toString().trim() : null;
         const stokAwalNum = parseInt(req.body.stokAwal) || 0;
 
-        // Raw SQL unsafe — kompatibel semua versi Prisma
         const resPakai  = await prisma.$queryRawUnsafe('SELECT COALESCE(SUM(jumlah),0) as total FROM AsetPenggunaan WHERE asetId = ?', asetId);
         const resPinjam = await prisma.$queryRawUnsafe("SELECT COALESCE(SUM(jumlah),0) as total FROM AsetPinjam WHERE asetId = ? AND status = 'Dipinjam'", asetId);
         const totalPakai  = Number(resPakai[0].total)  || 0;
@@ -1701,7 +1710,6 @@ app.post('/aset/hapus/:id', requireLogin, (req, res, next) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus: " + error.message); }
 });
 
-// PAKAI ASET — support foto penggunaan
 app.post('/aset/pakai/:id', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
@@ -1729,7 +1737,6 @@ app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, (req, res, next) => {
     try {
         const penggunaan = await prisma.asetPenggunaan.findUnique({ where: { id: parseInt(req.params.penggunaanId) } });
         if (!penggunaan) return res.status(404).send("Data tidak ditemukan");
-        // Hapus file foto jika ada
         if (penggunaan.fotoUrl) {
             const p = path.join(__dirname, 'public', penggunaan.fotoUrl);
             if (fs.existsSync(p)) fs.unlinkSync(p);
@@ -1742,7 +1749,6 @@ app.post('/aset/pakai-hapus/:penggunaanId', requireLogin, (req, res, next) => {
     } catch (error) { console.error(error); res.status(500).send("Gagal hapus penggunaan: " + error.message); }
 });
 
-// PINJAM ASET — support foto
 app.post('/aset/pinjam/:id', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAsset')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
@@ -1786,7 +1792,6 @@ app.post('/aset/pinjam-hapus/:pinjamId', requireLogin, (req, res, next) => {
     try {
         const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
         if (!pinjam) return res.status(404).send("Tidak ditemukan");
-        // Hapus file foto jika ada
         if (pinjam.fotoUrl) {
             const p = path.join(__dirname, 'public', pinjam.fotoUrl);
             if (fs.existsSync(p)) fs.unlinkSync(p);
@@ -1826,7 +1831,6 @@ app.post('/aset/service/:asetId', requireLogin, (req, res, next) => {
                 fotoUrl
             }
         });
-        // Update kondisi aset jika status service Selesai → Baik, kalau Proses → Perlu Service
         await prisma.aset.update({
             where: { id: asetId },
             data:  { kondisi: status === 'Selesai' ? 'Baik' : 'Perlu Service' }
@@ -1857,7 +1861,6 @@ app.post('/aset/service-edit/:serviceId', requireLogin, (req, res, next) => {
                 tanggalSelesai: (tanggalSelesai && tanggalSelesai !== '') ? new Date(tanggalSelesai) : null,
             }
         });
-        // Update kondisi aset sesuai status service
         await prisma.aset.update({
             where: { id: sv.asetId },
             data:  { kondisi: status === 'Selesai' ? 'Baik' : 'Perlu Service' }

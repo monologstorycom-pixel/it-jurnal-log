@@ -103,5 +103,6 @@ model User {
   role        String   @default("user")
   divisi      String   @default("IT")
   permissions String?  @db.Text
+  isAudit     Boolean  @default(false)
   createdAt   DateTime @default(now())
 }

@@ -317,63 +317,95 @@
   }
 </style>
 
+<%
+  /* LOGIKA AKSES MENU YANG SUDAH DIPERKETAT */
+  // 1. Cek apakah yang login adalah Admin Utama (punya hak kelola User)
+  var isAdmin = currentUser && userPerms && userPerms.canUsers;
+  
+  // 2. KUNCI AUDIT: Jika dia dicentang Audit DAN bukan Admin Utama, kunci total menunya!
+  // Ini mengabaikan centang lain (seperti View Log) jika terlanjur terpencet saat setting user.
+  var isAuditOnly = currentUser && userPerms && userPerms.canAudit && !isAdmin;
+  
+  // 3. Logika untuk user IT atau Admin
+  var isItOrAdmin = currentUser && !isAuditOnly && (
+    isAdmin ||
+    (currentUser.divisi && currentUser.divisi.toLowerCase() === 'it')
+  );
+  
+  // 4. Logika untuk user divisi biasa (non-IT, non-Audit)
+  var isNonItUser = currentUser && !isItOrAdmin && !isAuditOnly && userPerms && userPerms.canAsset && !userPerms.canViewLog;
+  
+  var asetPublicHref = currentUser ? '/aset-public/' + encodeURIComponent(currentUser.divisi || 'IT') : '/aset-public';
+
+  /* LOGIKA KLIK LOGO BRAND */
+  var brandHref = '/kerja';
+  if (isAuditOnly) brandHref = '/audit';
+  else if (isNonItUser) brandHref = '/aset';
+  else if (!currentUser) brandHref = '/';
+%>
+
 <nav class="it-nav" id="mainNav">
-  <a href="<%= (typeof currentUser !== 'undefined' && currentUser && userPerms && !userPerms.canViewLog && userPerms.canAsset) ? '/aset' : '/kerja' %>" class="it-nav-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
+  <a href="<%= brandHref %>" class="it-nav-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
 
   <div class="it-nav-links">
-    <%
-      var isItOrAdmin = currentUser && (
-        (userPerms && (userPerms.canUsers || userPerms.canAudit)) ||
-        (currentUser.divisi && currentUser.divisi.toLowerCase() === 'it')
-      );
-      var isNonItUser = currentUser && !isItOrAdmin && userPerms && userPerms.canAsset && !userPerms.canViewLog;
-      var asetPublicHref = currentUser ? '/aset-public/' + encodeURIComponent(currentUser.divisi || 'IT') : '/aset-public';
-    %>
+    <% if (isAuditOnly) { %>
+      <!-- JIKA YANG LOGIN TIM AUDIT, KUNCI HANYA DI MENU INI -->
+      <a href="/audit" class="it-nav-link <%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/><line x1="4" y1="6" x2="8" y2="6"/><line x1="6" y1="4" x2="6" y2="8"/></svg>
+        Dashboard Audit
+      </a>
 
-    <% if (isNonItUser) { %>
-    <!-- User divisi lain (HRGA, GA, dll): Home=aset-public, Dashboard=kelola aset -->
-    <a href="<%= asetPublicHref %>" class="it-nav-link <%= activePage === 'aset-public' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-      Home
-    </a>
-    <a href="/aset" class="it-nav-link <%= activePage === 'aset' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
-      Dashboard
-    </a>
+    <% } else if (isNonItUser) { %>
+      <!-- JIKA YANG LOGIN USER DIVISI LAIN (NON IT/AUDIT) -->
+      <a href="<%= asetPublicHref %>" class="it-nav-link <%= activePage === 'aset-public' ? 'active' : '' %>">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
+        Home
+      </a>
+      <a href="/aset" class="it-nav-link <%= activePage === 'aset' ? 'active' : '' %>">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        Dashboard Aset
+      </a>
+
     <% } else { %>
-    <!-- IT / Admin / Public: menu normal -->
-    <a href="/" class="it-nav-link <%= activePage === 'view' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-      Home
-    </a>
-    <% if (currentUser && userPerms && userPerms.canViewLog) { %>
-    <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
-      Dashboard
-    </a>
-    <% } %>
-    <% if (!currentUser || (userPerms && userPerms.canAsset)) { %>
-    <%
-      var asetHref  = (!currentUser || isItOrAdmin) ? '/aset' : asetPublicHref;
-      var asetLabel = (!currentUser || isItOrAdmin) ? 'Aset IT' : 'Aset ' + (currentUser.divisi || '');
-    %>
-    <a href="<%= asetHref %>" class="it-nav-link <%= activePage === 'aset' || activePage === 'aset-public' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><line x1="8" y1="7" x2="8" y2="10"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5"/></svg>
-      <%= asetLabel %>
-    </a>
-    <% } %>
-    <% } %>
-    <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
-    <a href="/users" class="it-nav-link <%= activePage === 'users' ? 'active' : '' %>">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/><circle cx="11.5" cy="9.5" r="2"/><line x1="11.5" y1="7.5" x2="11.5" y2="11.5"/><line x1="9.5" y1="9.5" x2="13.5" y2="9.5"/></svg>
-      Users
-    </a>
-    <% } %>
-    <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canAudit) { %>
-    <a href="/audit" class="it-nav-link <%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/><line x1="4" y1="6" x2="8" y2="6"/><line x1="6" y1="4" x2="6" y2="8"/></svg>
-      Audit
-    </a>
+      <!-- JIKA YANG LOGIN ADMIN / IT / PUBLIC -->
+      <a href="/" class="it-nav-link <%= activePage === 'view' ? 'active' : '' %>">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
+        Home
+      </a>
+      
+      <% if (currentUser && userPerms && userPerms.canViewLog) { %>
+      <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+        Dashboard IT
+      </a>
+      <% } %>
+      
+      <% if (!currentUser || (userPerms && userPerms.canAsset)) { %>
+      <%
+        var isAdminRole   = currentUser && userPerms && (userPerms.canUsers || userPerms.canAudit);
+        var asetHref  = (!currentUser || isAdminRole) ? '/aset' : asetPublicHref;
+        var asetLabel = (!currentUser || isAdminRole) ? 'Aset IT' : 'Aset ' + (currentUser.divisi || '');
+      %>
+      <a href="<%= asetHref %>" class="it-nav-link <%= activePage === 'aset' || activePage === 'aset-public' ? 'active' : '' %>">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><line x1="8" y1="7" x2="8" y2="10"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5"/></svg>
+        <%= asetLabel %>
+      </a>
+      <% } %>
+      
+      <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
+      <a href="/users" class="it-nav-link <%= activePage === 'users' ? 'active' : '' %>">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/><circle cx="11.5" cy="9.5" r="2"/><line x1="11.5" y1="7.5" x2="11.5" y2="11.5"/><line x1="9.5" y1="9.5" x2="13.5" y2="9.5"/></svg>
+        Users
+      </a>
+      <% } %>
+      
+      <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canAudit) { %>
+      <a href="/audit" class="it-nav-link <%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/><line x1="4" y1="6" x2="8" y2="6"/><line x1="6" y1="4" x2="6" y2="8"/></svg>
+        Audit
+      </a>
+      <% } %>
+      
     <% } %>
   </div>
 
@@ -418,46 +450,51 @@
 
 <!-- MOBILE DRAWER -->
 <div class="it-nav-mobile" id="mobileNav">
-  <% if (isNonItUser) { %>
-  <a href="<%= asetPublicHref %>" class="<%= activePage === 'aset-public' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-    Home
-  </a>
-  <a href="/aset" class="<%= activePage === 'aset' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
-    Dashboard
-  </a>
+  <% if (isAuditOnly) { %>
+    <a href="/audit" class="<%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/></svg>
+      Dashboard Audit
+    </a>
+  <% } else if (isNonItUser) { %>
+    <a href="<%= asetPublicHref %>" class="<%= activePage === 'aset-public' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
+      Home
+    </a>
+    <a href="/aset" class="<%= activePage === 'aset' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Dashboard Aset
+    </a>
   <% } else { %>
-  <% if (!currentUser || (userPerms && userPerms.canViewLog)) { %>
-  <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-    Home
-  </a>
-  <% } %>
-  <% if (currentUser && userPerms && userPerms.canViewLog) { %>
-  <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
-    Dashboard
-  </a>
-  <% } %>
-  <% if (!currentUser || (userPerms && userPerms.canAsset)) { %>
-  <a href="<%= asetHref %>" class="<%= activePage === 'aset' || activePage === 'aset-public' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
-    <%= asetLabel %>
-  </a>
-  <% } %>
-  <% } %>
-  <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
-  <a href="/users" class="<%= activePage === 'users' ? 'active' : '' %>">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/></svg>
-    Users
-  </a>
-  <% } %>
-  <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canAudit) { %>
-  <a href="/audit" class="<%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/></svg>
-    Audit
-  </a>
+    <% if (!currentUser || (userPerms && userPerms.canViewLog)) { %>
+    <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
+      Home
+    </a>
+    <% } %>
+    <% if (currentUser && userPerms && userPerms.canViewLog) { %>
+    <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      Dashboard IT
+    </a>
+    <% } %>
+    <% if (!currentUser || (userPerms && userPerms.canAsset)) { %>
+    <a href="<%= asetHref %>" class="<%= activePage === 'aset' || activePage === 'aset-public' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
+      <%= asetLabel %>
+    </a>
+    <% } %>
+    <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
+    <a href="/users" class="<%= activePage === 'users' ? 'active' : '' %>">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/></svg>
+      Users
+    </a>
+    <% } %>
+    <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canAudit) { %>
+    <a href="/audit" class="<%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/></svg>
+      Audit
+    </a>
+    <% } %>
   <% } %>
   <hr class="m-sep">
   <% if (typeof currentUser !== 'undefined' && currentUser) { %>
@@ -832,6 +869,15 @@
     document.getElementById('aiQuickPrompts').style.display = 'none';
   };
 
+  /* FUNGSI TRANSLATE MARKDOWN KE HTML DITAMBAHKAN DI SINI */
+  function escHtml(s) {
+    var html = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Parse Bold Markdown
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Parse Italic Markdown
+    html = html.replace(/\n/g,'<br>'); // Parse Baris Baru
+    return html;
+  }
+
   function appendMsg(role, text, photos) {
     var msgs = document.getElementById('ai-messages');
     var div = document.createElement('div');
@@ -888,10 +934,6 @@
   function removeTyping() {
     var t = document.getElementById('ai-typing-indicator');
     if (t) t.remove();
-  }
-
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
   }
 
   window.sendAiMessage = async function() {
