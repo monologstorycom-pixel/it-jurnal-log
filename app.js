@@ -257,8 +257,12 @@ app.post('/login', async (req, res) => {
             divisi: user.divisi || 'IT',
             permissions: user.permissions || null
         };
-        // Kalau user tidak punya akses log tapi punya akses aset → langsung ke /aset
+        // Routing setelah login berdasarkan permission
         const permsAfterLogin = getUserPerms(req.session.user);
+        if (permsAfterLogin.canAudit && !permsAfterLogin.canViewLog) {
+            // Audit-only user → langsung ke dashboard audit
+            return res.redirect('/audit');
+        }
         if (!permsAfterLogin.canViewLog && permsAfterLogin.canAsset) {
             return res.redirect('/aset');
         }
@@ -507,6 +511,115 @@ app.get('/kerja', requireLogin, async (req, res) => {
 
         res.render('admin', { journals, yearOptions: getYearOptions(), saved: saved === '1', formatDurasi, stats });
     } catch (error) { console.error(error); res.status(500).send("Database Error!"); }
+});
+
+// ==========================================
+// 2b. DASHBOARD AUDIT / INTERNAL CONTROL
+// ==========================================
+app.get('/audit', requireLogin, async (req, res) => {
+    // Hanya boleh akses jika punya canAudit
+    if (!hasPerm(req.session.user, 'canAudit')) {
+        return res.status(403).render('403', { message: 'Akses ditolak. Halaman ini hanya untuk Tim Audit / Internal Control.' });
+    }
+    try {
+        const { month, year, status, divisi } = req.query;
+        let whereClause = {};
+
+        // Filter bulan/tahun
+        if (month && year) {
+            const m = parseInt(month), y = parseInt(year);
+            const startDate = new Date(y, m - 1, 1);
+            const endDate   = new Date(y, m, 0, 23, 59, 59);
+            whereClause = {
+                OR: [
+                    { tipeInput: { not: 'multihari' }, tanggalManual: { gte: startDate, lte: endDate } },
+                    { tipeInput: 'multihari', tanggalMulai: { lte: endDate }, tanggalSelesai: { gte: startDate } }
+                ]
+            };
+        }
+        // Filter status
+        if (status && status !== '') {
+            if (whereClause.OR) {
+                whereClause = { AND: [{ OR: whereClause.OR }, { status }] };
+            } else {
+                whereClause.status = status;
+            }
+        }
+        // Filter divisi
+        if (divisi && divisi !== '') {
+            if (whereClause.AND) {
+                whereClause.AND.push({ divisi });
+            } else if (whereClause.OR) {
+                whereClause = { AND: [{ OR: whereClause.OR }, { divisi }] };
+            } else {
+                whereClause.divisi = divisi;
+            }
+        }
+
+        const journals = await prisma.journal.findMany({
+            where: whereClause,
+            orderBy: { tanggalManual: 'desc' }
+        });
+
+        // STATS GLOBAL (selalu tanpa filter untuk kartu)
+        const now     = new Date();
+        const bulanStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const bulanEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+        const [totalAllTime, totalSolved, totalPending, bulanIni, allJournals] = await Promise.all([
+            prisma.journal.count(),
+            prisma.journal.count({ where: { status: 'Solved' } }),
+            prisma.journal.count({ where: { status: 'Pending' } }),
+            prisma.journal.count({
+                where: { OR: [
+                    { tipeInput: { not: 'multihari' }, tanggalManual: { gte: bulanStart, lte: bulanEnd } },
+                    { tipeInput: 'multihari', tanggalMulai: { lte: bulanEnd }, tanggalSelesai: { gte: bulanStart } }
+                ]}
+            }),
+            prisma.journal.findMany({ select: { divisi: true, status: true } })
+        ]);
+
+        // Breakdown per divisi
+        const divisiMap = {};
+        allJournals.forEach(j => {
+            if (!divisiMap[j.divisi]) divisiMap[j.divisi] = { divisi: j.divisi, total: 0, pending: 0 };
+            divisiMap[j.divisi].total++;
+            if (j.status === 'Pending') divisiMap[j.divisi].pending++;
+        });
+        const divisiBreakdown = Object.values(divisiMap).sort((a, b) => b.total - a.total);
+        const divisiList = divisiBreakdown.map(d => d.divisi);
+
+        // Pending items untuk list (top 10)
+        const pendingItems = await prisma.journal.findMany({
+            where: { status: 'Pending' },
+            orderBy: { tanggalManual: 'asc' },
+            take: 10,
+            select: { id: true, aktivitas: true, divisi: true, pemesan: true, tanggalManual: true, durasiMenit: true, tipeInput: true }
+        });
+        const pendingWithAge = pendingItems.map(p => {
+            const diffMs   = Date.now() - new Date(p.tanggalManual).getTime();
+            const hariPending = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            return { ...p, hariPending };
+        });
+
+        const stats = {
+            totalAllTime, totalSolved, totalPending, bulanIni,
+            divisiCount: divisiList.length,
+            divisiList, divisiBreakdown,
+            pendingItems: pendingWithAge
+        };
+
+        res.render('audit', {
+            journals,
+            yearOptions: getYearOptions(),
+            formatDurasi,
+            stats,
+            filterMonth: month ? parseInt(month) : null,
+            filterYear:  year  ? parseInt(year)  : new Date().getFullYear(),
+            filterStatus: status  || '',
+            filterDivisi: divisi  || ''
+        });
+    } catch (error) { console.error(error); res.status(500).send('Database Error: ' + error.message); }
 });
 
 // ==========================================

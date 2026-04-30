@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Audit — IT Support Log</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f1117">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; transition: background-color 0.25s, color 0.25s; }
+
+        /* AUDIT BANNER */
+        .audit-banner { background: linear-gradient(135deg, #2d1a00 0%, #1a1000 100%); border-bottom: 2px solid #92400e; padding: 10px 24px; display: flex; align-items: center; gap: 12px; }
+        .audit-banner-icon { font-size: 1.1rem; }
+        .audit-banner-text { font-size: 0.75rem; font-weight: 700; color: #f59e0b; letter-spacing: 0.08em; text-transform: uppercase; }
+        .audit-banner-sub  { font-size: 0.65rem; color: #d97706; margin-top: 1px; }
+        .audit-badge { background: #92400e; color: #fef3c7; border-radius: 4px; padding: 2px 8px; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.06em; margin-left: auto; }
+
+        /* PAGE LAYOUT */
+        .page-wrap { max-width: 1400px; margin: 0 auto; padding: 1.25rem 1.5rem; }
+
+        /* SECTION PANELS */
+        .section-panel { background: var(--body-card); border-radius: 10px; border: 1px solid var(--body-border); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+        .section-title  { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #f59e0b; margin-bottom: 1rem; display: flex; align-items: center; gap: 7px; }
+        .section-title::before { content: ''; display: inline-block; width: 3px; height: 14px; background: #f59e0b; border-radius: 2px; }
+
+        /* STATS CARDS */
+        .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 1rem; }
+        .stat-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
+        .stat-card-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--body-text2); margin-bottom: 4px; }
+        .stat-card-value { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+        .stat-card-sub { font-size: 0.67rem; color: var(--body-text3); }
+        .stat-card-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 1.6rem; opacity: 0.12; }
+        .sc-amber  { border-color: #92400e; } .sc-amber .stat-card-value  { color: #f59e0b; }
+        .sc-green  { border-color: #1a5c1a; } .sc-green .stat-card-value  { color: #4caf50; }
+        .sc-red    { border-color: #5c1a1a; } .sc-red .stat-card-value    { color: #ff6b6b; }
+        .sc-blue   { border-color: #0d3d6e; } .sc-blue .stat-card-value   { color: #4da6ff; }
+        .sc-purple { border-color: #3d1a6e; } .sc-purple .stat-card-value { color: #c084fc; }
+        @media (max-width: 900px)  { .stat-grid { grid-template-columns: repeat(3,1fr); } }
+        @media (max-width: 600px)  { .stat-grid { grid-template-columns: repeat(2,1fr); } }
+
+        /* FILTER BAR */
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .filter-bar .form-select, .filter-bar .form-control { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; color: var(--body-text) !important; font-size: 0.8rem; height: 34px; border-radius: 6px; }
+        .filter-bar .form-select:focus, .filter-bar .form-control:focus { border-color: #f59e0b !important; box-shadow: none; outline: none; }
+        .btn-filter { background: #1a1000; border: 1px solid #92400e; color: #f59e0b; padding: 5px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+        .btn-filter:hover { background: #2d1a00; }
+        .btn-reset  { background: var(--body-bg); border: 1px solid var(--body-border); color: var(--body-text2); padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.15s; }
+        .btn-reset:hover { border-color: var(--body-border2); color: var(--body-text); }
+
+        /* DIVISI FILTER CHIPS */
+        .divisi-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 0.75rem; }
+        .div-chip { padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; border: 1px solid var(--body-border); color: var(--body-text2); background: var(--body-bg); cursor: pointer; transition: all 0.15s; text-decoration: none; }
+        .div-chip:hover  { border-color: #f59e0b; color: #f59e0b; }
+        .div-chip.active { background: #2d1a00; border-color: #92400e; color: #f59e0b; }
+        .div-chip.all    { border-color: #555; }
+
+        /* TABLE */
+        .table-wrap  { background: var(--body-card); border-radius: 10px; border: 1px solid var(--body-border); overflow: hidden; }
+        .table-audit { width: 100%; border-collapse: collapse; min-width: 960px; }
+        .table-audit thead tr { background: var(--body-table-head) !important; }
+        .table-audit th { padding: 9px 12px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--body-text3); border-bottom: 1px solid var(--body-border); white-space: nowrap; }
+        .table-audit td { padding: 11px 12px; font-size: 0.82rem; color: var(--body-text); border-bottom: 1px solid var(--body-border); vertical-align: middle; }
+        .table-audit tr:last-child td { border-bottom: none; }
+        .table-audit tr:hover td { background: var(--body-bg3) !important; }
+
+        /* ROW INDEX */
+        .row-idx { font-size: 0.62rem; font-weight: 700; color: var(--body-text3); font-family: monospace; }
+
+        /* STATUS BADGES */
+        .badge-solved  { display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.62rem;font-weight:800;background:#0d3d1a;color:#4caf50;border:1px solid #1a5c1a;letter-spacing:0.04em; }
+        .badge-pending { display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.62rem;font-weight:800;background:#3d2a00;color:#ffc107;border:1px solid #7a5c00;letter-spacing:0.04em; }
+
+        /* DIVISI TAG */
+        .div-tag { display:inline-block;padding:2px 7px;border-radius:4px;font-size:0.62rem;font-weight:700;background:#1a2d3d;color:#7eb8f7;border:1px solid #1a3d5c; }
+
+        /* DURASI BADGE */
+        .dur-badge       { display:inline-block;background:#0d2d3d;color:#4da6ff;border:1px solid #0d4d6e;border-radius:4px;padding:2px 6px;font-size:0.62rem;font-weight:700;margin-top:2px; }
+        .dur-badge-multi { background:#1a0d3d;color:#c084fc;border-color:#3d1a6e; }
+
+        /* READONLY NOTICE */
+        .readonly-chip { display:inline-flex;align-items:center;gap:5px;background:#1a1000;border:1px solid #92400e;border-radius:20px;padding:3px 10px;font-size:0.65rem;font-weight:700;color:#d97706; }
+
+        /* FOTO BUTTON (audit only view) */
+        .btn-foto-view { display:inline-block;padding:3px 8px;border-radius:4px;font-size:0.62rem;font-weight:700;cursor:pointer;border:1px solid var(--body-border);background:var(--body-bg);color:var(--body-text2);transition:all 0.12s;margin-bottom:3px;width:100%;text-align:center; }
+        .btn-foto-view:hover { border-color:#f59e0b;color:#f59e0b; }
+        .foto-none { font-size:0.65rem;color:var(--body-text3); }
+
+        /* DIVISI BREAKDOWN TABLE */
+        .breakdown-table { width:100%;border-collapse:collapse; }
+        .breakdown-table th { font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--body-text3);padding:6px 10px;border-bottom:1px solid var(--body-border);text-align:left; }
+        .breakdown-table td { font-size:0.8rem;padding:8px 10px;border-bottom:1px solid var(--body-border);color:var(--body-text); }
+        .breakdown-table tr:last-child td { border-bottom:none; }
+        .breakdown-table tr:hover td { background:var(--body-bg3); }
+        .bar-wrap { height:6px;background:var(--body-border);border-radius:3px;overflow:hidden;margin-top:4px; }
+        .bar-fill { height:100%;border-radius:3px;background:#f59e0b;transition:width 0.4s; }
+
+        /* EMPTY STATE */
+        .empty-state { text-align:center;padding:3rem 1rem;color:var(--body-text3); }
+        .empty-state-icon { font-size:2.5rem;margin-bottom:10px;opacity:0.5; }
+        .empty-state-text { font-size:0.85rem; }
+
+        /* EXPORT BTN */
+        .btn-export { background:#1a0d3d;border:1px solid #4c3780;color:#c084fc;padding:5px 14px;border-radius:6px;font-size:0.78rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all 0.15s; }
+        .btn-export:hover { background:#250f50;color:#d8b4fe; }
+
+        /* MULTI BADGE */
+        .multi-badge { display:inline-block;background:#1a0d3d;color:#9b6dff;border:1px solid #6b3dbf;border-radius:3px;padding:1px 5px;font-size:0.58rem;font-weight:700; }
+    </style>
+</head>
+<body>
+<%- include('navbar', {activePage: 'audit'}) %>
+
+<!-- AUDIT BANNER -->
+<div class="audit-banner">
+    <span class="audit-banner-icon">🔍</span>
+    <div>
+        <div class="audit-banner-text">Mode Dashboard Audit / Internal Control</div>
+        <div class="audit-banner-sub">Akses read-only · Semua divisi · Data tidak dapat diubah</div>
+    </div>
+    <span class="audit-badge">🔒 READ ONLY</span>
+</div>
+
+<div class="page-wrap">
+
+    <!-- STAT CARDS -->
+    <div class="stat-grid">
+        <div class="stat-card sc-amber">
+            <div class="stat-card-label">Total Log</div>
+            <div class="stat-card-value"><%= stats.totalAllTime %></div>
+            <div class="stat-card-sub">Semua waktu</div>
+            <div class="stat-card-icon">📋</div>
+        </div>
+        <div class="stat-card sc-green">
+            <div class="stat-card-label">Solved</div>
+            <div class="stat-card-value"><%= stats.totalSolved %></div>
+            <div class="stat-card-sub"><%= stats.totalAllTime > 0 ? Math.round(stats.totalSolved / stats.totalAllTime * 100) : 0 %>% dari total</div>
+            <div class="stat-card-icon">✅</div>
+        </div>
+        <div class="stat-card sc-red">
+            <div class="stat-card-label">Pending</div>
+            <div class="stat-card-value"><%= stats.totalPending %></div>
+            <div class="stat-card-sub">Belum diselesaikan</div>
+            <div class="stat-card-icon">⏳</div>
+        </div>
+        <div class="stat-card sc-blue">
+            <div class="stat-card-label">Divisi Aktif</div>
+            <div class="stat-card-value"><%= stats.divisiCount %></div>
+            <div class="stat-card-sub">Dari log tercatat</div>
+            <div class="stat-card-icon">🏢</div>
+        </div>
+        <div class="stat-card sc-purple">
+            <div class="stat-card-label">Log Bulan Ini</div>
+            <div class="stat-card-value"><%= stats.bulanIni %></div>
+            <div class="stat-card-sub"><%= new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'}) %></div>
+            <div class="stat-card-icon">📅</div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- KIRI: TABEL UTAMA -->
+        <div class="col-lg-8">
+            <div class="section-panel">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="section-title mb-0">Log Jurnal IT — Semua Divisi</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="readonly-chip">🔒 Read Only</span>
+                        <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canExport) { %>
+                        <a href="/export?format=excel" class="btn-export">⬇ Export</a>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- FILTER -->
+                <form action="/audit" method="GET" class="filter-bar mb-3">
+                    <select name="month" class="form-select" style="width:auto;">
+                        <option value="">Semua Bulan</option>
+                        <% ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].forEach(function(m,i){ %>
+                        <option value="<%= i+1 %>" <%= (filterMonth == i+1) ? 'selected' : '' %>><%= m %></option>
+                        <% }); %>
+                    </select>
+                    <select name="year" class="form-select" style="width:auto;">
+                        <% yearOptions.forEach(function(y){ %>
+                        <option value="<%= y %>" <%= (filterYear == y) ? 'selected' : '' %>><%= y %></option>
+                        <% }); %>
+                    </select>
+                    <select name="status" class="form-select" style="width:auto;">
+                        <option value="">Semua Status</option>
+                        <option value="Solved"  <%= filterStatus === 'Solved'  ? 'selected' : '' %>>SOLVED</option>
+                        <option value="Pending" <%= filterStatus === 'Pending' ? 'selected' : '' %>>PENDING</option>
+                    </select>
+                    <select name="divisi" class="form-select" style="width:auto;">
+                        <option value="">Semua Divisi</option>
+                        <% stats.divisiList.forEach(function(d){ %>
+                        <option value="<%= d %>" <%= filterDivisi === d ? 'selected' : '' %>><%= d %></option>
+                        <% }); %>
+                    </select>
+                    <button type="submit" class="btn-filter">Terapkan</button>
+                    <a href="/audit" class="btn-reset">Reset</a>
+                    <span style="font-size:0.7rem;color:var(--body-text3);margin-left:4px;"><%= journals.length %> record</span>
+                </form>
+
+                <!-- TABLE -->
+                <div class="table-responsive table-wrap">
+                    <table class="table-audit">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tanggal</th>
+                                <th>Divisi</th>
+                                <th style="width:35%;">Aktivitas</th>
+                                <th>Status</th>
+                                <th>Durasi</th>
+                                <th>Foto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (journals.length === 0) { %>
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-state">
+                                        <div class="empty-state-icon">🔍</div>
+                                        <div class="empty-state-text">Tidak ada data untuk filter ini</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% } %>
+                            <% journals.forEach(function(item, idx) { %>
+                            <% var isMulti = item.tipeInput === 'multihari'; %>
+                            <tr>
+                                <td><span class="row-idx"><%= idx + 1 %></span></td>
+                                <td style="min-width:130px;">
+                                    <% if (isMulti && item.tanggalMulai && item.tanggalSelesai) { %>
+                                        <span class="multi-badge">📆 MULTI</span>
+                                        <div style="font-size:0.72rem;color:#9b6dff;font-weight:600;margin-top:2px;">
+                                            <%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                                        </div>
+                                        <div style="font-size:0.65rem;color:var(--body-text3);">→ <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
+                                    <% } else { %>
+                                        <div style="font-family:monospace;font-size:0.78rem;color:#4da6ff;font-weight:600;">
+                                            <%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                                        </div>
+                                        <% if(item.jamMulai) { %><div style="font-size:0.67rem;color:var(--body-text3);">🕐 <%= item.jamMulai %><% if(item.jamSelesai) { %> – <%= item.jamSelesai %><% } %></div><% } %>
+                                    <% } %>
+                                </td>
+                                <td style="white-space:nowrap;">
+                                    <span class="div-tag"><%= item.divisi %></span>
+                                    <div style="font-size:0.67rem;color:var(--body-text3);margin-top:3px;">👤 <%= item.pemesan %></div>
+                                </td>
+                                <td>
+                                    <div style="font-weight:700;font-size:0.83rem;margin-bottom:3px;"><%= item.aktivitas %></div>
+                                    <div style="font-size:0.77rem;color:var(--body-text2);line-height:1.4;"><%= item.deskripsi %></div>
+                                </td>
+                                <td>
+                                    <span class="<%= item.status === 'Solved' ? 'badge-solved' : 'badge-pending' %>"><%= item.status %></span>
+                                </td>
+                                <td style="white-space:nowrap;">
+                                    <% if(item.durasiMenit) { %>
+                                        <span class="<%= isMulti ? 'dur-badge dur-badge-multi' : 'dur-badge' %>">⏱ <%= formatDurasi(item.durasiMenit) %></span>
+                                    <% } else { %>
+                                        <span style="font-size:0.65rem;color:var(--body-text3);">—</span>
+                                    <% } %>
+                                </td>
+                                <td style="min-width:100px;">
+                                    <% if(item.fotoAwalUrl) { %>
+                                        <button class="btn-foto-view" onclick="showFoto('<%= item.fotoAwalUrl %>','📷 Kondisi AWAL — <%= item.aktivitas %>')">📷 Awal</button>
+                                    <% } %>
+                                    <% if(item.fotoUrl) { %>
+                                        <button class="btn-foto-view" onclick="showFoto('<%= item.fotoUrl %>','📷 Kondisi SESUDAH — <%= item.aktivitas %>')">📷 Sesudah</button>
+                                    <% } %>
+                                    <% if(!item.fotoAwalUrl && !item.fotoUrl) { %>
+                                        <span class="foto-none">—</span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- KANAN: BREAKDOWN & RINGKASAN -->
+        <div class="col-lg-4">
+
+            <!-- BREAKDOWN PER DIVISI -->
+            <div class="section-panel">
+                <div class="section-title">Breakdown per Divisi</div>
+                <% if (stats.divisiBreakdown.length === 0) { %>
+                    <div style="font-size:0.8rem;color:var(--body-text3);text-align:center;padding:1rem;">Tidak ada data</div>
+                <% } %>
+                <table class="breakdown-table">
+                    <thead>
+                        <tr>
+                            <th>Divisi</th>
+                            <th style="text-align:right;">Log</th>
+                            <th style="text-align:right;">Pending</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% stats.divisiBreakdown.forEach(function(d){ %>
+                        <tr>
+                            <td>
+                                <span class="div-tag"><%= d.divisi %></span>
+                                <div class="bar-wrap">
+                                    <div class="bar-fill" style="width:<%= stats.totalAllTime > 0 ? Math.round(d.total / stats.totalAllTime * 100) : 0 %>%;"></div>
+                                </div>
+                            </td>
+                            <td style="text-align:right;font-weight:700;font-family:monospace;font-size:0.85rem;"><%= d.total %></td>
+                            <td style="text-align:right;">
+                                <% if (d.pending > 0) { %>
+                                <span class="badge-pending"><%= d.pending %></span>
+                                <% } else { %>
+                                <span style="font-size:0.7rem;color:var(--body-text3);">—</span>
+                                <% } %>
+                            </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PENDING ITEMS -->
+            <% if (stats.pendingItems.length > 0) { %>
+            <div class="section-panel">
+                <div class="section-title">⏳ Item Pending (<%= stats.totalPending %>)</div>
+                <% stats.pendingItems.forEach(function(p){ %>
+                <div style="background:var(--body-bg);border:1px solid #5c1a1a;border-left:3px solid #ff6b6b;border-radius:6px;padding:9px 11px;margin-bottom:7px;">
+                    <div style="font-size:0.78rem;font-weight:700;color:var(--body-text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= p.aktivitas %></div>
+                    <div style="font-size:0.65rem;color:var(--body-text2);">
+                        🏢 <strong><%= p.divisi %></strong> &nbsp;·&nbsp; 👤 <%= p.pemesan %>
+                        &nbsp;·&nbsp; 📅 <%= new Date(p.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                    </div>
+                    <% if (p.hariPending > 0) { %>
+                    <div style="margin-top:4px;">
+                        <span style="font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:20px;<%= p.hariPending > 7 ? 'background:#5c0000;color:#ff6b6b;' : p.hariPending > 3 ? 'background:#5c3d00;color:#ffc107;' : 'background:var(--body-bg3);color:var(--body-text3);' %>">
+                            <%= p.hariPending %> hari pending
+                        </span>
+                    </div>
+                    <% } %>
+                </div>
+                <% }); %>
+                <% if (stats.totalPending > stats.pendingItems.length) { %>
+                <div style="text-align:center;font-size:0.68rem;color:var(--body-text3);margin-top:6px;">+<%= stats.totalPending - stats.pendingItems.length %> item lainnya</div>
+                <% } %>
+            </div>
+            <% } %>
+
+            <!-- INFO AUDIT -->
+            <div class="section-panel" style="border-color:#92400e;">
+                <div class="section-title">ℹ️ Keterangan Akses</div>
+                <div style="font-size:0.78rem;color:var(--body-text2);line-height:1.7;">
+                    <div style="margin-bottom:6px;">🔍 Kamu mengakses sebagai <strong style="color:#f59e0b;">Tim Audit / Internal Control</strong></div>
+                    <div style="margin-bottom:6px;">👁 Dapat melihat log <strong>semua divisi</strong> tanpa batasan</div>
+                    <div style="margin-bottom:6px;">🔒 Data <strong>tidak dapat diubah</strong> dari tampilan ini</div>
+                    <div>📊 Gunakan filter di atas untuk menyaring data</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL FOTO -->
+<div class="modal fade" id="fotoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
+            <div class="modal-header" style="border-color:var(--body-border);">
+                <h5 class="modal-title" style="color:var(--body-text);font-size:0.9rem;" id="fotoModalTitle">Dokumentasi</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <img id="popupImage" src="" class="img-fluid rounded" style="max-height:75vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// FOTO VIEWER
+function showFoto(url, title) {
+    document.getElementById('popupImage').src = url;
+    document.getElementById('fotoModalTitle').textContent = title || 'Dokumentasi';
+    new bootstrap.Modal(document.getElementById('fotoModal')).show();
+}
+</script>
+</body>
+</html>
