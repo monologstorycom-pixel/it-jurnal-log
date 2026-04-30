@@ -487,10 +487,22 @@
               <label class="f-label">Teknisi / PIC *</label>
               <input type="text" name="teknisi" class="f-input" placeholder="Nama teknisi" required>
             </div>
+            
+            <!-- VENDOR DROPDOWN -->
             <div>
               <label class="f-label">Vendor / Bengkel</label>
-              <input type="text" name="vendor" class="f-input" placeholder="Opsional">
+              <select id="esVendorSelectMain" class="f-input" onchange="toggleManualVendorMain(this.value)">
+                  <option value="">-- Tanpa Vendor --</option>
+                  <% if (typeof vendors !== 'undefined' && vendors.length > 0) { %>
+                      <% vendors.forEach(v => { %>
+                          <option value="<%= v.nama %>"><%= v.nama %> (<%= v.kategori %>)</option>
+                      <% }); %>
+                  <% } %>
+                  <option value="manual">➕ Input Manual / Vendor Baru</option>
+              </select>
+              <input type="text" name="vendor" id="esVendorMain" class="f-input" style="display:none; margin-top:5px;" placeholder="Ketik nama vendor...">
             </div>
+
             <div>
               <label class="f-label">Tanggal Masuk Service *</label>
               <input type="date" name="tanggal" class="f-input" id="serviceTgl">
@@ -545,6 +557,19 @@
 var today = new Date().toISOString().split('T')[0];
 if (document.getElementById('pakaiTgl'))  document.getElementById('pakaiTgl').value  = today;
 if (document.getElementById('pinjamTgl')) document.getElementById('pinjamTgl').value = today;
+
+// Toggle Manual Vendor
+function toggleManualVendorMain(val) {
+    const inputManual = document.getElementById('esVendorMain');
+    if (val === 'manual') {
+        inputManual.style.display = 'block';
+        inputManual.value = '';
+        inputManual.focus();
+    } else {
+        inputManual.style.display = 'none';
+        inputManual.value = val;
+    }
+}
 
 // ===== COMPRESS IMAGE (canvas, max 1000px, JPEG 60%) =====
 async function compressImage(file) {
@@ -687,6 +712,12 @@ function openModalService(id, nama) {
     document.getElementById('formService').action = '/aset/service/' + id;
     document.getElementById('serviceInfo').textContent = '🔧 Service: ' + nama;
     document.getElementById('serviceTgl').value = new Date().toISOString().split('T')[0];
+    
+    // Reset dropdown vendor
+    document.getElementById('esVendorSelectMain').value = '';
+    document.getElementById('esVendorMain').value = '';
+    document.getElementById('esVendorMain').style.display = 'none';
+
     // Reset foto preview
     document.getElementById('serviceFotoPreview').style.display = 'none';
     document.getElementById('serviceFotoPlaceholder').style.display = 'flex';

@@ -106,3 +106,15 @@ model User {
   isAudit     Boolean  @default(false)
   createdAt   DateTime @default(now())
 }
+
+// BARU: Model Vendor
+model Vendor {
+  id          Int      @id @default(autoincrement())
+  nama        String
+  kategori    String   @default("Umum") // Cth: Bengkel, Toko Komputer, Tukang AC
+  alamat      String?  @db.Text
+  noHp        String?
+  divisi      String   @default("IT") // Biar vendor HRGA gak nyampur sama vendor IT
+  keterangan  String?  @db.Text
+  createdAt   DateTime @default(now())
+}

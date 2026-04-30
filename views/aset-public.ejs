@@ -90,6 +90,7 @@
         .rw-thumb { width:36px;height:36px;border-radius:5px;object-fit:cover;border:0.5px solid var(--body-border);cursor:pointer;transition:transform 0.15s; }
         .rw-thumb:hover { transform:scale(1.12); }
         .rw-no-thumb { width:36px;height:36px;border-radius:5px;background:var(--body-bg3);border:0.5px dashed var(--body-border);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--body-text3); }
+        
         /* FOTO MODAL */
         .foto-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px; }
         .foto-overlay.show { display:flex; }
@@ -326,7 +327,9 @@
                                             <tr>
                                                 <td style="width:48px;">
                                                     <% if(sv.fotoUrl){ %>
-                                                        <img src="<%= sv.fotoUrl %>" class="rw-thumb" alt="foto">
+                                                        <!-- FIX: FOTO MODAL HISTORI SERVIS -->
+                                                        <img src="<%= sv.fotoUrl %>" class="rw-thumb" alt="foto" 
+                                                            onclick="showFoto('<%= sv.fotoUrl %>', 'Servis - <%= new Date(sv.tanggal).toLocaleDateString(`id-ID`) %>')">
                                                     <% } else { %>
                                                         <div class="rw-no-thumb">🔧</div>
                                                     <% } %>

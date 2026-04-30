@@ -50,10 +50,11 @@ function getUserPerms(user) {
                 canUsers:   p.canUsers   === true,
                 canViewLog: p.canViewLog === true,
                 canAudit:   p.canAudit   === true,
+                canVendor:  p.canVendor  === true,
             };
         } catch(e) {}
     }
-    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false };
+    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false };
 }
 
 function hasPerm(user, perm) {
@@ -93,6 +94,7 @@ function requireUser(req, res, next) {
 app.use((req, res, next) => {
     res.locals.currentUser = req.session.user || null;
     res.locals.userPerms   = req.session.user ? getUserPerms(req.session.user) : {};
+    res.locals.activePage  = ''; 
     next();
 });
 
@@ -124,8 +126,7 @@ async function saveCompressedPhoto(file, fieldname, tipe = 'log', divisi = 'IT')
     let targetDir = uploadDir;
     let subFolder = '';
     
-    // Logika Sub-folder: Log Jurnal dan Aset IT tetap di folder /uploads (default)
-    // Aset divisi lain masuk ke /uploads/NAMA_DIVISI
+    // Logika Sub-folder
     if (tipe.startsWith('aset') && divisi !== 'IT' && divisi !== 'IT & IC') {
         const safeDivisi = divisi.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
         targetDir = path.join(uploadDir, safeDivisi);
@@ -678,7 +679,155 @@ app.get('/audit/export', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// 3. SIMPAN DATA BARU
+// MASTER VENDOR ROUTES
+// ==========================================
+app.get('/vendor', requireLogin, async (req, res) => {
+    if (!hasPerm(req.session.user, 'canVendor')) {
+        return res.status(403).render('403', { message: 'Akses ditolak. Anda tidak memiliki izin kelola Vendor.' });
+    }
+    try {
+        const { msg, msgType, q, kategori } = req.query;
+        
+        // Logika divisi: Admin/IT bisa liat semua vendor, divisi lain cuma vendor divisinya sendiri
+        const isAdmin = hasPerm(req.session.user, 'canUsers');
+        const userDivisi = req.session.user.divisi || 'IT';
+        const isIT = userDivisi === 'IT' || userDivisi === 'IT & IC';
+        
+        let whereClause = {};
+        if (!isAdmin && !isIT) {
+            whereClause.divisi = userDivisi;
+        }
+
+        if (q) {
+            whereClause.OR = [
+                { nama: { contains: q } },
+                { kategori: { contains: q } },
+                { alamat: { contains: q } }
+            ];
+        }
+        if (kategori && kategori !== '') {
+            whereClause.kategori = kategori;
+        }
+
+        const vendors = await prisma.vendor.findMany({
+            where: whereClause,
+            orderBy: { nama: 'asc' }
+        });
+
+        const allKategori = await prisma.vendor.findMany({
+            where: !isAdmin && !isIT ? { divisi: userDivisi } : {},
+            select: { kategori: true },
+            distinct: ['kategori']
+        });
+
+        res.render('vendor', { 
+            vendors, 
+            msg: msg || null, 
+            msgType: msgType || 'success',
+            q: q || '',
+            kategori: kategori || '',
+            allKategori: allKategori.map(k => k.kategori)
+        });
+    } catch (error) {
+        console.error('[VENDOR ERROR]', error.message);
+        res.status(500).send('Database Error: ' + error.message);
+    }
+});
+
+app.post('/vendor/tambah', requireLogin, async (req, res) => {
+    if (!hasPerm(req.session.user, 'canVendor')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    try {
+        const { nama, kategori, alamat, noHp, keterangan } = req.body;
+        if (!nama) return res.redirect('/vendor?msg=Nama+vendor+wajib+diisi&msgType=error');
+
+        // Jika bukan admin/IT, paksa pakai divisi user yang login
+        const isAdmin = hasPerm(req.session.user, 'canUsers');
+        const userDivisi = req.session.user.divisi || 'IT';
+        let vendorDivisi = req.body.divisi || userDivisi;
+        if (!isAdmin && userDivisi !== 'IT' && userDivisi !== 'IT & IC') {
+            vendorDivisi = userDivisi;
+        }
+
+        await prisma.vendor.create({
+            data: {
+                nama: nama.trim(),
+                // FORMAT UPPERCASE UNTUK KATEGORI
+                kategori: (kategori || 'UMUM').trim().toUpperCase(),
+                alamat: alamat ? alamat.trim() : null,
+                noHp: noHp ? noHp.trim() : null,
+                divisi: vendorDivisi,
+                keterangan: keterangan ? keterangan.trim() : null
+            }
+        });
+        res.redirect('/vendor?msg=Vendor+berhasil+ditambahkan&msgType=success');
+    } catch (error) {
+        console.error('[VENDOR TAMBAH ERROR]', error.message);
+        res.redirect('/vendor?msg=Gagal+tambah+vendor:+' + encodeURIComponent(error.message) + '&msgType=error');
+    }
+});
+
+app.post('/vendor/edit/:id', requireLogin, async (req, res) => {
+    if (!hasPerm(req.session.user, 'canVendor')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    try {
+        const id = parseInt(req.params.id);
+        const { nama, kategori, alamat, noHp, keterangan } = req.body;
+        if (!nama) return res.redirect('/vendor?msg=Nama+vendor+wajib+diisi&msgType=error');
+
+        const vendorLama = await prisma.vendor.findUnique({ where: { id } });
+        if (!vendorLama) return res.redirect('/vendor?msg=Vendor+tidak+ditemukan&msgType=error');
+
+        // Validasi Divisi Edit
+        const isAdmin = hasPerm(req.session.user, 'canUsers');
+        const userDivisi = req.session.user.divisi || 'IT';
+        let vendorDivisi = req.body.divisi || vendorLama.divisi;
+        if (!isAdmin && userDivisi !== 'IT' && userDivisi !== 'IT & IC' && vendorLama.divisi !== userDivisi) {
+            return res.status(403).render('403', { message: 'Anda tidak bisa mengedit vendor milik divisi lain.' });
+        }
+        if (!isAdmin && userDivisi !== 'IT' && userDivisi !== 'IT & IC') {
+            vendorDivisi = userDivisi;
+        }
+
+        await prisma.vendor.update({
+            where: { id },
+            data: {
+                nama: nama.trim(),
+                // FORMAT UPPERCASE UNTUK KATEGORI
+                kategori: (kategori || 'UMUM').trim().toUpperCase(),
+                alamat: alamat ? alamat.trim() : null,
+                noHp: noHp ? noHp.trim() : null,
+                divisi: vendorDivisi,
+                keterangan: keterangan ? keterangan.trim() : null
+            }
+        });
+        res.redirect('/vendor?msg=Vendor+berhasil+diperbarui&msgType=success');
+    } catch (error) {
+        console.error('[VENDOR EDIT ERROR]', error.message);
+        res.redirect('/vendor?msg=Gagal+edit+vendor&msgType=error');
+    }
+});
+
+app.post('/vendor/hapus/:id', requireLogin, async (req, res) => {
+    if (!hasPerm(req.session.user, 'canVendor')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    try {
+        const id = parseInt(req.params.id);
+        const vendor = await prisma.vendor.findUnique({ where: { id } });
+        
+        const isAdmin = hasPerm(req.session.user, 'canUsers');
+        const userDivisi = req.session.user.divisi || 'IT';
+        if (!isAdmin && userDivisi !== 'IT' && userDivisi !== 'IT & IC' && vendor.divisi !== userDivisi) {
+            return res.status(403).render('403', { message: 'Anda tidak bisa menghapus vendor milik divisi lain.' });
+        }
+
+        await prisma.vendor.delete({ where: { id } });
+        res.redirect('/vendor?msg=Vendor+berhasil+dihapus&msgType=success');
+    } catch (error) {
+        console.error('[VENDOR HAPUS ERROR]', error.message);
+        res.redirect('/vendor?msg=Gagal+hapus+vendor&msgType=error');
+    }
+});
+
+// ==========================================
+// 3. SIMPAN DATA BARU (JURNAL LOG)
 // ==========================================
 app.post('/save', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAdd')) {
@@ -711,7 +860,6 @@ app.post('/save', requireLogin, (req, res, next) => {
             }
         }
 
-        // Simpan menggunakan fungsi kompres dengan argument tipe "log"
         let dataToSave = {
             aktivitas, divisi, pemesan, deskripsi, status, tipeInput,
             fotoUrl:     fotoFile     ? await saveCompressedPhoto(fotoFile, 'foto', 'log') : null,
@@ -1106,6 +1254,7 @@ app.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
             canUsers:   req.body.canUsers   === 'on',
             canViewLog: req.body.canViewLog === 'on',
             canAudit:   req.body.canAudit   === 'on',
+            canVendor:  req.body.canVendor  === 'on',
         };
 
         const role   = req.body.role || 'user';
@@ -1152,6 +1301,7 @@ app.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             canUsers:   req.body.canUsers   === 'on',
             canViewLog: req.body.canViewLog === 'on',
             canAudit:   req.body.canAudit   === 'on',
+            canVendor:  req.body.canVendor  === 'on',
         };
 
         const role = req.body.role || 'user';
@@ -1634,6 +1784,18 @@ app.get('/aset', requireLogin, async (req, res) => {
             distinct: ['kategori']
         });
         const allDivisi = await prisma.aset.findMany({ select: { divisi: true }, distinct: ['divisi'], orderBy: { divisi: 'asc' } });
+
+        let vendorWhere = {};
+        if (!seeAll) {
+            vendorWhere.divisi = (userDivisi === 'IT & IC' || userDivisi === 'IT') ? { in: ['IT', 'IT & IC'] } : userDivisi;
+        } else if (divisi && divisi !== '') {
+            vendorWhere.divisi = (divisi === 'IT & IC' || divisi === 'IT') ? { in: ['IT', 'IT & IC'] } : divisi;
+        }
+        const vendors = await prisma.vendor.findMany({
+            where: vendorWhere,
+            orderBy: { nama: 'asc' }
+        });
+
         res.render('aset', {
             aset,
             allKategori: allKategori.map(k => k.kategori),
@@ -1642,7 +1804,8 @@ app.get('/aset', requireLogin, async (req, res) => {
             isAdmin: seeAll, 
             q: q || '',
             kategori: kategori || '',
-            divisi: divisi || ''
+            divisi: divisi || '',
+            vendors
         });
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
@@ -1660,7 +1823,17 @@ app.get('/aset/:id', requireLogin, async (req, res) => {
             }
         });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
-        res.render('aset-detail', { aset });
+
+        let vendorWhere = {};
+        if (!canSeeAllAset(req.session.user)) {
+             vendorWhere.divisi = (aset.divisi === 'IT & IC' || aset.divisi === 'IT') ? { in: ['IT', 'IT & IC'] } : aset.divisi;
+        }
+        const vendors = await prisma.vendor.findMany({
+            where: vendorWhere,
+            orderBy: { nama: 'asc' }
+        });
+
+        res.render('aset-detail', { aset, vendors });
     } catch (error) { console.error(error); res.status(500).send("Error: " + error.message); }
 });
 
@@ -1670,14 +1843,14 @@ app.post('/aset/tambah', requireLogin, (req, res, next) => {
 }, upload.single('foto'), async (req, res) => {
     try {
         const nama      = (req.body.nama      || '').toString().trim();
-        const kategori  = (req.body.kategori  || '').toString().trim();
+        // FORCE UPPERCASE KATEGORI ASET
+        const kategori  = (req.body.kategori  || 'UMUM').toString().trim().toUpperCase();
         const satuan    = (req.body.satuan    || '').toString().trim();
         const kondisi   = (req.body.kondisi   || 'Baik').toString().trim();
         const keterangan = req.body.keterangan ? req.body.keterangan.toString().trim() : null;
         const stokNum   = parseInt(req.body.stok) || 0;
         const divisiAset = req.body.divisi ? req.body.divisi.toString().trim() : (req.session.user.divisi || 'IT');
         
-        // Simpan menggunakan fungsi kompres dengan argument tipe "aset" dan mengirim nama divisinya
         const fotoUrl   = await saveCompressedPhoto(req.file, 'foto', 'aset', divisiAset);
         
         await prisma.aset.create({ data: { nama, divisi: divisiAset, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan, fotoUrl } });
@@ -1694,7 +1867,8 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         if (isNaN(asetId)) return res.status(400).send("ID aset tidak valid");
 
         const nama      = (req.body.nama      || '').toString().trim();
-        const kategori  = (req.body.kategori  || '').toString().trim();
+        // FORCE UPPERCASE KATEGORI ASET
+        const kategori  = (req.body.kategori  || 'UMUM').toString().trim().toUpperCase();
         const satuan    = (req.body.satuan    || '').toString().trim();
         const kondisi   = (req.body.kondisi   || 'Baik').toString().trim();
         const keterangan = req.body.keterangan ? req.body.keterangan.toString().trim() : null;
@@ -1706,7 +1880,6 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         const totalPinjam = Number(resPinjam[0].total) || 0;
         const stokBaru    = stokAwalNum - totalPakai - totalPinjam;
 
-        // Ambil data aset existing biar tahu divisinya
         const asetExisting = await prisma.aset.findUnique({ where: { id: asetId } });
 
         let fotoUrl = null;
@@ -1845,18 +2018,21 @@ app.post('/aset/service/:asetId', requireLogin, (req, res, next) => {
 }, upload.single('foto'), async (req, res) => {
     try {
         const asetId = parseInt(req.params.asetId);
-        const { teknisi, vendor, keluhan, hasil, biaya, status, tanggal, tanggalSelesai } = req.body;
+        let { teknisi, vendor, keluhan, hasil, biaya, status, tanggal, tanggalSelesai } = req.body;
         
-        // Fix: Harus panggil data asetnya biar tau divisi mana
         const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         let fotoUrl = null;
         if (req.file) fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'aset_service', aset ? aset.divisi : 'IT');
+
+        if (Array.isArray(vendor)) {
+             vendor = vendor[vendor.length - 1]; 
+        }
         
         await prisma.asetService.create({
             data: {
                 asetId,
                 teknisi: teknisi || '-',
-                vendor:  vendor  || null,
+                vendor:  vendor && vendor !== 'manual' ? vendor : null,
                 keluhan: keluhan || '-',
                 hasil:   hasil   || null,
                 biaya:   biaya   ? parseInt(biaya) : 0,
@@ -1880,14 +2056,19 @@ app.post('/aset/service-edit/:serviceId', requireLogin, (req, res, next) => {
 }, async (req, res) => {
     try {
         const serviceId = parseInt(req.params.serviceId);
-        const { teknisi, vendor, keluhan, hasil, biaya, status, tanggal, tanggalSelesai } = req.body;
+        let { teknisi, vendor, keluhan, hasil, biaya, status, tanggal, tanggalSelesai } = req.body;
         const sv = await prisma.asetService.findUnique({ where: { id: serviceId } });
         if (!sv) return res.status(404).send("Tidak ditemukan");
+
+        if (Array.isArray(vendor)) {
+             vendor = vendor[vendor.length - 1]; 
+        }
+
         await prisma.asetService.update({
             where: { id: serviceId },
             data: {
                 teknisi: teknisi || sv.teknisi,
-                vendor:  vendor  || null,
+                vendor:  vendor && vendor !== 'manual' ? vendor : null,
                 keluhan: keluhan || sv.keluhan,
                 hasil:   hasil   || null,
                 biaya:   biaya   ? parseInt(biaya) : 0,

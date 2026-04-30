@@ -296,7 +296,8 @@ function showFoto(url, judul) {
     new bootstrap.Modal(document.getElementById('fotoModal')).show();
 }
 </script>
-<!-- MODAL EDIT SERVICE -->
+
+<!-- MODAL EDIT SERVICE (TERINTEGRASI DENGAN VENDOR) -->
 <div class="modal fade" id="modalEditService" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content" style="background:var(--body-card);border:1px solid #7a3a10;">
@@ -311,10 +312,22 @@ function showFoto(url, judul) {
               <label class="f-label">Teknisi / PIC *</label>
               <input type="text" name="teknisi" id="esTeknisi" class="f-input" required>
             </div>
+            
+            <!-- Vendor Dinamis Dropdown -->
             <div>
               <label class="f-label">Vendor / Bengkel</label>
-              <input type="text" name="vendor" id="esVendor" class="f-input">
+              <select id="esVendorSelect" class="f-input" onchange="toggleManualVendorEdit(this.value)">
+                  <option value="">-- Tanpa Vendor --</option>
+                  <% if (typeof vendors !== 'undefined' && vendors.length > 0) { %>
+                      <% vendors.forEach(v => { %>
+                          <option value="<%= v.nama %>"><%= v.nama %> (<%= v.kategori %>)</option>
+                      <% }); %>
+                  <% } %>
+                  <option value="manual">➕ Input Manual / Vendor Baru</option>
+              </select>
+              <input type="text" name="vendor" id="esVendor" class="f-input" style="display:none; margin-top:5px;" placeholder="Ketik nama vendor...">
             </div>
+
             <div>
               <label class="f-label">Tanggal Masuk</label>
               <input type="date" name="tanggal" id="esTanggal" class="f-input">
@@ -354,19 +367,61 @@ function showFoto(url, judul) {
 </div>
 
 <script>
+// Fungsi untuk memunculkan text input manual kalau milih "Input Manual"
+function toggleManualVendorEdit(val) {
+    const inputManual = document.getElementById('esVendor');
+    if (val === 'manual') {
+        inputManual.style.display = 'block';
+        inputManual.value = '';
+        inputManual.focus();
+    } else {
+        inputManual.style.display = 'none';
+        inputManual.value = val;
+    }
+}
+
 function openEditService(id, teknisi, vendor, keluhan, hasil, biaya, status, tanggal, tanggalSelesai) {
     document.getElementById('formEditService').action = '/aset/service-edit/' + id;
     document.getElementById('esTeknisi').value       = teknisi;
-    document.getElementById('esVendor').value        = vendor;
     document.getElementById('esKeluhan').value       = keluhan;
     document.getElementById('esHasil').value         = hasil;
     document.getElementById('esBiaya').value         = biaya;
     document.getElementById('esTanggal').value       = tanggal;
     document.getElementById('esTanggalSelesai').value = tanggalSelesai;
-    var sel = document.getElementById('esStatus');
-    for (var i = 0; i < sel.options.length; i++) {
-        sel.options[i].selected = (sel.options[i].value === status);
+    
+    // Set Status
+    var selStatus = document.getElementById('esStatus');
+    for (var i = 0; i < selStatus.options.length; i++) {
+        selStatus.options[i].selected = (selStatus.options[i].value === status);
     }
+    
+    // Set Vendor
+    var selVendor = document.getElementById('esVendorSelect');
+    var inputVendor = document.getElementById('esVendor');
+    var vendorFound = false;
+    
+    if (!vendor || vendor === '') {
+        selVendor.value = '';
+        inputVendor.value = '';
+        inputVendor.style.display = 'none';
+    } else {
+        for (var i = 0; i < selVendor.options.length; i++) {
+            if (selVendor.options[i].value === vendor) {
+                selVendor.selectedIndex = i;
+                vendorFound = true;
+                inputVendor.value = vendor;
+                inputVendor.style.display = 'none';
+                break;
+            }
+        }
+        // Kalau vendor di database lamanya gak ada di list dropdown (berarti diketik manual dulu)
+        if (!vendorFound) {
+            selVendor.value = 'manual';
+            inputVendor.value = vendor;
+            inputVendor.style.display = 'block';
+        }
+    }
+
     new bootstrap.Modal(document.getElementById('modalEditService')).show();
 }
 </script>
