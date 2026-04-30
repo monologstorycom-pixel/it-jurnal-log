@@ -795,8 +795,10 @@
     if (photos && photos.length > 0) {
       bubbleHtml += '<div class="ai-photo-grid">';
       photos.forEach(function(url, idx) {
-        bubbleHtml += '<div class="ai-photo-item" onclick="openAiLightbox(\'' + escAttr(url) + '\')">'
-          + '<img src="' + escAttr(url) + '" alt="Foto ' + (idx+1) + '" loading="lazy">'
+        // onerror: sembunyikan item jika foto gagal load (broken/404)
+        bubbleHtml += '<div class="ai-photo-item" id="aphoto-' + idx + '" onclick="openAiLightbox(\'' + escAttr(url) + '\')">'
+          + '<img src="' + escAttr(url) + '" alt="Foto ' + (idx+1) + '" loading="lazy"'
+          + ' onerror="this.closest(\'.ai-photo-item\').style.display=\'none\'">'
           + '<div class="ai-photo-label">📷 Foto ' + (idx+1) + '</div>'
           + '</div>';
       });

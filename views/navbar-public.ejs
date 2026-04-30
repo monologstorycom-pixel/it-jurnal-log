@@ -559,7 +559,8 @@
       bubbleHtml += '<div class="pub-ai-photo-grid">';
       photos.forEach(function(url, idx){
         bubbleHtml += '<div class="pub-ai-photo-item" onclick="pubOpenLb(\'' + escA(url) + '\')">'
-          + '<img src="' + escA(url) + '" alt="Foto ' + (idx+1) + '" loading="lazy">'
+          + '<img src="' + escA(url) + '" alt="Foto ' + (idx+1) + '" loading="lazy"'
+          + ' onerror="this.closest(\'.pub-ai-photo-item\').style.display=\'none\'">'
           + '<div class="pub-photo-label">📷 Foto ' + (idx+1) + '</div>'
           + '</div>';
       });
