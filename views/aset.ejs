@@ -128,18 +128,43 @@
         <h6>+ Tambah Aset</h6>
         <form action="/aset/tambah" method="POST" enctype="multipart/form-data">
 
-          <!-- FOTO ASET -->
-          <label class="f-label">📷 Foto Aset</label>
-          <div class="foto-preview-box" onclick="document.getElementById('addFotoInput').click()">
-            <img id="addFotoPreview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
-            <div class="foto-preview-placeholder" id="addFotoPlaceholder">
-              <span class="icon">📷</span>
-              <span>Klik untuk ambil / pilih foto</span>
+          <!-- FOTO ASET (maks 3) -->
+          <label class="f-label">📷 Foto Aset <span style="font-weight:400;text-transform:none;color:var(--body-text3);">(maks 3)</span></label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:0.65rem;">
+            <div>
+              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('addFoto1Input').click()">
+                <img id="addFoto1Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <div class="foto-preview-placeholder" id="addFoto1Placeholder">
+                  <span class="icon" style="font-size:1.2rem;">📷</span>
+                  <span style="font-size:0.65rem;">Foto 1</span>
+                </div>
+              </div>
+              <input type="file" id="addFoto1Input" name="foto" accept="image/*" capture="environment" style="display:none;"
+                onchange="previewFoto(this, 'addFoto1Preview', 'addFoto1Placeholder')">
+            </div>
+            <div>
+              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('addFoto2Input').click()">
+                <img id="addFoto2Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <div class="foto-preview-placeholder" id="addFoto2Placeholder">
+                  <span class="icon" style="font-size:1.2rem;">📷</span>
+                  <span style="font-size:0.65rem;">Foto 2</span>
+                </div>
+              </div>
+              <input type="file" id="addFoto2Input" name="foto2" accept="image/*" style="display:none;"
+                onchange="previewFoto(this, 'addFoto2Preview', 'addFoto2Placeholder')">
+            </div>
+            <div>
+              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('addFoto3Input').click()">
+                <img id="addFoto3Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <div class="foto-preview-placeholder" id="addFoto3Placeholder">
+                  <span class="icon" style="font-size:1.2rem;">📷</span>
+                  <span style="font-size:0.65rem;">Foto 3</span>
+                </div>
+              </div>
+              <input type="file" id="addFoto3Input" name="foto3" accept="image/*" style="display:none;"
+                onchange="previewFoto(this, 'addFoto3Preview', 'addFoto3Placeholder')">
             </div>
           </div>
-          <input type="file" id="addFotoInput" name="foto" accept="image/*" capture="environment" style="display:none;"
-            onchange="previewFoto(this, 'addFotoPreview', 'addFotoPlaceholder')">
-          <small class="compress-msg" style="display:none;color:#22c55e;font-weight:600;">✅ Foto dikompres!</small>
 
           <label class="f-label">Nama Aset</label>
           <input type="text" name="nama" class="f-input" placeholder="cth: Switch TP-Link 8 Port" required>
@@ -290,7 +315,7 @@
                     <button class="act-btn blue" onclick="openModalPakai(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>', <%= item.stok %>, '<%= item.satuan %>')">Pakai</button>
                     <button class="act-btn purple" onclick="openModalPinjam(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>', <%= item.stok %>, '<%= item.satuan %>')">Pinjam</button>
                     <button class="act-btn orange" onclick="openModalService(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>')">Service</button>
-                    <button class="act-btn" onclick="openModalEdit(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>', '<%= item.kategori %>', '<%= item.satuan %>', <%= item.stokAwal %>, '<%= item.kondisi %>', `<%- (item.keterangan||'').replace(/`/g,'\\`') %>`)">Edit</button>
+                    <button class="act-btn" onclick="openModalEdit(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>', '<%= item.kategori %>', '<%= item.satuan %>', <%= item.stokAwal %>, '<%= item.kondisi %>', `<%- (item.keterangan||'').replace(/`/g,'\\`') %>`, '<%= item.fotoUrl||'' %>', '<%= item.foto2Url||'' %>', '<%= item.foto3Url||'' %>')">Edit</button>
                     <button class="act-btn red" onclick="hapusAset(<%= item.id %>, '<%= item.nama.replace(/'/g,`\\'`) %>')">Hapus</button>
                   </div>
                 </td>
@@ -423,17 +448,73 @@
       <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
 
-          <!-- GANTI FOTO ASET -->
-          <label class="f-label">📷 Ganti Foto Aset (opsional)</label>
-          <div class="modal-foto-area" id="editAreaFoto">
-            <img id="editFotoPreview" class="modal-foto-preview" alt="" id="editFotoExisting">
-            <div class="modal-foto-placeholder" id="editFotoPlaceholder">
-              <span class="icon">🔄</span>
-              Klik untuk ganti foto aset
+          <!-- GANTI FOTO ASET (3 slot) -->
+          <label class="f-label">📷 Foto Aset <span style="font-weight:400;text-transform:none;color:var(--body-text3);">(maks 3, kosongkan = tidak berubah)</span></label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0.65rem;">
+
+            <!-- Edit Foto 1 -->
+            <div>
+              <div style="font-size:0.62rem;color:var(--body-text3);text-align:center;margin-bottom:3px;">Foto 1</div>
+              <div class="modal-foto-area" id="editAreaFoto1" style="margin-bottom:0;">
+                <img id="editFoto1Preview" class="modal-foto-preview" alt="" style="max-height:100px;">
+                <div class="modal-foto-placeholder" id="editFoto1Placeholder" style="padding:0.6rem;">
+                  <span style="font-size:1.2rem;">🔄</span><br>
+                  <span style="font-size:0.65rem;">Ganti / tambah</span>
+                </div>
+                <input type="file" name="foto" accept="image/*"
+                  onchange="previewModalFoto(this, 'editFoto1Preview', 'editFoto1Placeholder')">
+              </div>
+              <div id="editHapus1Wrap" style="display:none;margin-top:3px;">
+                <label style="font-size:0.65rem;color:#f87171;cursor:pointer;">
+                  <input type="checkbox" name="hapusFoto1" value="1" id="editCbHapus1"
+                    onchange="toggleHapusFoto(this,'editFoto1Preview','editFoto1Placeholder','editHapus1Wrap')">
+                  Hapus foto ini
+                </label>
+              </div>
             </div>
-            <input type="file" name="foto" accept="image/*"
-              onchange="previewModalFoto(this, 'editFotoPreview', 'editFotoPlaceholder')">
-            <small class="compress-msg" style="display:none;color:#22c55e;font-weight:600;">✅ Foto dikompres!</small>
+
+            <!-- Edit Foto 2 -->
+            <div>
+              <div style="font-size:0.62rem;color:var(--body-text3);text-align:center;margin-bottom:3px;">Foto 2</div>
+              <div class="modal-foto-area" id="editAreaFoto2" style="margin-bottom:0;">
+                <img id="editFoto2Preview" class="modal-foto-preview" alt="" style="max-height:100px;">
+                <div class="modal-foto-placeholder" id="editFoto2Placeholder" style="padding:0.6rem;">
+                  <span style="font-size:1.2rem;">🔄</span><br>
+                  <span style="font-size:0.65rem;">Ganti / tambah</span>
+                </div>
+                <input type="file" name="foto2" accept="image/*"
+                  onchange="previewModalFoto(this, 'editFoto2Preview', 'editFoto2Placeholder')">
+              </div>
+              <div id="editHapus2Wrap" style="display:none;margin-top:3px;">
+                <label style="font-size:0.65rem;color:#f87171;cursor:pointer;">
+                  <input type="checkbox" name="hapusFoto2" value="1" id="editCbHapus2"
+                    onchange="toggleHapusFoto(this,'editFoto2Preview','editFoto2Placeholder','editHapus2Wrap')">
+                  Hapus foto ini
+                </label>
+              </div>
+            </div>
+
+            <!-- Edit Foto 3 -->
+            <div>
+              <div style="font-size:0.62rem;color:var(--body-text3);text-align:center;margin-bottom:3px;">Foto 3</div>
+              <div class="modal-foto-area" id="editAreaFoto3" style="margin-bottom:0;">
+                <img id="editFoto3Preview" class="modal-foto-preview" alt="" style="max-height:100px;">
+                <div class="modal-foto-placeholder" id="editFoto3Placeholder" style="padding:0.6rem;">
+                  <span style="font-size:1.2rem;">🔄</span><br>
+                  <span style="font-size:0.65rem;">Ganti / tambah</span>
+                </div>
+                <input type="file" name="foto3" accept="image/*"
+                  onchange="previewModalFoto(this, 'editFoto3Preview', 'editFoto3Placeholder')">
+              </div>
+              <div id="editHapus3Wrap" style="display:none;margin-top:3px;">
+                <label style="font-size:0.65rem;color:#f87171;cursor:pointer;">
+                  <input type="checkbox" name="hapusFoto3" value="1" id="editCbHapus3"
+                    onchange="toggleHapusFoto(this,'editFoto3Preview','editFoto3Placeholder','editHapus3Wrap')">
+                  Hapus foto ini
+                </label>
+              </div>
+            </div>
+
           </div>
 
           <label class="f-label">Nama Aset</label><input type="text" name="nama" id="eNama" class="f-input" required>
@@ -686,7 +767,7 @@ function openModalPinjam(id, nama, stok, sat) {
 }
 
 // ===== MODAL EDIT =====
-function openModalEdit(id, nama, kat, sat, stok, kon, ket) {
+function openModalEdit(id, nama, kat, sat, stok, kon, ket, f1, f2, f3) {
     document.getElementById('formEdit').action = '/aset/edit/' + id;
     document.getElementById('eNama').value = nama;
     document.getElementById('eKat').value  = kat;
@@ -694,11 +775,43 @@ function openModalEdit(id, nama, kat, sat, stok, kon, ket) {
     document.getElementById('eStok').value = stok;
     document.getElementById('eKon').value  = kon;
     document.getElementById('eKet').value  = ket;
-    // Reset preview foto (foto existing tidak ditampilkan di preview, hanya kalau upload baru)
-    var img = document.getElementById('editFotoPreview');
-    var ph  = document.getElementById('editFotoPlaceholder');
-    img.src = ''; img.style.display = 'none'; if(ph) ph.style.display = '';
+
+    // Reset checkbox hapus
+    ['editCbHapus1','editCbHapus2','editCbHapus3'].forEach(function(cbId) {
+        var cb = document.getElementById(cbId);
+        if (cb) cb.checked = false;
+    });
+
+    // Set preview foto existing
+    setEditFotoPreview('editFoto1Preview', 'editFoto1Placeholder', 'editHapus1Wrap', f1);
+    setEditFotoPreview('editFoto2Preview', 'editFoto2Placeholder', 'editHapus2Wrap', f2);
+    setEditFotoPreview('editFoto3Preview', 'editFoto3Placeholder', 'editHapus3Wrap', f3);
+
     new bootstrap.Modal(document.getElementById('modalEdit')).show();
+}
+
+function setEditFotoPreview(imgId, phId, hapusWrapId, url) {
+    var img  = document.getElementById(imgId);
+    var ph   = document.getElementById(phId);
+    var wrap = document.getElementById(hapusWrapId);
+    if (url && url !== 'null' && url !== '') {
+        img.src = url; img.style.display = 'block';
+        if (ph)   ph.style.display = 'none';
+        if (wrap) wrap.style.display = 'block';
+    } else {
+        img.src = ''; img.style.display = 'none';
+        if (ph)   ph.style.display = '';
+        if (wrap) wrap.style.display = 'none';
+    }
+}
+
+function toggleHapusFoto(cb, imgId, phId, wrapId) {
+    var img = document.getElementById(imgId);
+    var ph  = document.getElementById(phId);
+    if (cb.checked) {
+        img.src = ''; img.style.display = 'none';
+        if (ph) ph.style.display = '';
+    }
 }
 
 // ===== HAPUS ASET =====

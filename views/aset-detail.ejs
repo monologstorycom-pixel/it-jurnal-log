@@ -74,11 +74,18 @@
 
     <!-- HEADER ASET -->
     <div class="panel">
-        <!-- FOTO UTAMA ASET -->
-        <% if(aset.fotoUrl) { %>
-        <img src="<%= aset.fotoUrl %>" class="aset-main-foto"
-            onclick="showFoto('<%= aset.fotoUrl %>', '<%= aset.nama.replace(/'/g, "&#39;") %>')"
-            alt="<%= aset.nama %>" title="Klik untuk perbesar">
+        <!-- FOTO ASET (maks 3) -->
+        <% var fotoList = [aset.fotoUrl, aset.foto2Url, aset.foto3Url].filter(Boolean); %>
+        <% if(fotoList.length > 0) { %>
+        <div style="display:grid;grid-template-columns:repeat(<%= fotoList.length %>,1fr);gap:0;border-bottom:1px solid var(--body-border);">
+            <% fotoList.forEach(function(url, idx) { %>
+            <img src="<%= url %>"
+                onclick="showFoto('<%= url %>', '<%= aset.nama.replace(/'/g, "&#39;") %> — Foto <%= idx+1 %>')"
+                alt="Foto <%= idx+1 %>"
+                title="Klik untuk perbesar"
+                style="width:100%;max-height:240px;object-fit:cover;display:block;cursor:pointer;<%= idx > 0 ? 'border-left:1px solid var(--body-border);' : '' %>">
+            <% }); %>
+        </div>
         <% } else { %>
         <div class="aset-no-foto-banner">📦 Belum ada foto aset</div>
         <% } %>
