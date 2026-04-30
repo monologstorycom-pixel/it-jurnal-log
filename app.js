@@ -97,7 +97,7 @@ app.use((req, res, next) => {
 });
 
 // ==========================================
-// MULTER + SHARP AUTO COMPRESS
+// MULTER + SHARP AUTO COMPRESS (DENGAN LOGIKA SUB-FOLDER)
 // ==========================================
 const uploadTmpDir = path.join(__dirname, 'uploads', 'tmp');
 if (!fs.existsSync(uploadTmpDir)) fs.mkdirSync(uploadTmpDir, { recursive: true });
@@ -118,17 +118,41 @@ const uploadFields = upload.fields([
     { name: 'foto', maxCount: 1 }
 ]);
 
-async function saveCompressedPhoto(file, fieldname) {
+async function saveCompressedPhoto(file, fieldname, tipe = 'log', divisi = 'IT') {
     if (!file) return null;
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    const prefix = fieldname === 'fotoAwal' ? 'IT-AWAL-' : 'IT-LOG-';
+    
+    let targetDir = uploadDir;
+    let subFolder = '';
+    
+    // Logika Sub-folder: Log Jurnal dan Aset IT tetap di folder /uploads (default)
+    // Aset divisi lain masuk ke /uploads/NAMA_DIVISI
+    if (tipe.startsWith('aset') && divisi !== 'IT' && divisi !== 'IT & IC') {
+        const safeDivisi = divisi.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
+        targetDir = path.join(uploadDir, safeDivisi);
+        subFolder = safeDivisi + '/';
+    } 
+
+    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+
+    // Logika Prefix Nama File
+    let prefix = 'FILE-';
+    if (tipe === 'log') {
+        prefix = fieldname === 'fotoAwal' ? 'IT-AWAL-' : 'IT-LOG-';
+    } else if (tipe.startsWith('aset')) {
+        const safePrefixDiv = divisi.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        if (tipe === 'aset') prefix = `ASET-${safePrefixDiv}-`;
+        if (tipe === 'aset_pakai') prefix = `PASANG-${safePrefixDiv}-`;
+        if (tipe === 'aset_pinjam') prefix = `PINJAM-${safePrefixDiv}-`;
+        if (tipe === 'aset_service') prefix = `SVC-${safePrefixDiv}-`;
+    }
+
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const filename = prefix + uniqueSuffix + '.jpg';
+    const outPath  = path.join(targetDir, filename);
 
     try {
         const source = file.path || file.buffer;
         if (!source) return null;
-        const filename = prefix + uniqueSuffix + '.jpg';
-        const outPath  = path.join(uploadDir, filename);
         const buffer = await sharp(source)
             .rotate()
             .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
@@ -136,21 +160,21 @@ async function saveCompressedPhoto(file, fieldname) {
             .toBuffer();
         fs.writeFileSync(outPath, buffer);
         if (file.path && fs.existsSync(file.path)) { try { fs.unlinkSync(file.path); } catch(e) {} }
-        return '/uploads/' + filename;
+        return '/uploads/' + subFolder + filename;
     } catch(sharpErr) {
         console.warn('[Sharp fallback]', sharpErr.message);
         const ext = file.originalname ? require('path').extname(file.originalname) : '.jpg';
-        const filename = prefix + uniqueSuffix + ext;
-        const outPath  = path.join(uploadDir, filename);
+        const rawFilename = prefix + uniqueSuffix + ext;
+        const rawOutPath  = path.join(targetDir, rawFilename);
         if (file.path) {
-            fs.copyFileSync(file.path, outPath);
+            fs.copyFileSync(file.path, rawOutPath);
             try { fs.unlinkSync(file.path); } catch(e) {}
         } else if (file.buffer) {
-            fs.writeFileSync(outPath, file.buffer);
+            fs.writeFileSync(rawOutPath, file.buffer);
         } else {
             return null;
         }
-        return '/uploads/' + filename;
+        return '/uploads/' + subFolder + rawFilename;
     }
 }
 
@@ -340,7 +364,6 @@ app.get('/aset-public', async (req, res) => {
         }
 
         const { q, kategori } = req.query;
-        // FIX: Supaya 'IT' merangkul 'IT & IC'
         let where = { divisi: { in: ['IT', 'IT & IC'] } };
         
         if (q) where.OR = [{ nama: { contains: q } }, { kategori: { contains: q } }];
@@ -384,7 +407,6 @@ app.get('/aset-public/:divisi', requireLogin, async (req, res) => {
 
         const { q, kategori } = req.query;
         
-        // FIX: Supaya targetDivisi mencakup 'IT' & 'IT & IC'
         let where = {};
         if (targetDivisi === 'IT' || targetDivisi === 'IT & IC') {
             where.divisi = { in: ['IT', 'IT & IC'] };
@@ -607,7 +629,6 @@ app.get('/audit', requireLogin, async (req, res) => {
         // 4. DATA ASET
         let auditAsets = [];
         if (asetDivisi && asetDivisi !== '') {
-            // FIX: Map "IT & IC" biar merangkul data "IT"
             let divWhereAset = asetDivisi;
             if (asetDivisi === 'IT & IC' || asetDivisi === 'IT') {
                 divWhereAset = { in: ['IT', 'IT & IC'] };
@@ -690,10 +711,11 @@ app.post('/save', requireLogin, (req, res, next) => {
             }
         }
 
+        // Simpan menggunakan fungsi kompres dengan argument tipe "log"
         let dataToSave = {
             aktivitas, divisi, pemesan, deskripsi, status, tipeInput,
-            fotoUrl:     fotoFile     ? '/uploads/' + fotoFile.filename     : null,
-            fotoAwalUrl: fotoAwalFile ? '/uploads/' + fotoAwalFile.filename : null
+            fotoUrl:     fotoFile     ? await saveCompressedPhoto(fotoFile, 'foto', 'log') : null,
+            fotoAwalUrl: fotoAwalFile ? await saveCompressedPhoto(fotoAwalFile, 'fotoAwal', 'log') : null
         };
 
         if (tipeInput === 'multihari') {
@@ -746,7 +768,7 @@ app.post('/upload-foto/:id', requireLogin, (req, res, next) => {
     next();
 }, upload.single('foto'), async (req, res) => {
     try {
-        if (req.file) { const fotoUrl = await saveCompressedPhoto(req.file, 'foto'); await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoUrl } }); }
+        if (req.file) { const fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'log'); await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoUrl } }); }
         res.redirect('/kerja');
     } catch (error) { console.error(error); res.status(500).send("Gagal Upload."); }
 });
@@ -759,7 +781,7 @@ app.post('/upload-foto-awal/:id', requireLogin, (req, res, next) => {
     next();
 }, upload.single('fotoAwal'), async (req, res) => {
     try {
-        if (req.file) { const fotoAwalUrl = await saveCompressedPhoto(req.file, 'fotoAwal'); await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoAwalUrl } }); }
+        if (req.file) { const fotoAwalUrl = await saveCompressedPhoto(req.file, 'fotoAwal', 'log'); await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoAwalUrl } }); }
         res.redirect('/kerja');
     } catch (error) { console.error(error); res.status(500).send("Gagal Upload Awal."); }
 });
@@ -790,8 +812,8 @@ app.post('/edit/:id', requireLogin, (req, res, next) => {
         const fotoAwalFile = req.files && req.files['fotoAwal'] ? req.files['fotoAwal'][0] : null;
 
         let updateData = { aktivitas, divisi, pemesan, deskripsi, status, tipeInput };
-        if (fotoFile)     updateData.fotoUrl     = '/uploads/' + fotoFile.filename;
-        if (fotoAwalFile) updateData.fotoAwalUrl = '/uploads/' + fotoAwalFile.filename;
+        if (fotoFile)     updateData.fotoUrl     = await saveCompressedPhoto(fotoFile, 'foto', 'log');
+        if (fotoAwalFile) updateData.fotoAwalUrl = await saveCompressedPhoto(fotoAwalFile, 'fotoAwal', 'log');
 
         if (tipeInput === 'multihari') {
             const dtMulai   = buildDateTime(tanggalMulaiDate, jamMulaiMulti);
@@ -849,7 +871,7 @@ app.post('/delete/:id', requireLogin, (req, res, next) => {
 // 8. EXPORT EXCEL
 // ==========================================
 app.get('/export', requireLogin, (req, res, next) => {
-    if (!hasPerm(req.session.user, 'canExport')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    if (!hasPerm(req.session.user, 'canExport') && !hasPerm(req.session.user, 'canAudit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
 }, async (req, res) => {
     try {
@@ -934,7 +956,7 @@ app.get('/export', requireLogin, (req, res, next) => {
 // 8b. EXPORT EXCEL ASET
 // ==========================================
 app.get('/export-aset', requireLogin, (req, res, next) => {
-    if (!hasPerm(req.session.user, 'canExport')) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    if (!hasPerm(req.session.user, 'canExport') && !hasPerm(req.session.user, 'canAudit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
 }, async (req, res) => {
     try {
@@ -942,7 +964,6 @@ app.get('/export-aset', requireLogin, (req, res, next) => {
         const userDivisi = req.session.user.divisi || 'IT';
         const targetDivisi = seeAll ? (req.query.divisi || null) : userDivisi;
 
-        // FIX: Supaya export aset "IT & IC" juga narik data "IT"
         let whereClause = {};
         if (targetDivisi) {
             whereClause.divisi = (targetDivisi === 'IT & IC' || targetDivisi === 'IT') ? { in: ['IT', 'IT & IC'] } : targetDivisi;
@@ -1655,7 +1676,10 @@ app.post('/aset/tambah', requireLogin, (req, res, next) => {
         const keterangan = req.body.keterangan ? req.body.keterangan.toString().trim() : null;
         const stokNum   = parseInt(req.body.stok) || 0;
         const divisiAset = req.body.divisi ? req.body.divisi.toString().trim() : (req.session.user.divisi || 'IT');
-        const fotoUrl   = await saveCompressedPhoto(req.file, 'foto');
+        
+        // Simpan menggunakan fungsi kompres dengan argument tipe "aset" dan mengirim nama divisinya
+        const fotoUrl   = await saveCompressedPhoto(req.file, 'foto', 'aset', divisiAset);
+        
         await prisma.aset.create({ data: { nama, divisi: divisiAset, kategori, satuan, stokAwal: stokNum, stok: stokNum, kondisi, keterangan, fotoUrl } });
         res.redirect('/aset?saved=1');
     } catch (error) { console.error(error); res.status(500).send("Gagal tambah aset: " + error.message); }
@@ -1682,8 +1706,11 @@ app.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         const totalPinjam = Number(resPinjam[0].total) || 0;
         const stokBaru    = stokAwalNum - totalPakai - totalPinjam;
 
+        // Ambil data aset existing biar tahu divisinya
+        const asetExisting = await prisma.aset.findUnique({ where: { id: asetId } });
+
         let fotoUrl = null;
-        if (req.file) fotoUrl = await saveCompressedPhoto(req.file, 'foto');
+        if (req.file) fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'aset', asetExisting.divisi);
 
         if (fotoUrl) {
             await prisma.$executeRawUnsafe('UPDATE Aset SET nama=?, kategori=?, satuan=?, stokAwal=?, stok=?, kondisi=?, keterangan=?, fotoUrl=? WHERE id=?',
@@ -1721,7 +1748,9 @@ app.post('/aset/pakai/:id', requireLogin, (req, res, next) => {
         const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
         if (aset.stok < jml) return res.status(400).send(`Stok tidak cukup! Stok tersedia: ${aset.stok} ${aset.satuan}`);
-        const fotoUrl = await saveCompressedPhoto(req.file, 'foto');
+        
+        const fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'aset_pakai', aset.divisi);
+        
         await prisma.$transaction([
             prisma.asetPenggunaan.create({ data: { asetId, jumlah: jml, divisi, lokasi, keterangan: keterangan || null, fotoUrl, tanggal: tanggal ? new Date(tanggal) : new Date() } }),
             prisma.aset.update({ where: { id: asetId }, data: { stok: { decrement: jml } } })
@@ -1760,7 +1789,9 @@ app.post('/aset/pinjam/:id', requireLogin, (req, res, next) => {
         const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         if (!aset) return res.status(404).send("Aset tidak ditemukan");
         if (aset.stok < jml) return res.status(400).send(`Stok tidak cukup! Stok tersedia: ${aset.stok} ${aset.satuan}`);
-        const fotoUrl = await saveCompressedPhoto(req.file, 'foto');
+        
+        const fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'aset_pinjam', aset.divisi);
+        
         await prisma.$transaction([
             prisma.asetPinjam.create({ data: { asetId, jumlah: jml, peminjam, divisi, keperluan: keperluan || null, fotoUrl, tanggalPinjam: tanggalPinjam ? new Date(tanggalPinjam) : new Date(), status: 'Dipinjam' } }),
             prisma.aset.update({ where: { id: asetId }, data: { stok: { decrement: jml } } })
@@ -1815,8 +1846,12 @@ app.post('/aset/service/:asetId', requireLogin, (req, res, next) => {
     try {
         const asetId = parseInt(req.params.asetId);
         const { teknisi, vendor, keluhan, hasil, biaya, status, tanggal, tanggalSelesai } = req.body;
+        
+        // Fix: Harus panggil data asetnya biar tau divisi mana
+        const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         let fotoUrl = null;
-        if (req.file) fotoUrl = '/uploads/' + req.file.filename;
+        if (req.file) fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'aset_service', aset ? aset.divisi : 'IT');
+        
         await prisma.asetService.create({
             data: {
                 asetId,
