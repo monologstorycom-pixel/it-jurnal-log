@@ -110,12 +110,12 @@
     <!-- LOGIN PROMPT / KELOLA PROMPT -->
     <% if (typeof currentUser !== 'undefined' && currentUser) { %>
     <div class="login-prompt" style="background:var(--body-bg3);border-color:var(--body-border);">
-        <span class="login-prompt-text" style="color:var(--body-text2);">👋 Halo <strong style="color:var(--body-text);"><%= currentUser.nama || currentUser.username %></strong> — melihat aset divisi <strong style="color:var(--body-accent);"><%= typeof divisiLabel !== 'undefined' ? divisiLabel : divisi %></strong></span>
-        <a href="/aset" style="background:var(--body-accent);color:var(--body-bg);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:13px;font-weight:600;">🗂 Kelola Aset</a>
+        <span class="login-prompt-text" style="color:var(--body-text2);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 11a3 3 0 0 0-3-3V4a2 2 0 1 0-4 0v6a2 2 0 0 0-4 0v6a8 8 0 0 0 16 0v-3a2 2 0 0 0-4 0"/></svg> Halo <strong style="color:var(--body-text);"><%= currentUser.nama || currentUser.username %></strong> — melihat aset divisi <strong style="color:var(--body-accent);"><%= typeof divisiLabel !== 'undefined' ? divisiLabel : divisi %></strong></span>
+        <a href="/aset" style="background:var(--body-accent);color:var(--body-bg);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:13px;font-weight:600;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Kelola Aset</a>
     </div>
     <% } else { %>
     <div class="login-prompt">
-        <span class="login-prompt-text">🔐 Ingin melihat aset divisi Anda? Login terlebih dahulu.</span>
+        <span class="login-prompt-text"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Ingin melihat aset divisi Anda? Login terlebih dahulu.</span>
         <a href="/login">Login</a>
     </div>
     <% } %>
@@ -127,7 +127,7 @@
       <a href="/aset-public/<%= encodeURIComponent(d) %><%= q ? '?q='+q : '' %><%= kategori ? (q?'&':'?')+'kategori='+kategori : '' %>"
          style="padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;text-decoration:none;border:1px solid;transition:all 0.15s;
          <%= divisi === d ? 'background:var(--body-accent);color:var(--body-bg);border-color:var(--body-accent);' : 'background:var(--body-bg);color:var(--body-text2);border-color:var(--body-border2);' %>">
-        📦 <%= d %>
+        <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> <%= d %>
       </a>
       <% }) %>
     </div>
@@ -196,11 +196,15 @@
                         <td style="color:var(--body-text3);font-size:12px;"><%= i+1 %></td>
                         <td style="width:52px;">
                             <% if(item.fotoUrl){ %>
+                                <% var _pubFotos=[item.fotoUrl,item.foto2Url,item.foto3Url].filter(Boolean); %>
+                                <% var _pubFotosJson=JSON.stringify(_pubFotos).replace(/"/g,'&quot;'); %>
                                 <img src="<%= item.fotoUrl %>" class="aset-thumb"
-                                    onclick="showFoto('<%= item.fotoUrl %>','<%= item.nama.replace(/'/g,"&#39;") %>')"
+                                    onclick="showFoto(JSON.parse(this.dataset.fotos),this.dataset.nama)"
+                                    data-fotos="<%- _pubFotosJson %>"
+                                    data-nama="<%= item.nama.replace(/"/g,'&quot;') %>"
                                     alt="<%= item.nama %>">
                             <% } else { %>
-                                <div class="aset-no-thumb">📦</div>
+                                <div class="aset-no-thumb"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
                             <% } %>
                         </td>
                         <td>
@@ -261,7 +265,7 @@
                                                             onclick="showFoto('<%= p.fotoUrl %>','Pemasangan - <%= new Date(p.tanggal).toLocaleDateString("id-ID") %>')"
                                                             alt="foto">
                                                     <% } else { %>
-                                                        <div class="rw-no-thumb">📍</div>
+                                                        <div class="rw-no-thumb"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
                                                     <% } %>
                                                 </td>
                                                 <td style="white-space:nowrap;color:var(--body-text2)"><%= new Date(p.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
@@ -294,7 +298,7 @@
                                                             onclick="showFoto('<%= p.fotoUrl %>','Pinjam - <%= p.peminjam.replace(/'/g,"&#39;") %>')"
                                                             alt="foto">
                                                     <% } else { %>
-                                                        <div class="rw-no-thumb">🔑</div>
+                                                        <div class="rw-no-thumb"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div>
                                                     <% } %>
                                                 </td>
                                                 <td>
@@ -331,7 +335,7 @@
                                                         <img src="<%= sv.fotoUrl %>" class="rw-thumb" alt="foto" 
                                                             onclick="showFoto('<%= sv.fotoUrl %>', 'Servis - <%= new Date(sv.tanggal).toLocaleDateString(`id-ID`) %>')">
                                                     <% } else { %>
-                                                        <div class="rw-no-thumb">🔧</div>
+                                                        <div class="rw-no-thumb"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
                                                     <% } %>
                                                 </td>
                                                 <td style="white-space:nowrap;color:var(--body-text2)"><%= new Date(sv.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
@@ -358,25 +362,69 @@
 </div>
 
 <!-- FOTO MODAL OVERLAY -->
-<div class="foto-overlay" id="fotoOverlay" onclick="closeFoto()">
-    <span class="foto-overlay-close" onclick="closeFoto()">✕</span>
-    <img id="fotoOverlayImg" src="" alt="foto">
+<div class="foto-overlay" id="fotoOverlay">
+    <span class="foto-overlay-close" onclick="closeFoto()"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+    <!-- Prev -->
+    <button id="overlayFotoPrev" onclick="overlaySliderNav(-1)"
+      style="position:fixed;left:16px;top:50%;transform:translateY(-50%);
+             background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:2rem;
+             width:46px;height:46px;border-radius:50%;cursor:pointer;z-index:10002;
+             align-items:center;justify-content:center;display:none;">&#8249;</button>
+    <img id="fotoOverlayImg" src="" alt="foto" onclick="event.stopPropagation()">
+    <!-- Next -->
+    <button id="overlayFotoNext" onclick="overlaySliderNav(1)"
+      style="position:fixed;right:16px;top:50%;transform:translateY(-50%);
+             background:rgba(0,0,0,0.6);border:none;color:#fff;font-size:2rem;
+             width:46px;height:46px;border-radius:50%;cursor:pointer;z-index:10002;
+             align-items:center;justify-content:center;display:none;">&#8250;</button>
     <div class="foto-overlay-caption" id="fotoOverlayCaption"></div>
+    <div id="overlayFotoDots" style="display:flex;justify-content:center;gap:8px;padding:8px;flex-wrap:wrap;"></div>
+    <!-- close on backdrop -->
+    <div onclick="closeFoto()" style="position:fixed;inset:0;z-index:-1;"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function showFoto(url, caption) {
-    document.getElementById('fotoOverlayImg').src = url;
-    document.getElementById('fotoOverlayCaption').textContent = '📷 ' + caption;
+// ===== FOTO OVERLAY SLIDER =====
+var _ovUrls=[], _ovIdx=0;
+function showFoto(urls, caption) {
+    _ovUrls  = Array.isArray(urls) ? urls : [urls];
+    _ovIdx   = 0;
+    _ovUrls._caption = caption;
+    _renderOverlay();
     document.getElementById('fotoOverlay').classList.add('show');
     document.body.style.overflow = 'hidden';
 }
+function _renderOverlay() {
+    var total=_ovUrls.length, url=_ovUrls[_ovIdx];
+    var caption=_ovUrls._caption||'';
+    document.getElementById('fotoOverlayImg').src = url;
+    document.getElementById('fotoOverlayCaption').innerHTML = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ' + caption + (total>1?' ('+ (_ovIdx+1)+'/'+total+')':'');
+    var btnP=document.getElementById('overlayFotoPrev'), btnN=document.getElementById('overlayFotoNext');
+    if(total>1){btnP.style.display='flex';btnN.style.display='flex';btnP.style.opacity=_ovIdx===0?'0.3':'1';btnN.style.opacity=_ovIdx===total-1?'0.3':'1';}
+    else{btnP.style.display='none';btnN.style.display='none';}
+    var dotsEl=document.getElementById('overlayFotoDots'); dotsEl.innerHTML='';
+    if(total>1){
+        _ovUrls.forEach(function(u,i){
+            var th=document.createElement('img'); th.src=u;
+            th.onclick=(function(idx){return function(e){e.stopPropagation();_ovIdx=idx;_renderOverlay();};})(i);
+            Object.assign(th.style,{width:'48px',height:'48px',objectFit:'cover',borderRadius:'5px',cursor:'pointer',transition:'all 0.15s',border:i===_ovIdx?'2px solid #4ade80':'2px solid rgba(255,255,255,0.2)',opacity:i===_ovIdx?'1':'0.5'});
+            dotsEl.appendChild(th);
+        });
+    }
+}
+function overlaySliderNav(dir){_ovIdx=Math.max(0,Math.min(_ovUrls.length-1,_ovIdx+dir));_renderOverlay();}
 function closeFoto() {
     document.getElementById('fotoOverlay').classList.remove('show');
     document.body.style.overflow = '';
 }
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeFoto(); });
+document.addEventListener('keydown', function(e){
+    if(e.key==='Escape') closeFoto();
+    var ov=document.getElementById('fotoOverlay');
+    if(!ov||!ov.classList.contains('show')) return;
+    if(e.key==='ArrowRight') overlaySliderNav(1);
+    if(e.key==='ArrowLeft')  overlaySliderNav(-1);
+});
 
 function toggleDetail(id) {
     var row  = document.getElementById('detail-' + id);

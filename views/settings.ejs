@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan Akun — IT Support Log</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f1117">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', -apple-system, sans-serif; margin: 0; transition: background 0.25s, color 0.25s; }
+        .page-wrap { max-width: 720px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+        /* PAGE TITLE */
+        .page-title { font-size: 1.1rem; font-weight: 700; color: var(--body-text); display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
+        .page-title svg { color: #6366f1; }
+
+        /* CARD */
+        .s-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; margin-bottom: 1rem; overflow: hidden; }
+        .s-card-header { padding: 12px 18px; border-bottom: 1px solid var(--body-border); display: flex; align-items: center; gap: 8px; }
+        .s-card-title { font-size: 0.75rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; }
+        .s-card-body { padding: 18px; }
+
+        /* FORM */
+        .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+        .f-input { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; border-radius: 8px; color: var(--body-text) !important; padding: 9px 12px; width: 100%; font-size: 0.85rem; outline: none; transition: border-color 0.15s; }
+        .f-input:focus { border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.15) !important; }
+        .f-hint { font-size: 0.72rem; color: var(--body-text3); margin-top: 4px; }
+        .f-group { margin-bottom: 1rem; }
+
+        /* BUTTONS */
+        .btn-save { background: #6366f1; color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-size: 0.83rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-save:hover { background: #4f52cc; }
+        .btn-danger { background: transparent; color: #dc2626; border: 1px solid #dc2626; border-radius: 8px; padding: 9px 20px; font-size: 0.83rem; font-weight: 700; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-danger:hover { background: rgba(220,38,38,0.1); }
+
+        /* AVATAR AREA */
+        .avatar-area { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .avatar-preview {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: var(--avatar-bg, #0d2a18);
+            border: 2px solid var(--body-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; font-weight: 700; color: var(--avatar-text, #4ade80);
+            overflow: hidden; flex-shrink: 0; position: relative;
+        }
+        .avatar-preview img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .avatar-actions { display: flex; flex-direction: column; gap: 8px; }
+        .btn-upload-foto { background: var(--body-bg3); border: 1px solid var(--body-border); color: var(--body-text); border-radius: 8px; padding: 8px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+        .btn-upload-foto:hover { border-color: #6366f1; color: #818cf8; }
+        .foto-input { display: none; }
+
+        /* TOAST */
+        .toast-bar { position: fixed; top: 76px; right: 1rem; z-index: 9999; min-width: 260px; max-width: 360px; padding: 12px 16px; border-radius: 10px; font-size: 0.83rem; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); animation: slideIn 0.25s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: none; } }
+        .toast-success { background: #0d2a18; border: 1px solid #166534; color: #4ade80; }
+        .toast-error   { background: #2a0d0d; border: 1px solid #7f1d1d; color: #f87171; }
+
+        /* DIVIDER */
+        .s-divider { height: 1px; background: var(--body-border); margin: 1rem 0; }
+
+        /* INFO READONLY */
+        .info-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--body-border); }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-size: 0.72rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.06em; min-width: 80px; }
+        .info-val { font-size: 0.85rem; color: var(--body-text); font-weight: 500; }
+        .badge-role { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.05em; }
+        .role-admin  { background: var(--role-admin-bg,#0d1a38);  color: var(--role-admin-text,#60a5fa); }
+        .role-user   { background: var(--role-user-bg,#0d2a18);   color: var(--role-user-text,#4ade80); }
+        .role-viewer { background: var(--role-viewer-bg,#1a1a2e); color: var(--role-viewer-text,#a78bfa); }
+
+        @media (max-width: 576px) {
+            .avatar-area { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+<%- include('navbar', {activePage: 'settings'}) %>
+
+<% if (typeof msg !== 'undefined' && msg) { %>
+<div class="toast-bar toast-<%= msgType || 'success' %>" id="toastBar">
+    <% if (msgType === 'error') { %>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <% } else { %>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <% } %>
+    <%= msg %>
+</div>
+<script>setTimeout(()=>{var t=document.getElementById('toastBar');if(t){t.style.opacity='0';t.style.transition='opacity 0.4s';setTimeout(()=>t.remove(),400);}},3500);</script>
+<% } %>
+
+<div class="page-wrap">
+    <div class="page-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>
+        </svg>
+        Pengaturan Akun
+    </div>
+
+    <!-- FOTO PROFIL -->
+    <div class="s-card">
+        <div class="s-card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            <span class="s-card-title">Foto Profil</span>
+        </div>
+        <div class="s-card-body">
+            <div class="avatar-area">
+                <div class="avatar-preview" id="avatarPreview">
+                    <% 
+                    var initials = currentUser.nama
+                        ? currentUser.nama.split(' ').slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase()
+                        : currentUser.username.slice(0,2).toUpperCase();
+                    %>
+                    <% if (currentUser.fotoUrl) { %>
+                        <img src="<%= currentUser.fotoUrl %>" alt="Foto Profil" id="avatarImg">
+                    <% } else { %>
+                        <span id="avatarInitials"><%= initials %></span>
+                    <% } %>
+                </div>
+                <div class="avatar-actions">
+                    <form action="/settings/foto" method="POST" enctype="multipart/form-data" id="formFoto">
+                        <input type="file" name="fotoProfil" class="foto-input" id="fotoInput" accept="image/*" onchange="previewAndSubmit(this)">
+                        <button type="button" class="btn-upload-foto" onclick="document.getElementById('fotoInput').click()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Upload Foto
+                        </button>
+                    </form>
+                    <% if (currentUser.fotoUrl) { %>
+                    <form action="/settings/hapus-foto" method="POST">
+                        <button type="submit" class="btn-danger" onclick="return confirm('Hapus foto profil?')">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                            Hapus Foto
+                        </button>
+                    </form>
+                    <% } %>
+                    <p class="f-hint" style="margin:0;">JPG/PNG, maks 5MB. Otomatis dikompres.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFO AKUN (readonly) -->
+    <div class="s-card">
+        <div class="s-card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="8" x2="12" y2="8"/><line x1="8" y1="16" x2="10" y2="16"/></svg>
+            <span class="s-card-title">Info Akun</span>
+        </div>
+        <div class="s-card-body" style="padding: 12px 18px;">
+            <div class="info-row">
+                <span class="info-label">Username</span>
+                <span class="info-val">@<%= currentUser.username %></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Role</span>
+                <%
+                var rClass = currentUser.role === 'admin' ? 'role-admin' : currentUser.role === 'viewer' ? 'role-viewer' : 'role-user';
+                %>
+                <span class="badge-role <%= rClass %>"><%= currentUser.role.toUpperCase() %></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Divisi</span>
+                <span class="info-val"><%= currentUser.divisi %></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- GANTI NAMA -->
+    <div class="s-card">
+        <div class="s-card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            <span class="s-card-title">Ganti Nama</span>
+        </div>
+        <div class="s-card-body">
+            <form action="/settings/profil" method="POST">
+                <div class="f-group">
+                    <label class="f-label">Nama Lengkap</label>
+                    <input type="text" name="nama" class="f-input" value="<%= currentUser.nama %>" placeholder="Nama tampil di aplikasi" required maxlength="100">
+                </div>
+                <button type="submit" class="btn-save">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Simpan Nama
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- GANTI PASSWORD -->
+    <div class="s-card">
+        <div class="s-card-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span class="s-card-title">Ganti Password</span>
+        </div>
+        <div class="s-card-body">
+            <form action="/settings/password" method="POST" id="formPassword">
+                <div class="f-group">
+                    <label class="f-label">Password Lama *</label>
+                    <div style="position:relative;">
+                        <input type="password" name="passwordLama" class="f-input" placeholder="Masukkan password saat ini" required style="padding-right:40px;">
+                        <button type="button" onclick="togglePw(this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--body-text3);padding:0;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="f-group">
+                    <label class="f-label">Password Baru *</label>
+                    <div style="position:relative;">
+                        <input type="password" name="passwordBaru" class="f-input" placeholder="Minimal 6 karakter" required minlength="6" style="padding-right:40px;" id="pwBaru">
+                        <button type="button" onclick="togglePw(this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--body-text3);padding:0;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <div id="pwStrengthBar" style="height:3px;border-radius:2px;background:var(--body-border);margin-top:5px;overflow:hidden;"><div id="pwStrengthFill" style="height:100%;width:0;transition:width 0.3s,background 0.3s;"></div></div>
+                    <p class="f-hint" id="pwStrengthLabel" style="margin-top:3px;"></p>
+                </div>
+                <div class="f-group">
+                    <label class="f-label">Konfirmasi Password Baru *</label>
+                    <div style="position:relative;">
+                        <input type="password" name="passwordKonfirmasi" class="f-input" placeholder="Ulangi password baru" required minlength="6" style="padding-right:40px;" id="pwKonfirmasi" oninput="cekKonfirmasi()">
+                        <button type="button" onclick="togglePw(this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--body-text3);padding:0;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <p class="f-hint" id="konfirmasiHint" style="margin-top:3px;"></p>
+                </div>
+                <button type="submit" class="btn-save">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Ganti Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Toggle show/hide password
+function togglePw(btn) {
+    var inp = btn.closest('div[style*="relative"]').querySelector('input');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// Preview foto sebelum upload (langsung submit)
+function previewAndSubmit(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File terlalu besar. Maksimal 5MB.');
+        input.value = '';
+        return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var preview = document.getElementById('avatarPreview');
+        var existing = document.getElementById('avatarImg');
+        var initials = document.getElementById('avatarInitials');
+        if (initials) initials.style.display = 'none';
+        if (existing) {
+            existing.src = e.target.result;
+        } else {
+            var img = document.createElement('img');
+            img.id = 'avatarImg';
+            img.src = e.target.result;
+            img.alt = 'Foto Profil';
+            preview.appendChild(img);
+        }
+        // Auto submit
+        document.getElementById('formFoto').submit();
+    };
+    reader.readAsDataURL(file);
+}
+
+// Password strength
+document.getElementById('pwBaru').addEventListener('input', function() {
+    var pw = this.value;
+    var score = 0;
+    if (pw.length >= 6) score++;
+    if (pw.length >= 10) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    var fill = document.getElementById('pwStrengthFill');
+    var label = document.getElementById('pwStrengthLabel');
+    var colors = ['#dc2626','#f97316','#eab308','#22c55e','#16a34a'];
+    var labels = ['Sangat Lemah','Lemah','Cukup','Kuat','Sangat Kuat'];
+    fill.style.width = (score * 20) + '%';
+    fill.style.background = colors[score - 1] || '#dc2626';
+    label.textContent = pw.length ? labels[score - 1] || 'Sangat Lemah' : '';
+    label.style.color = colors[score - 1] || '#dc2626';
+    cekKonfirmasi();
+});
+
+// Konfirmasi cocok?
+function cekKonfirmasi() {
+    var baru = document.getElementById('pwBaru').value;
+    var konfirm = document.getElementById('pwKonfirmasi').value;
+    var hint = document.getElementById('konfirmasiHint');
+    if (!konfirm) { hint.textContent = ''; return; }
+    if (baru === konfirm) {
+        hint.textContent = '✓ Password cocok';
+        hint.style.color = '#22c55e';
+    } else {
+        hint.textContent = '✗ Password tidak cocok';
+        hint.style.color = '#dc2626';
+    }
+}
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</body>
+</html>

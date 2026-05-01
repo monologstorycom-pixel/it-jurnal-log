@@ -33,7 +33,8 @@ router.post('/login', async (req, res) => {
             nama:        user.nama,
             role:        user.role,
             divisi:      user.divisi || 'IT',
-            permissions: user.permissions || null
+            permissions: user.permissions || null,
+            fotoUrl:     user.fotoUrl || null
         };
         const perms = getUserPerms(req.session.user);
         if (perms.canAudit && !perms.canViewLog) return res.redirect('/audit');

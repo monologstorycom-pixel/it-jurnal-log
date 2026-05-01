@@ -106,6 +106,7 @@ model User {
   divisi      String   @default("IT")
   permissions String?  @db.Text
   isAudit     Boolean  @default(false)
+  fotoUrl     String?
   createdAt   DateTime @default(now())
 }
 

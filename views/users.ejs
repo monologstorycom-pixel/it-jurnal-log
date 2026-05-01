@@ -49,7 +49,9 @@
         .perm-check.checked-viewlog .perm-label-text { color: #67e8f9; }
         .perm-check.checked-audit .perm-label-text { color: #f59e0b; }
         .perm-check.checked-vendor .perm-label-text { color: #4da6ff; }
-        .perm-icon { font-size: 12px; }
+        .perm-icon { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; flex-shrink:0; }
+        .perm-icon .lc { width:12px !important; height:12px !important; flex-shrink:0; }
+        .pt .lc { width:8px !important; height:8px !important; vertical-align:0; flex-shrink:0; }
 
         /* PRESET BUTTONS */
         .preset-row { display: flex; gap: 5px; margin-bottom: 0.75rem; flex-wrap: wrap; }
@@ -77,7 +79,7 @@
 
         /* PERM TAGS inline di tabel */
         .perm-tags { display: flex; flex-wrap: wrap; gap: 3px; }
-        .pt { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 700; }
+        .pt { display: inline-flex; align-items:center; gap:3px; padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 700; line-height:1.6; }
         .pt-view   { background: #0d1a38; color: #7eb8f7; border: 1px solid #1a2d5c; }
         .pt-add    { background: #0d2a18; color: #4ade80; border: 1px solid #1a5c30; }
         .pt-edit   { background: #0d2210; color: #86efac; border: 1px solid #145c28; }
@@ -124,7 +126,7 @@
 <div class="page-wrap">
   <% if (typeof msg !== 'undefined' && msg) { %>
     <div class="<%= msgType === 'error' ? 'alert-error-custom' : 'alert-success-custom' %>">
-      <%= msgType === 'error' ? '⚠️' : '✅' %> <%= msg %>
+      <%= msgType === 'error' ? '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' : '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg>' %> <%= msg %>
     </div>
   <% } %>
 
@@ -155,7 +157,7 @@
           <!-- PERMISSION BUILDER -->
           <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; margin-bottom: 0.75rem; background: var(--body-bg);">
             <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">
-              🔐 Hak Akses
+              <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Hak Akses
             </div>
 
             <!-- PRESET BUTTONS -->
@@ -170,62 +172,52 @@
               <div class="perm-check" id="lbl_add_canView" data-form="add" data-perm="canView">
                 <input type="checkbox" name="canView" id="add_canView">
                 <div class="perm-box" id="box_add_canView"></div>
-                <span class="perm-icon">👁</span>
                 <span class="perm-label-text">Lihat</span>
               </div>
               <div class="perm-check" id="lbl_add_canAdd" data-form="add" data-perm="canAdd">
                 <input type="checkbox" name="canAdd" id="add_canAdd">
                 <div class="perm-box" id="box_add_canAdd"></div>
-                <span class="perm-icon">➕</span>
                 <span class="perm-label-text">Tambah</span>
               </div>
               <div class="perm-check" id="lbl_add_canEdit" data-form="add" data-perm="canEdit">
                 <input type="checkbox" name="canEdit" id="add_canEdit">
                 <div class="perm-box" id="box_add_canEdit"></div>
-                <span class="perm-icon">✏️</span>
                 <span class="perm-label-text">Edit</span>
               </div>
               <div class="perm-check" id="lbl_add_canDelete" data-form="add" data-perm="canDelete">
                 <input type="checkbox" name="canDelete" id="add_canDelete">
                 <div class="perm-box" id="box_add_canDelete"></div>
-                <span class="perm-icon">🗑</span>
                 <span class="perm-label-text">Hapus</span>
               </div>
               <div class="perm-check" id="lbl_add_canAsset" data-form="add" data-perm="canAsset">
                 <input type="checkbox" name="canAsset" id="add_canAsset">
                 <div class="perm-box" id="box_add_canAsset"></div>
-                <span class="perm-icon">📦</span>
                 <span class="perm-label-text">Aset</span>
               </div>
               <div class="perm-check" id="lbl_add_canExport" data-form="add" data-perm="canExport">
                 <input type="checkbox" name="canExport" id="add_canExport">
                 <div class="perm-box" id="box_add_canExport"></div>
-                <span class="perm-icon">📊</span>
                 <span class="perm-label-text">Export</span>
               </div>
               <div class="perm-check" id="lbl_add_canUsers" data-form="add" data-perm="canUsers">
                 <input type="checkbox" name="canUsers" id="add_canUsers">
                 <div class="perm-box" id="box_add_canUsers"></div>
-                <span class="perm-icon">👥</span>
                 <span class="perm-label-text">Kelola User</span>
               </div>
               <div class="perm-check" id="lbl_add_canViewLog" data-form="add" data-perm="canViewLog">
                 <input type="checkbox" name="canViewLog" id="add_canViewLog">
                 <div class="perm-box" id="box_add_canViewLog"></div>
-                <span class="perm-icon">📋</span>
                 <span class="perm-label-text">Lihat Log</span>
               </div>
               <div class="perm-check" id="lbl_add_canAudit" data-form="add" data-perm="canAudit" style="border:1px solid #7c3aed33;background:rgba(124,58,237,0.06);">
                 <input type="checkbox" name="canAudit" id="add_canAudit">
                 <div class="perm-box" id="box_add_canAudit"></div>
-                <span class="perm-icon">🔍</span>
                 <span class="perm-label-text">Audit (Lht Smua Aset)</span>
               </div>
               <!-- TAMBAHAN: Akses Vendor -->
               <div class="perm-check" id="lbl_add_canVendor" data-form="add" data-perm="canVendor" style="border:1px solid #1e3a8a33;background:rgba(30,58,138,0.06);">
                 <input type="checkbox" name="canVendor" id="add_canVendor">
                 <div class="perm-box" id="box_add_canVendor"></div>
-                <span class="perm-icon">🏪</span>
                 <span class="perm-label-text">Akses Vendor</span>
               </div>
             </div>
@@ -287,16 +279,16 @@
                 </td>
                 <td>
                   <div class="perm-tags">
-                    <% if(perms.canView)   { %><span class="pt pt-view">👁 Lihat</span><% } %>
-                    <% if(perms.canAdd)    { %><span class="pt pt-add">➕ Tambah</span><% } %>
-                    <% if(perms.canEdit)   { %><span class="pt pt-edit">✏️ Edit</span><% } %>
-                    <% if(perms.canDelete) { %><span class="pt pt-delete">🗑 Hapus</span><% } %>
-                    <% if(perms.canAsset)  { %><span class="pt pt-asset">📦 Aset</span><% } %>
-                    <% if(perms.canExport) { %><span class="pt pt-export">📊 Export</span><% } %>
-                    <% if(perms.canUsers)  { %><span class="pt pt-users">👥 User</span><% } %>
-                    <% if(perms.canViewLog){ %><span class="pt pt-viewlog">📋 Lihat Log</span><% } %>
-                    <% if(perms.canAudit)  { %><span class="pt pt-audit">🔍 Audit</span><% } %>
-                    <% if(perms.canVendor) { %><span class="pt pt-vendor">🏪 Vendor</span><% } %>
+                    <% if(perms.canView)   { %><span class="pt pt-view"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Lihat</span><% } %>
+                    <% if(perms.canAdd)    { %><span class="pt pt-add"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tambah</span><% } %>
+                    <% if(perms.canEdit)   { %><span class="pt pt-edit"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</span><% } %>
+                    <% if(perms.canDelete) { %><span class="pt pt-delete"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Hapus</span><% } %>
+                    <% if(perms.canAsset)  { %><span class="pt pt-asset"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Aset</span><% } %>
+                    <% if(perms.canExport) { %><span class="pt pt-export"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Export</span><% } %>
+                    <% if(perms.canUsers)  { %><span class="pt pt-users"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> User</span><% } %>
+                    <% if(perms.canViewLog){ %><span class="pt pt-viewlog"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Lihat Log</span><% } %>
+                    <% if(perms.canAudit)  { %><span class="pt pt-audit"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Audit</span><% } %>
+                    <% if(perms.canVendor) { %><span class="pt pt-vendor"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Vendor</span><% } %>
                   </div>
                 </td>
                 <td style="color:var(--body-text2);font-size:0.75rem;white-space:nowrap;">
@@ -334,7 +326,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
-        <h5 class="modal-title">✏️ Edit User</h5>
+        <h5 class="modal-title"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit User</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formEdit" action="" method="POST">
@@ -356,7 +348,7 @@
             <div class="col-md-6">
               <!-- PERMISSION BUILDER EDIT -->
               <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; background: var(--body-bg); height: 100%;">
-                <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">🔐 Hak Akses</div>
+                <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Hak Akses</div>
                 <div class="preset-row">
                   <button type="button" class="preset-btn preset-admin"  onclick="setPreset('edit', 'admin')">Admin</button>
                   <button type="button" class="preset-btn preset-user"   onclick="setPreset('edit', 'user')">User</button>
@@ -366,54 +358,44 @@
                 <div class="perm-grid" id="permGrid_edit">
                   <div class="perm-check" id="lbl_edit_canView" data-form="edit" data-perm="canView">
                     <input type="checkbox" name="canView" id="edit_canView">
-                    <div class="perm-box" id="box_edit_canView"></div>
-                    <span class="perm-icon">👁</span><span class="perm-label-text">Lihat</span>
+                    <div class="perm-box" id="box_edit_canView"></div><span class="perm-label-text">Lihat</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canAdd" data-form="edit" data-perm="canAdd">
                     <input type="checkbox" name="canAdd" id="edit_canAdd">
-                    <div class="perm-box" id="box_edit_canAdd"></div>
-                    <span class="perm-icon">➕</span><span class="perm-label-text">Tambah</span>
+                    <div class="perm-box" id="box_edit_canAdd"></div><span class="perm-label-text">Tambah</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canEdit" data-form="edit" data-perm="canEdit">
                     <input type="checkbox" name="canEdit" id="edit_canEdit">
-                    <div class="perm-box" id="box_edit_canEdit"></div>
-                    <span class="perm-icon">✏️</span><span class="perm-label-text">Edit</span>
+                    <div class="perm-box" id="box_edit_canEdit"></div><span class="perm-label-text">Edit</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canDelete" data-form="edit" data-perm="canDelete">
                     <input type="checkbox" name="canDelete" id="edit_canDelete">
-                    <div class="perm-box" id="box_edit_canDelete"></div>
-                    <span class="perm-icon">🗑</span><span class="perm-label-text">Hapus</span>
+                    <div class="perm-box" id="box_edit_canDelete"></div><span class="perm-label-text">Hapus</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canAsset" data-form="edit" data-perm="canAsset">
                     <input type="checkbox" name="canAsset" id="edit_canAsset">
-                    <div class="perm-box" id="box_edit_canAsset"></div>
-                    <span class="perm-icon">📦</span><span class="perm-label-text">Aset</span>
+                    <div class="perm-box" id="box_edit_canAsset"></div><span class="perm-label-text">Aset</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canExport" data-form="edit" data-perm="canExport">
                     <input type="checkbox" name="canExport" id="edit_canExport">
-                    <div class="perm-box" id="box_edit_canExport"></div>
-                    <span class="perm-icon">📊</span><span class="perm-label-text">Export</span>
+                    <div class="perm-box" id="box_edit_canExport"></div><span class="perm-label-text">Export</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canUsers" data-form="edit" data-perm="canUsers">
                     <input type="checkbox" name="canUsers" id="edit_canUsers">
-                    <div class="perm-box" id="box_edit_canUsers"></div>
-                    <span class="perm-icon">👥</span><span class="perm-label-text">Kelola User</span>
+                    <div class="perm-box" id="box_edit_canUsers"></div><span class="perm-label-text">Kelola User</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canViewLog" data-form="edit" data-perm="canViewLog">
                     <input type="checkbox" name="canViewLog" id="edit_canViewLog">
-                    <div class="perm-box" id="box_edit_canViewLog"></div>
-                    <span class="perm-icon">📋</span><span class="perm-label-text">Lihat Log</span>
+                    <div class="perm-box" id="box_edit_canViewLog"></div><span class="perm-label-text">Lihat Log</span>
                   </div>
                   <div class="perm-check" id="lbl_edit_canAudit" data-form="edit" data-perm="canAudit" style="border:1px solid #7c3aed33;background:rgba(124,58,237,0.06);">
                     <input type="checkbox" name="canAudit" id="edit_canAudit">
-                    <div class="perm-box" id="box_edit_canAudit"></div>
-                    <span class="perm-icon">🔍</span><span class="perm-label-text">Audit (Lht Smua Aset)</span>
+                    <div class="perm-box" id="box_edit_canAudit"></div><span class="perm-label-text">Audit (Lht Smua Aset)</span>
                   </div>
                   <!-- TAMBAHAN: Akses Vendor Edit -->
                   <div class="perm-check" id="lbl_edit_canVendor" data-form="edit" data-perm="canVendor" style="border:1px solid #1e3a8a33;background:rgba(30,58,138,0.06);">
                     <input type="checkbox" name="canVendor" id="edit_canVendor">
                     <div class="perm-box" id="box_edit_canVendor"></div>
-                    <span class="perm-icon">🏪</span>
                     <span class="perm-label-text">Akses Vendor</span>
                   </div>
                 </div>
@@ -435,13 +417,13 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content" style="border-color:#5c1a1a !important;">
       <div class="modal-header" style="border-color:#5c1a1a;">
-        <h5 class="modal-title">🗑️ Hapus User</h5>
+        <h5 class="modal-title"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Hapus User</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <p style="color:var(--body-text);" class="mb-2">Yakin hapus user ini?</p>
         <p id="hapusNama" style="color:#f87171;font-weight:700;font-size:0.95rem;"></p>
-        <p style="color:var(--body-text2);font-size:0.8rem;">⚠️ Tidak bisa dikembalikan.</p>
+        <p style="color:var(--body-text2);font-size:0.8rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Tidak bisa dikembalikan.</p>
       </div>
       <div class="modal-footer" style="border-color:#5c1a1a;">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -518,7 +500,7 @@ function renderPerms(form) {
       } else {
         el.className = 'perm-check checked';
       }
-      box.textContent = '✓';
+      box.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     }
   });
 }

@@ -14,9 +14,7 @@
         .page-wrap { max-width: 1500px; margin: 0 auto; padding: 1.5rem; }
 
         /* SIDEBAR */
-        .form-panel { display:none; }
-        .form-panel-body { display:none; }
-        .form-panel-footer { display:none; }
+        .form-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; padding: 1.25rem; position: sticky; top: 72px; }
         .form-panel h6 { font-size: 0.78rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
         .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
         .f-input { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; border-radius: 6px; color: var(--body-text) !important; padding: 8px 10px; width: 100%; margin-bottom: 0.65rem; font-size: 0.83rem; outline: none; transition: border-color 0.15s; }
@@ -115,7 +113,7 @@
 
         .empty-row td { text-align: center; padding: 3rem; color: var(--body-text3); font-size: 0.85rem; }
 
-        @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; max-height: none; } .form-panel-body { overflow-y: visible; max-height: none; } }
+        @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; } }
     </style>
 </head>
 <body>
@@ -124,8 +122,89 @@
 <div class="page-wrap">
   <div class="row g-4">
 
-    <!-- ========== MAIN TABLE (full width now) ========== -->
-    <div class="col-12">
+    <!-- ========== FORM SIDEBAR ========== -->
+    <div class="col-md-3">
+      <div class="form-panel">
+        <h6>+ Tambah Aset</h6>
+        <form action="/aset/tambah" method="POST" enctype="multipart/form-data">
+
+          <!-- FOTO ASET (maks 3) -->
+          <label class="f-label"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto Aset <span style="font-weight:400;text-transform:none;color:var(--body-text3);">(maks 3)</span></label>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:0.65rem;">
+            <div>
+              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('addFoto1Input').click()">
+                <img id="addFoto1Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <div class="foto-preview-placeholder" id="addFoto1Placeholder">
+                  <span class="icon" style="font-size:1.2rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+                  <span style="font-size:0.65rem;">Foto 1</span>
+                </div>
+              </div>
+              <input type="file" id="addFoto1Input" name="foto" accept="image/*" capture="environment" style="display:none;"
+                onchange="previewFoto(this, 'addFoto1Preview', 'addFoto1Placeholder')">
+            </div>
+            <div>
+              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('addFoto2Input').click()">
+                <img id="addFoto2Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <div class="foto-preview-placeholder" id="addFoto2Placeholder">
+                  <span class="icon" style="font-size:1.2rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+                  <span style="font-size:0.65rem;">Foto 2</span>
+                </div>
+              </div>
+              <input type="file" id="addFoto2Input" name="foto2" accept="image/*" style="display:none;"
+                onchange="previewFoto(this, 'addFoto2Preview', 'addFoto2Placeholder')">
+            </div>
+            <div>
+              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('addFoto3Input').click()">
+                <img id="addFoto3Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+                <div class="foto-preview-placeholder" id="addFoto3Placeholder">
+                  <span class="icon" style="font-size:1.2rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>
+                  <span style="font-size:0.65rem;">Foto 3</span>
+                </div>
+              </div>
+              <input type="file" id="addFoto3Input" name="foto3" accept="image/*" style="display:none;"
+                onchange="previewFoto(this, 'addFoto3Preview', 'addFoto3Placeholder')">
+            </div>
+          </div>
+
+          <label class="f-label">Nama Aset</label>
+          <input type="text" name="nama" class="f-input" placeholder="cth: Switch TP-Link 8 Port" required>
+          <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+          <label class="f-label">Divisi Aset</label>
+          <input type="text" name="divisi" class="f-input" placeholder="IT, GA, HR, FINANCE..." value="<%= typeof userDivisi !== 'undefined' ? userDivisi : 'IT' %>" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+          <% } else { %>
+          <input type="hidden" name="divisi" value="<%= typeof userDivisi !== 'undefined' ? userDivisi : 'IT' %>">
+          <% } %>
+          <label class="f-label">Kategori</label>
+          <input type="text" name="kategori" class="f-input" placeholder="Jaringan, Komputer, Aksesoris..." list="kategoriList">
+          <datalist id="kategoriList">
+            <option value="Jaringan"><option value="Komputer"><option value="Aksesoris">
+            <option value="Kabel"><option value="Printer"><option value="CCTV">
+            <option value="Telepon"><option value="ATK"><option value="Lainnya">
+          </datalist>
+          <label class="f-label">Satuan</label>
+          <input type="text" name="satuan" class="f-input" placeholder="pcs / unit / meter..." list="satuanList" required>
+          <datalist id="satuanList">
+            <option value="pcs"><option value="unit"><option value="meter">
+            <option value="bungkus"><option value="roll"><option value="box">
+            <option value="set"><option value="rim"><option value="pack"><option value="pasang">
+          </datalist>
+          <label class="f-label">Jumlah Stok</label>
+          <input type="number" name="stok" class="f-input" min="0" value="1" required>
+          <label class="f-label">Kondisi</label>
+          <select name="kondisi" class="f-input">
+            <option value="Baik">Baik</option>
+            <option value="Perlu Service">Perlu Service</option>
+            <option value="Rusak">Rusak</option>
+          </select>
+          <label class="f-label">Keterangan</label>
+          <textarea name="keterangan" class="f-input" rows="2" placeholder="Merk, seri, catatan..."></textarea>
+          <button type="submit" class="btn-add">SIMPAN ASET</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ========== MAIN TABLE ========== -->
+    <div class="col-md-9">
       <div class="main-panel">
         <div class="panel-header">
           <div>
@@ -175,13 +254,6 @@
             <% } %>
             <% } %>
           </div>
-          <!-- TOMBOL TAMBAH ASET -->
-          <% if (typeof userPerms !== 'undefined' && (userPerms.canAdd || userPerms.canAsset || isAdmin)) { %>
-          <button type="button" class="btn-add" style="width:auto;padding:8px 16px;margin:0;display:flex;align-items:center;gap:6px;" onclick="new bootstrap.Modal(document.getElementById('modalTambahAset')).show()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Tambah Aset
-          </button>
-          <% } %>
         </div>
 
         <div style="overflow-x:auto;">
@@ -212,12 +284,8 @@
                 <td style="color:var(--body-text3);font-size:0.75rem;"><%= i+1 %></td>
                 <td>
                   <% if(item.fotoUrl) { %>
-                    <% var _fotos = [item.fotoUrl, item.foto2Url, item.foto3Url].filter(Boolean); %>
-                    <% var _fotosJson = JSON.stringify(_fotos).replace(/"/g, '&quot;'); %>
                     <img src="<%= item.fotoUrl %>" class="aset-thumb"
-                      onclick="showFotoModal(JSON.parse(this.dataset.fotos), this.dataset.nama)"
-                      data-fotos="<%- _fotosJson %>"
-                      data-nama="<%= item.nama.replace(/"/g, '&quot;') %>"
+                      onclick="showFotoModal('<%= item.fotoUrl %>', '<%= item.nama.replace(/'/g, `\\'`) %>')"
                       alt="<%= item.nama %>">
                   <% } else { %>
                     <div class="aset-no-foto" title="Belum ada foto"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
@@ -269,23 +337,9 @@
         <h5 class="modal-title" id="modalFotoTitle">Foto Aset</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-0" style="position:relative;background:#000;min-height:200px;">
-        <img id="modalFotoImg" src="" class="img-fluid d-block mx-auto" style="max-height:75vh;object-fit:contain;">
-        <!-- Tombol PREV -->
-        <button id="modalFotoPrev" onclick="fotoSliderNav(-1)"
-          style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
-                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.8rem;
-                 width:42px;height:42px;border-radius:50%;cursor:pointer;z-index:10;
-                 align-items:center;justify-content:center;display:none;">&#8249;</button>
-        <!-- Tombol NEXT -->
-        <button id="modalFotoNext" onclick="fotoSliderNav(1)"
-          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.8rem;
-                 width:42px;height:42px;border-radius:50%;cursor:pointer;z-index:10;
-                 align-items:center;justify-content:center;display:none;">&#8250;</button>
+      <div class="modal-body text-center p-3">
+        <img id="modalFotoImg" src="" class="img-fluid rounded" style="max-height:75vh;">
       </div>
-      <!-- Thumbnail strip + dots -->
-      <div id="modalFotoDots" style="display:flex;justify-content:center;align-items:center;gap:8px;padding:10px 16px;background:var(--body-card);flex-wrap:wrap;min-height:0;"></div>
     </div>
   </div>
 </div>
@@ -675,71 +729,12 @@ async function previewModalFoto(input, imgId, placeholderId) {
     }
 }
 
-// ===== MODAL LIHAT FOTO (SLIDER) =====
-var _mfUrls = [], _mfIdx = 0, _mfNama = '';
-
-function showFotoModal(urls, nama) {
-    _mfUrls  = Array.isArray(urls) ? urls : [urls];
-    _mfIdx   = 0;
-    _mfNama  = nama || 'Foto';
-    _renderFotoSlider();
+// ===== MODAL LIHAT FOTO =====
+function showFotoModal(url, nama) {
+    document.getElementById('modalFotoImg').src   = url;
+    document.getElementById('modalFotoTitle').textContent = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ' + nama;
     new bootstrap.Modal(document.getElementById('modalFoto')).show();
 }
-
-function _renderFotoSlider() {
-    var total = _mfUrls.length;
-    var url   = _mfUrls[_mfIdx];
-    document.getElementById('modalFotoImg').src = url;
-
-    // Title
-    var svgCam = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
-    document.getElementById('modalFotoTitle').innerHTML = svgCam + ' ' + _mfNama + (total > 1 ? ' (' + (_mfIdx+1) + '/' + total + ')' : '');
-
-    // Prev/Next btn
-    var btnP = document.getElementById('modalFotoPrev');
-    var btnN = document.getElementById('modalFotoNext');
-    if (total > 1) {
-        btnP.style.display = 'flex'; btnN.style.display = 'flex';
-        btnP.style.opacity = _mfIdx === 0 ? '0.3' : '1';
-        btnN.style.opacity = _mfIdx === total-1 ? '0.3' : '1';
-    } else {
-        btnP.style.display = 'none'; btnN.style.display = 'none';
-    }
-
-    // Thumbnail strip
-    var dotsEl = document.getElementById('modalFotoDots');
-    dotsEl.innerHTML = '';
-    if (total > 1) {
-        _mfUrls.forEach(function(u, i) {
-            var th = document.createElement('img');
-            th.src = u;
-            th.onclick = (function(idx){ return function(){ _mfIdx=idx; _renderFotoSlider(); }; })(i);
-            Object.assign(th.style, {
-                width:'52px', height:'52px', objectFit:'cover',
-                borderRadius:'6px', cursor:'pointer', transition:'all 0.15s',
-                border: i===_mfIdx ? '2px solid #4ade80' : '2px solid transparent',
-                opacity: i===_mfIdx ? '1' : '0.55'
-            });
-            dotsEl.appendChild(th);
-        });
-        dotsEl.style.padding = '10px 16px';
-    } else {
-        dotsEl.style.padding = '0';
-    }
-}
-
-function fotoSliderNav(dir) {
-    _mfIdx = Math.max(0, Math.min(_mfUrls.length-1, _mfIdx + dir));
-    _renderFotoSlider();
-}
-
-// Keyboard arrow support untuk modalFoto
-document.addEventListener('keydown', function(e) {
-    var m = document.getElementById('modalFoto');
-    if (!m || !m.classList.contains('show')) return;
-    if (e.key === 'ArrowRight') fotoSliderNav(1);
-    if (e.key === 'ArrowLeft')  fotoSliderNav(-1);
-});
 
 // ===== MODAL PAKAI =====
 function openModalPakai(id, nama, stok, sat) {
@@ -828,7 +823,7 @@ function hapusAset(id, nama) {
 
 function openModalService(id, nama) {
     document.getElementById('formService').action = '/aset/service/' + id;
-    document.getElementById('serviceInfo').innerHTML = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Service: ' + nama;
+    document.getElementById('serviceInfo').textContent = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Service: ' + nama;
     document.getElementById('serviceTgl').value = new Date().toISOString().split('T')[0];
     
     // Reset dropdown vendor
@@ -850,102 +845,5 @@ if ('serviceWorker' in navigator) {
     });
 }
 </script>
-
-<!-- ===== MODAL TAMBAH ASET ===== -->
-<div class="modal fade" id="modalTambahAset" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:520px;margin:1rem auto;">
-    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);border-radius:14px;max-height:90vh;display:flex;flex-direction:column;">
-      <div class="modal-header" style="border-color:var(--body-border);padding:14px 20px;flex-shrink:0;">
-        <h6 class="modal-title" style="color:#4ade80;font-weight:700;font-size:0.85rem;letter-spacing:0.06em;text-transform:uppercase;margin:0;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Tambah Aset Baru
-        </h6>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <form action="/aset/tambah" method="POST" enctype="multipart/form-data" style="display:flex;flex-direction:column;flex:1;min-height:0;">
-        <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
-
-          <!-- FOTO -->
-          <label class="f-label"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto Aset <span style="font-weight:400;text-transform:none;color:var(--body-text3);">(maks 3)</span></label>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:0.75rem;">
-            <div>
-              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('mAddFoto1').click()">
-                <img id="mAddFoto1Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
-                <div class="foto-preview-placeholder" id="mAddFoto1Ph"><span class="icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span style="font-size:0.65rem;">Foto 1</span></div>
-              </div>
-              <input type="file" id="mAddFoto1" name="foto" accept="image/*" style="display:none;" onchange="previewFoto(this,'mAddFoto1Preview','mAddFoto1Ph')">
-            </div>
-            <div>
-              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('mAddFoto2').click()">
-                <img id="mAddFoto2Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
-                <div class="foto-preview-placeholder" id="mAddFoto2Ph"><span class="icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span style="font-size:0.65rem;">Foto 2</span></div>
-              </div>
-              <input type="file" id="mAddFoto2" name="foto2" accept="image/*" style="display:none;" onchange="previewFoto(this,'mAddFoto2Preview','mAddFoto2Ph')">
-            </div>
-            <div>
-              <div class="foto-preview-box" style="height:80px;" onclick="document.getElementById('mAddFoto3').click()">
-                <img id="mAddFoto3Preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
-                <div class="foto-preview-placeholder" id="mAddFoto3Ph"><span class="icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span style="font-size:0.65rem;">Foto 3</span></div>
-              </div>
-              <input type="file" id="mAddFoto3" name="foto3" accept="image/*" style="display:none;" onchange="previewFoto(this,'mAddFoto3Preview','mAddFoto3Ph')">
-            </div>
-          </div>
-
-          <label class="f-label">Nama Aset *</label>
-          <input type="text" name="nama" class="f-input" placeholder="cth: Switch TP-Link 8 Port" required>
-
-          <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
-          <label class="f-label">Divisi Aset</label>
-          <input type="text" name="divisi" class="f-input" placeholder="IT, GA, HR, FINANCE..." value="<%= typeof userDivisi !== 'undefined' ? userDivisi : 'IT' %>" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
-          <% } else { %>
-          <input type="hidden" name="divisi" value="<%= typeof userDivisi !== 'undefined' ? userDivisi : 'IT' %>">
-          <% } %>
-
-          <label class="f-label">Kategori</label>
-          <input type="text" name="kategori" class="f-input" placeholder="Jaringan, Komputer, Aksesoris..." list="kategoriListM">
-          <datalist id="kategoriListM">
-            <option value="Jaringan"><option value="Komputer"><option value="Aksesoris">
-            <option value="Kabel"><option value="Printer"><option value="CCTV">
-            <option value="Telepon"><option value="ATK"><option value="Lainnya">
-          </datalist>
-
-          <label class="f-label">Satuan *</label>
-          <input type="text" name="satuan" class="f-input" placeholder="pcs / unit / meter..." list="satuanListM" required>
-          <datalist id="satuanListM">
-            <option value="pcs"><option value="unit"><option value="meter">
-            <option value="bungkus"><option value="roll"><option value="box">
-            <option value="set"><option value="rim"><option value="pack"><option value="pasang">
-          </datalist>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <label class="f-label">Jumlah Stok *</label>
-              <input type="number" name="stok" class="f-input" min="0" value="1" required>
-            </div>
-            <div>
-              <label class="f-label">Kondisi</label>
-              <select name="kondisi" class="f-input">
-                <option value="Baik">Baik</option>
-                <option value="Perlu Service">Perlu Service</option>
-                <option value="Rusak">Rusak</option>
-              </select>
-            </div>
-          </div>
-
-          <label class="f-label">Keterangan</label>
-          <textarea name="keterangan" class="f-input" rows="2" placeholder="Merk, seri, catatan..."></textarea>
-        </div>
-        <div class="modal-footer" style="border-color:var(--body-border);padding:12px 20px;flex-shrink:0;">
-          <button type="button" class="btn btn-sm fw-bold" data-bs-dismiss="modal" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);">Batal</button>
-          <button type="submit" class="btn-add" style="width:auto;margin:0;padding:8px 24px;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
-            Simpan Aset
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>

@@ -62,6 +62,10 @@
         .section-panel .form-control, .section-panel .form-select { background: var(--body-input) !important; color: var(--body-text) !important; border-color: var(--body-border) !important; }
         .section-panel .form-control:focus, .section-panel .form-select:focus { border-color: var(--body-input-focus) !important; box-shadow: none; }
 
+        /* QUICK FILTER BUTTONS */
+        .fq-btn { background: var(--body-bg3); border: 1px solid var(--body-border); color: var(--body-text2); border-radius: 6px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+        .fq-btn:hover, .fq-btn.fq-active { background: #6366f1; border-color: #6366f1; color: #fff; }
+
         
         /* STATS CARDS */
         .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
@@ -77,7 +81,8 @@
         .stat-card.blue   .stat-card-value { color: #4da6ff; }
         .stat-card.red    { border-color: #5c1a1a; }
         .stat-card.red    .stat-card-value { color: #ff6b6b; }
-        .stat-card-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 1.8rem; opacity: 0.15; }
+        .stat-card-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); opacity: 0.15; display:flex; align-items:center; justify-content:center; }
+        .stat-card-icon .lc { width:28px; height:28px; }
         @media (max-width: 768px) { .stat-cards { grid-template-columns: repeat(2, 1fr); } }
 
         /* PENDING NOTIF */
@@ -115,8 +120,8 @@
         <input type="hidden" name="tipeInput" id="tipeInputVal" value="harian">
         <span class="label-text">Tipe Pekerjaan</span>
         <div class="tipe-toggle">
-          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')">📅 HARIAN</div>
-          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')">📆 MULTI-HARI</div>
+          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> HARIAN</div>
+          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</div>
         </div>
         <div id="formHarian">
           <span class="label-text">Tanggal</span>
@@ -126,23 +131,23 @@
             <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="jamSelesaiInput" class="input-custom" style="margin-bottom:0;"></div>
           </div>
           <div style="margin-bottom:0.75rem;"></div>
-          <div class="durasi-preview" id="durasiPreview">⏱ Durasi: <strong id="durasiText">-</strong></div>
+          <div class="durasi-preview" id="durasiPreview"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiText">-</strong></div>
         </div>
         <div id="formMultihari" style="display:none;">
-          <div style="background:#1a0d3d;border:1px solid #6b3dbf;border-radius:6px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#c9aaff;">💡 Untuk pekerjaan yang berlangsung lebih dari 1 hari</div>
-          <span class="label-text" style="color:#9b6dff;">📅 Tanggal & Jam MULAI</span>
+          <div style="background:#1a0d3d;border:1px solid #6b3dbf;border-radius:6px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#c9aaff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Untuk pekerjaan yang berlangsung lebih dari 1 hari</div>
+          <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tanggal & Jam MULAI</span>
           <div class="row g-2">
             <div class="col-7"><input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="input-custom" style="margin-bottom:0;"></div>
             <div class="col-5"><input type="time" name="jamMulaiMulti" id="jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
           </div>
           <div style="margin-bottom:0.5rem;"></div>
-          <span class="label-text" style="color:#9b6dff;">🏁 Tanggal & Jam SELESAI</span>
+          <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Tanggal & Jam SELESAI</span>
           <div class="row g-2">
             <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="input-custom" style="margin-bottom:0;"></div>
             <div class="col-5"><input type="time" name="jamSelesaiMulti" id="jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
           </div>
           <div style="margin-bottom:0.5rem;"></div>
-          <div class="durasi-preview" id="durasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;">⏱ Durasi: <strong id="durasiTextMulti">-</strong></div>
+          <div class="durasi-preview" id="durasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiTextMulti">-</strong></div>
         </div>
         <hr class="separator-line">
         <span class="label-text">Pemesan (User)</span>
@@ -176,12 +181,12 @@
           <option value="Solved">SOLVED</option>
           <option value="Pending">PENDING</option>
         </select>
-        <span class="label-text" style="color:#ffc107;">📷 Foto AWAL (Sebelum)</span>
+        <span class="label-text" style="color:#ffc107;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto AWAL (Sebelum)</span>
         <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*" capture="environment">
-        <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
-        <span class="label-text" style="color:#90ee90;">📷 Foto SESUDAH (Solved)</span>
+        <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
+        <span class="label-text" style="color:#90ee90;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto SESUDAH (Solved)</span>
         <input type="file" name="foto" class="input-custom file-compress" accept="image/*" capture="environment">
-        <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
+        <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
         <button type="submit" class="btn btn-light w-100 fw-bold mt-2">SIMPAN DATA</button>
       </form>
     </div>
@@ -193,7 +198,7 @@
       <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index:1055;">
         <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert">
           <div class="d-flex">
-            <div class="toast-body">✅ Data berhasil disimpan.</div>
+            <div class="toast-body"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Data berhasil disimpan.</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
           </div>
         </div>
@@ -203,25 +208,25 @@
       <!-- ===== STAT CARDS ===== -->
       <div class="stat-cards">
         <div class="stat-card green">
-          <div class="stat-card-icon">✅</div>
+          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="stat-card-label">Solved Hari Ini</div>
           <div class="stat-card-value"><%= stats.solvedHariIni %></div>
           <div class="stat-card-sub">dari <%= stats.totalHariIni %> tiket hari ini</div>
         </div>
         <div class="stat-card yellow">
-          <div class="stat-card-icon">⏳</div>
+          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M17 2v4.172a2 2 0 0 1-.586 1.414L12 12 7.586 7.586A2 2 0 0 1 7 6.172V2"/></svg></div>
           <div class="stat-card-label">Pending Hari Ini</div>
           <div class="stat-card-value"><%= stats.pendingHariIni %></div>
           <div class="stat-card-sub">belum diselesaikan</div>
         </div>
         <div class="stat-card blue">
-          <div class="stat-card-icon">📋</div>
+          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
           <div class="stat-card-label">Total Log</div>
           <div class="stat-card-value"><%= stats.totalAllTime %></div>
           <div class="stat-card-sub">semua waktu</div>
         </div>
         <div class="stat-card red">
-          <div class="stat-card-icon">🔴</div>
+          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/></svg></div>
           <div class="stat-card-label">Total Pending</div>
           <div class="stat-card-value"><%= stats.pendingAllTime %></div>
           <div class="stat-card-sub">semua waktu</div>
@@ -232,26 +237,26 @@
       <% if (stats.pendingItems.length > 0) { %>
       <div class="pending-notif">
         <div class="pending-notif-title">
-          🔴 TIKET PENDING PERLU PERHATIAN
+          <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/></svg> TIKET PENDING PERLU PERHATIAN
           <span><%= stats.pendingAllTime %></span>
         </div>
         <% stats.pendingItems.forEach(function(p) { %>
         <div class="pending-row">
           <div class="pending-row-info">
             <div class="pending-row-title"><%= p.aktivitas %></div>
-            <div class="pending-row-meta">👤 <%= p.pemesan %> &nbsp;·&nbsp; 🏢 <%= p.divisi %> &nbsp;·&nbsp; 📅 <%= new Date(p.tanggalManual).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) %></div>
+            <div class="pending-row-meta"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <%= p.pemesan %> &nbsp;·&nbsp; <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/></svg> <%= p.divisi %> &nbsp;·&nbsp; <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <%= new Date(p.tanggalManual).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) %></div>
           </div>
           <% if (p.hariPending >= 3) { %>
-            <span class="pending-age urgent">🔥 <%= p.hariPending %> hari</span>
+            <span class="pending-age urgent"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg> <%= p.hariPending %> hari</span>
           <% } else if (p.hariPending >= 1) { %>
-            <span class="pending-age warning">⚠️ <%= p.hariPending %> hari</span>
+            <span class="pending-age warning"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <%= p.hariPending %> hari</span>
           <% } else { %>
             <span class="pending-age normal">Baru</span>
           <% } %>
           <div class="pending-actions">
             <form method="POST" action="/update-status/<%= p.id %>" style="margin:0;">
               <input type="hidden" name="newStatus" value="Solved">
-              <button type="submit" class="btn-pending-solve" onclick="return confirm('Tandai tiket ini sebagai Solved?')">✅ Selesai</button>
+              <button type="submit" class="btn-pending-solve" onclick="return confirm('Tandai tiket ini sebagai Solved?')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Selesai</button>
             </form>
             <button type="button" class="btn-pending-edit" onclick="openEditModal(
               <%= p.id %>,
@@ -266,7 +271,7 @@
               `<%= p.jamSelesai || '' %>`,
               `<%= p.tanggalMulai ? new Date(p.tanggalMulai).toISOString().slice(0,10) : '' %>`,
               `<%= p.tanggalSelesai ? new Date(p.tanggalSelesai).toISOString().slice(0,10) : '' %>`
-            )">✏️ Edit</button>
+            )"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
           </div>
         </div>
         <% }) %>
@@ -278,10 +283,10 @@
 
       <!-- ===== NOTES ===== -->
       <div class="section-panel notes-box mb-3">
-        <div style="color:var(--body-text);font-weight:700;margin-bottom:10px;font-size:0.9rem;">📝 CATATAN (NOTES)</div>
+        <div style="color:var(--body-text);font-weight:700;margin-bottom:10px;font-size:0.9rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> CATATAN (NOTES)</div>
         <input type="text" id="noteTitle" placeholder="Judul catatan..." class="form-control mb-2">
         <textarea id="noteContent" placeholder="Isi catatan..." class="form-control mb-2" rows="2"></textarea>
-        <button onclick="addNoteAdmin()" class="btn btn-sm btn-success fw-bold">➕ TAMBAH CATATAN</button>
+        <button onclick="addNoteAdmin()" class="btn btn-sm btn-success fw-bold"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> TAMBAH CATATAN</button>
         <div id="adminNotesList" style="color:var(--body-text2);font-size:0.85rem;margin-top:12px;">Loading notes...</div>
       </div>
 
@@ -290,7 +295,7 @@
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
             <div class="modal-header" style="border-color:var(--body-border);">
-              <h5 class="modal-title" style="color:var(--body-text);">✏️ Edit Catatan</h5>
+              <h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Catatan</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:var(--body-text2)=='#1a1a2e'?'invert(0)':'invert(1)';"></button>
             </div>
             <div class="modal-body">
@@ -310,35 +315,87 @@
 
       <!-- FILTER -->
       <div class="section-panel mb-3">
-        <form action="/kerja" method="GET" class="row g-2 align-items-center m-0">
-          <div class="col-auto"><span class="small fw-bold" style="color:var(--body-text2);">CARI DATA LAMA:</span></div>
-          <div class="col-auto">
-            <select name="month" class="form-select form-select-sm">
-              <option value="" disabled selected>Pilih Bulan...</option>
-              <% ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].forEach((m,i) => { %>
-                <option value="<%= i+1 %>"><%= m %></option>
-              <% }) %>
+        <form action="/kerja" method="GET" id="filterForm">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+            <!-- Label filter aktif -->
+            <span style="font-size:0.72rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">FILTER LOG:</span>
+
+            <!-- Quick: Hari Ini -->
+            <button type="button" onclick="setToday()" class="fq-btn <%= (!filterDateFrom && !filterDateTo && !filterStatus) ? 'fq-active' : '' %>">Hari Ini</button>
+
+            <!-- Quick: Kemarin -->
+            <button type="button" onclick="setYesterday()" class="fq-btn">Kemarin</button>
+
+            <!-- Quick: 7 Hari -->
+            <button type="button" onclick="setLast7()" class="fq-btn">7 Hari</button>
+
+            <!-- Quick: Bulan Ini -->
+            <button type="button" onclick="setThisMonth()" class="fq-btn">Bulan Ini</button>
+
+            <div style="width:1px;height:20px;background:var(--body-border);margin:0 2px;flex-shrink:0;"></div>
+
+            <!-- Date From -->
+            <div style="display:flex;align-items:center;gap:5px;">
+              <label style="font-size:0.7rem;font-weight:600;color:var(--body-text3);white-space:nowrap;">Dari</label>
+              <input type="date" name="dateFrom" id="filterFrom" value="<%= filterDateFrom %>"
+                class="form-control form-control-sm" style="width:140px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+            </div>
+
+            <!-- Date To -->
+            <div style="display:flex;align-items:center;gap:5px;">
+              <label style="font-size:0.7rem;font-weight:600;color:var(--body-text3);white-space:nowrap;">s/d</label>
+              <input type="date" name="dateTo" id="filterTo" value="<%= filterDateTo %>"
+                class="form-control form-control-sm" style="width:140px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+            </div>
+
+            <!-- Status -->
+            <select name="status" id="filterStatus" class="form-select form-select-sm" style="width:auto;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+              <option value="" <%= filterStatus==='' ? 'selected' : '' %>>Semua Status</option>
+              <option value="Pending" <%= filterStatus==='Pending' ? 'selected' : '' %>>PENDING</option>
+              <option value="Solved" <%= filterStatus==='Solved' ? 'selected' : '' %>>SOLVED</option>
             </select>
+
+            <button type="submit" class="btn btn-sm btn-primary fw-bold">Cari</button>
+
+            <% if (typeof userPerms !== 'undefined' && (userPerms.canExport || userPerms.canAudit)) { %>
+            <a id="exportBtn" href="/export?dateFrom=<%= filterDateFrom %>&dateTo=<%= filterDateTo %>"
+               class="btn btn-sm fw-bold" style="background:#166534;border:1px solid #15803d;color:#4ade80;white-space:nowrap;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Excel
+            </a>
+            <% } %>
+
+            <% if (isFiltered) { %>
+            <a href="/kerja" class="btn btn-sm fw-bold" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Reset
+            </a>
+            <% } %>
           </div>
-          <div class="col-auto">
-            <select name="year" class="form-select form-select-sm">
-              <% yearOptions.forEach(y => { %><option value="<%= y %>"><%= y %></option><% }) %>
-            </select>
-          </div>
-          <div class="col-auto">
-            <select name="status" class="form-select form-select-sm">
-              <option value="">Semua Status</option>
-              <option value="Pending">PENDING</option>
-              <option value="Solved">SOLVED</option>
-            </select>
-          </div>
-          <div class="col-auto"><button type="submit" class="btn btn-sm btn-primary fw-bold">CARI</button></div>
-          <div class="col-auto ms-md-auto"><a href="/kerja" class="btn btn-sm btn-outline-secondary fw-bold" style="color:var(--body-text);">SEMUA</a></div>
         </form>
+      </div>
+
+      <!-- TABLE HEADER INFO -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.72rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;letter-spacing:0.06em;">LOG JURNAL</span>
+          <span style="background:var(--body-bg3);border:1px solid var(--body-border);border-radius:20px;padding:2px 10px;font-size:0.72rem;font-weight:700;color:var(--body-text2);">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <%= filterLabel %>
+          </span>
+          <span style="font-size:0.72rem;color:var(--body-text3);">(<%= journals.length %> data)</span>
+        </div>
       </div>
 
       <!-- TABLE -->
       <div class="table-container table-responsive">
+        <% if (journals.length === 0) { %>
+        <div style="text-align:center;padding:3rem 1rem;color:var(--body-text3);">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;display:block;margin:0 auto 12px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div style="font-size:0.85rem;font-weight:600;">Tidak ada data untuk <strong><%= filterLabel %></strong></div>
+          <div style="font-size:0.75rem;margin-top:4px;">Coba pilih rentang tanggal lain atau <a href="/kerja" style="color:#6366f1;">reset filter</a></div>
+        </div>
+        <% } else { %>
         <table class="table">
           <thead>
             <tr>
@@ -356,24 +413,24 @@
             <tr style="<%= isMulti ? 'background: var(--body-table-row-alt) !important;' : '' %>">
               <td style="min-width:145px;">
                 <% if (isMulti && item.tanggalMulai && item.tanggalSelesai) { %>
-                  <span class="multi-badge">📆 MULTI-HARI</span>
+                  <span class="multi-badge"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</span>
                   <div style="font-size:0.78rem;color:#6600aa;font-weight:600;margin-top:3px;">
-                    🗓 <%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                    <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
                     <% if(item.jamMulai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamMulai %></span><% } %>
                   </div>
                   <div style="font-size:0.7rem;color:#888;margin:1px 0;">  ↓</div>
                   <div style="font-size:0.78rem;color:#6600aa;font-weight:600;">
-                    🏁 <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                    <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
                     <% if(item.jamSelesai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamSelesai %></span><% } %>
                   </div>
-                  <% if(item.durasiMenit) { %><span class="durasi-badge durasi-badge-multi">⏱ <%= formatDurasi(item.durasiMenit) %></span><% } %>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge durasi-badge-multi"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <%= formatDurasi(item.durasiMenit) %></span><% } %>
                 <% } else { %>
                   <div style="font-family:monospace;font-size:0.8rem;color:#006666;font-weight:600;">
                     <%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
                   </div>
-                  <% if(item.jamMulai) { %><div class="jam-info">🕐 Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
-                  <% if(item.jamSelesai) { %><div class="jam-info">🕔 Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
-                  <% if(item.durasiMenit) { %><span class="durasi-badge">⏱ <%= formatDurasi(item.durasiMenit) %></span><% } %>
+                  <% if(item.jamMulai) { %><div class="jam-info"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg> Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
+                  <% if(item.jamSelesai) { %><div class="jam-info"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 12"/></svg> Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <%= formatDurasi(item.durasiMenit) %></span><% } %>
                 <% } %>
               </td>
               <td style="white-space:nowrap;">
@@ -387,12 +444,12 @@
               <td><span class="<%= item.status==='Solved' ? 'status-solved' : 'status-pending' %>"><%= item.status %></span></td>
               <td style="min-width:115px;">
                 <% if(item.fotoAwalUrl) { %>
-                  <button class="btn-foto btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Kondisi AWAL')">📷 AWAL</button>
+                  <button class="btn-foto btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Kondisi AWAL')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> AWAL</button>
                 <% } else { %>
                   <button class="btn-foto btn-tambah-awal" onclick="openUploadAwalModal(<%= item.id %>)">+ Foto Awal</button>
                 <% } %>
                 <% if(item.fotoUrl) { %>
-                  <button class="btn-foto btn-foto-sesudah" onclick="showFoto('<%= item.fotoUrl %>','Kondisi SESUDAH')">📷 SESUDAH</button>
+                  <button class="btn-foto btn-foto-sesudah" onclick="showFoto('<%= item.fotoUrl %>','Kondisi SESUDAH')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> SESUDAH</button>
                 <% } else { %>
                   <button class="btn-foto btn-tambah-sesudah" onclick="openUploadModal(<%= item.id %>)">+ Foto Sesudah</button>
                 <% } %>
@@ -424,6 +481,7 @@
             <% }) %>
           </tbody>
         </table>
+        <% } %>
       </div>
     </div>
   </div>
@@ -437,9 +495,20 @@
         <h5 class="modal-title" style="color:var(--body-text);" id="fotoModalTitle">Dokumentasi</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body text-center p-3">
-        <img id="popupImageAdmin" src="" class="img-fluid rounded" style="max-height:75vh;">
+      <div class="modal-body p-0" style="position:relative;background:#000;min-height:200px;">
+        <img id="popupImageAdmin" src="" class="img-fluid d-block mx-auto" style="max-height:75vh;object-fit:contain;">
+        <button id="adminFotoPrev" onclick="adminSliderNav(-1)"
+          style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.8rem;
+                 width:42px;height:42px;border-radius:50%;cursor:pointer;z-index:10;
+                 align-items:center;justify-content:center;display:none;">&#8249;</button>
+        <button id="adminFotoNext" onclick="adminSliderNav(1)"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.8rem;
+                 width:42px;height:42px;border-radius:50%;cursor:pointer;z-index:10;
+                 align-items:center;justify-content:center;display:none;">&#8250;</button>
       </div>
+      <div id="adminFotoDots" style="display:flex;justify-content:center;align-items:center;gap:8px;background:var(--body-card);flex-wrap:wrap;"></div>
     </div>
   </div>
 </div>
@@ -448,9 +517,9 @@
 <div class="modal fade" id="uploadSusulanModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
-      <div class="modal-header" style="border-color:var(--body-border);"><h5 class="modal-title" style="color:var(--body-text);">📷 Upload Foto SESUDAH</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header" style="border-color:var(--body-border);"><h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Upload Foto SESUDAH</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data">
-        <div class="modal-body"><input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment"><small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto dikompres!</small></div>
+        <div class="modal-body"><input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment"><small class="text-success fw-bold d-none compress-msg mt-1"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small></div>
         <div class="modal-footer" style="border-color:var(--body-border);">
           <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
           <button type="submit" class="btn btn-success fw-bold">UPLOAD</button>
@@ -464,9 +533,9 @@
 <div class="modal fade" id="uploadAwalModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="background:var(--body-card);border:1px solid #b45309;">
-      <div class="modal-header" style="border-color:#b45309;"><h5 class="modal-title" style="color:var(--body-text);">📷 Upload Foto AWAL</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header" style="border-color:#b45309;"><h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Upload Foto AWAL</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <form id="formUploadAwal" action="" method="POST" enctype="multipart/form-data">
-        <div class="modal-body"><input type="file" name="fotoAwal" class="input-custom m-0 file-compress" required accept="image/*" capture="environment"><small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto dikompres!</small></div>
+        <div class="modal-body"><input type="file" name="fotoAwal" class="input-custom m-0 file-compress" required accept="image/*" capture="environment"><small class="text-success fw-bold d-none compress-msg mt-1"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small></div>
         <div class="modal-footer" style="border-color:#b45309;">
           <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
           <button type="submit" class="btn btn-warning fw-bold text-dark">UPLOAD</button>
@@ -481,7 +550,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
       <div class="modal-header" style="border-color:var(--body-border);">
-        <h5 class="modal-title" style="color:var(--body-text);">✏️ Edit Data Jurnal</h5>
+        <h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Data Jurnal</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
@@ -491,8 +560,8 @@
             <div class="col-12 mb-2">
               <span class="label-text">Tipe Pekerjaan</span>
               <div class="tipe-toggle">
-                <div class="tipe-btn active-harian" id="editBtnHarian" onclick="setEditTipe('harian')">📅 HARIAN</div>
-                <div class="tipe-btn" id="editBtnMulti" onclick="setEditTipe('multihari')">📆 MULTI-HARI</div>
+                <div class="tipe-btn active-harian" id="editBtnHarian" onclick="setEditTipe('harian')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> HARIAN</div>
+                <div class="tipe-btn" id="editBtnMulti" onclick="setEditTipe('multihari')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</div>
               </div>
             </div>
             <div class="col-md-6" id="editFormHarian">
@@ -503,22 +572,22 @@
                 <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="edit_jamSelesai" class="input-custom" style="margin-bottom:0;"></div>
               </div>
               <div style="margin-bottom:0.5rem;"></div>
-              <div class="durasi-preview" id="editDurasiPreview">⏱ Durasi: <strong id="editDurasiText">-</strong></div>
+              <div class="durasi-preview" id="editDurasiPreview"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="editDurasiText">-</strong></div>
             </div>
             <div class="col-md-6" id="editFormMultihari" style="display:none;">
-              <span class="label-text" style="color:#9b6dff;">📅 Tgl &amp; Jam MULAI</span>
+              <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tgl &amp; Jam MULAI</span>
               <div class="row g-2">
                 <div class="col-7"><input type="date" name="tanggalMulaiDate" id="edit_tanggalMulai" class="input-custom" style="margin-bottom:0;"></div>
                 <div class="col-5"><input type="time" name="jamMulaiMulti" id="edit_jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
               </div>
               <div style="margin-bottom:0.5rem;"></div>
-              <span class="label-text" style="color:#9b6dff;">🏁 Tgl &amp; Jam SELESAI</span>
+              <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Tgl &amp; Jam SELESAI</span>
               <div class="row g-2">
                 <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="edit_tanggalSelesai" class="input-custom" style="margin-bottom:0;"></div>
                 <div class="col-5"><input type="time" name="jamSelesaiMulti" id="edit_jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
               </div>
               <div style="margin-bottom:0.5rem;"></div>
-              <div class="durasi-preview" id="editDurasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;display:none;">⏱ Durasi: <strong id="editDurasiTextMulti">-</strong></div>
+              <div class="durasi-preview" id="editDurasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;display:none;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="editDurasiTextMulti">-</strong></div>
             </div>
             <div class="col-md-6">
               <span class="label-text">Pemesan (User)</span>
@@ -544,12 +613,12 @@
               </select>
             </div>
             <div class="col-md-6">
-              <span class="label-text" style="color:#ffc107;">📷 Ganti Foto AWAL (Opsional)</span>
+              <span class="label-text" style="color:#ffc107;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ganti Foto AWAL (Opsional)</span>
               <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*">
-              <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
-              <span class="label-text" style="color:#90ee90;">📷 Ganti Foto SESUDAH (Opsional)</span>
+              <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
+              <span class="label-text" style="color:#90ee90;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ganti Foto SESUDAH (Opsional)</span>
               <input type="file" name="foto" class="input-custom file-compress" accept="image/*">
-              <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
+              <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
             </div>
             <div class="col-12">
               <span class="label-text">Deskripsi</span>
@@ -577,11 +646,11 @@
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="background:var(--body-card);border:1px solid #dc3545;">
-      <div class="modal-header" style="border-color:#dc3545;"><h5 class="modal-title" style="color:var(--body-text);">🗑️ Konfirmasi Hapus</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header" style="border-color:#dc3545;"><h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Konfirmasi Hapus</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <p style="color:var(--body-text);" class="mb-1">Yakin mau hapus data ini?</p>
         <p id="deleteItemName" class="fw-bold" style="color:#ff6b6b;font-size:0.9rem;"></p>
-        <p style="color:var(--body-text2);font-size:0.8rem;">⚠️ Data yang dihapus tidak bisa dikembalikan.</p>
+        <p style="color:var(--body-text2);font-size:0.8rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Data yang dihapus tidak bisa dikembalikan.</p>
       </div>
       <div class="modal-footer" style="border-color:#dc3545;">
         <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
@@ -631,7 +700,38 @@ function updatePreviewMultiEdit(){var d=hitungMenitDT(document.getElementById('e
 document.getElementById('tanggalInput').value = new Date().toISOString().split('T')[0];
 
 // ========== MODAL HELPERS ==========
-function showFoto(url,judul){document.getElementById('popupImageAdmin').src=url;document.getElementById('fotoModalTitle').textContent='📷 '+(judul||'Dokumentasi');new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show();}
+// ===== FOTO SLIDER ADMIN =====
+var _aFUrls=[], _aFIdx=0;
+function showFoto(urls, judul) {
+    _aFUrls = Array.isArray(urls) ? urls : [urls];
+    _aFIdx  = 0;
+    _renderAdminFoto(judul);
+    new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show();
+}
+function _renderAdminFoto(judulOverride) {
+    var total = _aFUrls.length;
+    var url   = _aFUrls[_aFIdx];
+    document.getElementById('popupImageAdmin').src = url;
+    var svgCam = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+    var judul = judulOverride || _aFUrls._judul || 'Dokumentasi';
+    if(judulOverride) _aFUrls._judul = judulOverride;
+    document.getElementById('fotoModalTitle').innerHTML = svgCam + ' ' + judul + (total>1?' ('+ (_aFIdx+1)+'/'+total+')':'');
+    var btnP=document.getElementById('adminFotoPrev'), btnN=document.getElementById('adminFotoNext');
+    if(total>1){btnP.style.display='flex';btnN.style.display='flex';btnP.style.opacity=_aFIdx===0?'0.3':'1';btnN.style.opacity=_aFIdx===total-1?'0.3':'1';}
+    else{btnP.style.display='none';btnN.style.display='none';}
+    var dotsEl=document.getElementById('adminFotoDots'); dotsEl.innerHTML='';
+    if(total>1){
+        _aFUrls.forEach(function(u,i){
+            var th=document.createElement('img'); th.src=u;
+            th.onclick=(function(idx){return function(){_aFIdx=idx;_renderAdminFoto();};})(i);
+            Object.assign(th.style,{width:'52px',height:'52px',objectFit:'cover',borderRadius:'6px',cursor:'pointer',transition:'all 0.15s',border:i===_aFIdx?'2px solid #4ade80':'2px solid transparent',opacity:i===_aFIdx?'1':'0.55'});
+            dotsEl.appendChild(th);
+        });
+        dotsEl.style.padding='10px 16px';
+    } else { dotsEl.style.padding='0'; }
+}
+function adminSliderNav(dir){_aFIdx=Math.max(0,Math.min(_aFUrls.length-1,_aFIdx+dir));_renderAdminFoto();}
+document.addEventListener('keydown',function(e){var m=document.getElementById('fotoModalAdmin');if(!m||!m.classList.contains('show'))return;if(e.key==='ArrowRight')adminSliderNav(1);if(e.key==='ArrowLeft')adminSliderNav(-1);});
 function openUploadModal(id){document.getElementById('formUploadSusulan').action='/upload-foto/'+id;new bootstrap.Modal(document.getElementById('uploadSusulanModal')).show();}
 function openUploadAwalModal(id){document.getElementById('formUploadAwal').action='/upload-foto-awal/'+id;new bootstrap.Modal(document.getElementById('uploadAwalModal')).show();}
 function openEditModal(id,aktivitas,divisi,pemesan,deskripsi,status,tipe,tanggal,jamMulai,jamSelesai,tglMulai,tglSelesai){
@@ -674,8 +774,8 @@ async function loadAdminNotes() {
                     '<small class="note-item-date">' + d + '</small>' +
                 '</div>' +
                 '<div style="display:flex;flex-direction:column;gap:4px;margin-left:8px;">' +
-                    '<button onclick="openEditNote(' + n.id + ',`' + escJs(n.title) + '`,`' + escJs(n.content) + '`)" class="btn btn-sm btn-outline-primary fw-bold" style="padding:2px 7px;font-size:0.7rem;">✏️</button>' +
-                    '<button onclick="deleteAdminNote(' + n.id + ')" class="btn btn-sm btn-danger fw-bold" style="padding:2px 7px;font-size:0.7rem;">🗑️</button>' +
+                    '<button onclick="openEditNote(' + n.id + ',`' + escJs(n.title) + '`,`' + escJs(n.content) + '`)" class="btn btn-sm btn-outline-primary fw-bold" style="padding:2px 7px;font-size:0.7rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+                    '<button onclick="deleteAdminNote(' + n.id + ')" class="btn btn-sm btn-danger fw-bold" style="padding:2px 7px;font-size:0.7rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>' +
                 '</div>' +
             '</div>';
         }).join('');
@@ -719,6 +819,42 @@ async function deleteAdminNote(id) {
 }
 
 window.addEventListener('load', function() { loadAdminNotes(); });
+
+// ===== QUICK DATE FILTER =====
+function fmtDate(d) { return d.toISOString().split('T')[0]; }
+function applyFilter(from, to) {
+    document.getElementById('filterFrom').value = from || '';
+    document.getElementById('filterTo').value   = to   || '';
+    document.getElementById('filterForm').submit();
+}
+function setToday() {
+    var t = fmtDate(new Date()); applyFilter(t, t);
+}
+function setYesterday() {
+    var d = new Date(); d.setDate(d.getDate() - 1); var t = fmtDate(d); applyFilter(t, t);
+}
+function setLast7() {
+    var to = new Date(), from = new Date(); from.setDate(from.getDate() - 6);
+    applyFilter(fmtDate(from), fmtDate(to));
+}
+function setThisMonth() {
+    var now = new Date();
+    var from = new Date(now.getFullYear(), now.getMonth(), 1);
+    var to   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    applyFilter(fmtDate(from), fmtDate(to));
+}
+// Sync export button URL saat filter input berubah
+(function() {
+    var fromEl = document.getElementById('filterFrom');
+    var toEl   = document.getElementById('filterTo');
+    var expBtn = document.getElementById('exportBtn');
+    function syncExport() {
+        if (!expBtn) return;
+        expBtn.href = '/export?dateFrom=' + (fromEl ? fromEl.value : '') + '&dateTo=' + (toEl ? toEl.value : '');
+    }
+    if (fromEl) fromEl.addEventListener('change', syncExport);
+    if (toEl)   toEl.addEventListener('change', syncExport);
+})();
 </script>
 
 <script>
@@ -764,7 +900,7 @@ async function aiGenerateDescEdit() {
   var textarea  = document.getElementById('edit_deskripsi');
 
   if (!aktivitas) { alert('Isi dulu kolom Aktivitas!'); return; }
-  textarea.value = '⏳ Generating...';
+  textarea.value = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M17 2v4.172a2 2 0 0 1-.586 1.414L12 12 7.586 7.586A2 2 0 0 1 7 6.172V2"/></svg> Generating...';
 
   try {
     var res  = await fetch('/api/ai-describe', {

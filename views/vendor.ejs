@@ -71,66 +71,38 @@
 <div class="page-wrap">
   <% if (typeof msg !== 'undefined' && msg) { %>
     <div class="<%= msgType === 'error' ? 'alert-error-custom' : 'alert-success-custom' %>">
-      <%= msgType === 'error' ? '⚠️' : '✅' %> <%= msg %>
+      <%= msgType === 'error' ? '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' : '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg>' %> <%= msg %>
     </div>
   <% } %>
 
   <div class="row g-4">
 
-    <!-- FORM SIDEBAR -->
-    <div class="col-md-4">
-      <div class="form-panel">
-        <h6>+ Tambah Vendor Baru</h6>
-        <form action="/vendor/tambah" method="POST">
-          <label class="f-label">Nama Vendor / Bengkel *</label>
-          <input type="text" name="nama" class="f-input" placeholder="cth: Bengkel Tiga Berlian" required>
-
-          <label class="f-label">Kategori</label>
-          <input type="text" name="kategori" class="f-input" placeholder="cth: Bengkel Mobil, Toko IT..." list="catList">
-          <datalist id="catList">
-            <option value="Bengkel Kendaraan">
-            <option value="Toko Komputer / IT">
-            <option value="Service AC">
-            <option value="Kontraktor Sipil">
-          </datalist>
-
-          <label class="f-label">No HP / Telepon</label>
-          <input type="text" name="noHp" class="f-input" placeholder="cth: 08123456789">
-
-          <label class="f-label">Alamat Lengkap</label>
-          <textarea name="alamat" class="f-input" rows="2" placeholder="Alamat bengkel/toko..."></textarea>
-          
-          <label class="f-label">Keterangan / Notes</label>
-          <textarea name="keterangan" class="f-input" rows="2" placeholder="Informasi tambahan..."></textarea>
-
-          <% if (currentUser && userPerms && userPerms.canUsers) { %>
-          <label class="f-label">Akses Divisi <span style="color:var(--body-text3);font-size:0.6rem;">(Khusus Admin)</span></label>
-          <input type="text" name="divisi" class="f-input" value="IT" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
-          <% } %>
-
-          <button type="submit" class="btn-add">SIMPAN VENDOR</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- TABLE -->
-    <div class="col-md-8">
+    <!-- TABLE FULL WIDTH -->
+    <div class="col-12">
       <div class="main-panel">
         <div class="panel-header">
           <div class="panel-title">Master Data Vendor (<%= vendors.length %>)</div>
           
-          <!-- FILTER -->
-          <form action="/vendor" method="GET" class="filter-bar mt-2 mt-sm-0">
-            <input type="text" name="q" class="f-input" placeholder="Cari nama/alamat..." value="<%= q %>">
-            <select name="kategori" class="f-input">
-              <option value="">-- Semua Kategori --</option>
-              <% allKategori.forEach(k => { %>
-                <option value="<%= k %>" <%= k === kategori ? 'selected' : '' %>><%= k %></option>
-              <% }) %>
-            </select>
-            <button type="submit" class="btn-filter">Cari</button>
-            <a href="/vendor" class="btn-reset">Reset</a>
-          </form>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <!-- FILTER -->
+            <form action="/vendor" method="GET" class="filter-bar">
+              <input type="text" name="q" class="f-input" placeholder="Cari nama/alamat..." value="<%= q %>">
+              <select name="kategori" class="f-input">
+                <option value="">-- Semua Kategori --</option>
+                <% allKategori.forEach(k => { %>
+                  <option value="<%= k %>" <%= k === kategori ? 'selected' : '' %>><%= k %></option>
+                <% }) %>
+              </select>
+              <button type="submit" class="btn-filter">Cari</button>
+              <a href="/vendor" class="btn-reset">Reset</a>
+            </form>
+
+            <!-- TOMBOL TAMBAH -->
+            <button type="button" class="btn-add" style="width:auto;margin:0;padding:8px 16px;display:flex;align-items:center;gap:6px;white-space:nowrap;" onclick="new bootstrap.Modal(document.getElementById('modalTambahVendor')).show()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tambah Vendor
+            </button>
+          </div>
 
         </div>
         <div style="overflow-x:auto;">
@@ -197,7 +169,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
-        <h5 class="modal-title">✏️ Edit Vendor</h5>
+        <h5 class="modal-title"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Vendor</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formEdit" action="" method="POST">
@@ -238,6 +210,60 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- MODAL TAMBAH VENDOR -->
+<div class="modal fade" id="modalTambahVendor" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:480px;">
+    <div class="modal-content m-content" style="border-radius:14px;max-height:90vh;display:flex;flex-direction:column;">
+      <div class="modal-header m-header" style="padding:14px 20px;flex-shrink:0;">
+        <h6 class="modal-title" style="color:#4da6ff;font-weight:700;font-size:0.85rem;letter-spacing:0.06em;text-transform:uppercase;margin:0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah Vendor Baru
+        </h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/vendor/tambah" method="POST" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+        <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
+
+          <label class="f-label">Nama Vendor / Bengkel *</label>
+          <input type="text" name="nama" class="f-input" placeholder="cth: Bengkel Tiga Berlian" required>
+
+          <label class="f-label">Kategori</label>
+          <input type="text" name="kategori" class="f-input" placeholder="cth: Bengkel Mobil, Toko IT..." list="catListM">
+          <datalist id="catListM">
+            <option value="Bengkel Kendaraan">
+            <option value="Toko Komputer / IT">
+            <option value="Service AC">
+            <option value="Kontraktor Sipil">
+            <option value="Pembasmi Tikus">
+          </datalist>
+
+          <label class="f-label">No HP / Telepon</label>
+          <input type="text" name="noHp" class="f-input" placeholder="cth: 08123456789">
+
+          <label class="f-label">Alamat Lengkap</label>
+          <textarea name="alamat" class="f-input" rows="3" placeholder="Alamat bengkel/toko..."></textarea>
+
+          <label class="f-label">Keterangan / Notes</label>
+          <textarea name="keterangan" class="f-input" rows="2" placeholder="Informasi tambahan..."></textarea>
+
+          <% if (currentUser && userPerms && userPerms.canUsers) { %>
+          <label class="f-label">Akses Divisi <span style="color:var(--body-text3);font-size:0.6rem;">(Khusus Admin)</span></label>
+          <input type="text" name="divisi" class="f-input" value="IT" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+          <% } %>
+
+        </div>
+        <div class="modal-footer m-footer" style="padding:12px 20px;flex-shrink:0;">
+          <button type="button" class="btn btn-sm fw-bold" data-bs-dismiss="modal" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);">Batal</button>
+          <button type="submit" class="btn-add" style="width:auto;margin:0;padding:8px 24px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
+            Simpan Vendor
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <script>
 function openEditModal(id, nama, kategori, noHp, alamat, keterangan, divisi) {
   document.getElementById('formEdit').action     = '/vendor/edit/' + id;

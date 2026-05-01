@@ -63,8 +63,8 @@
         <!-- TOGGLE TIPE -->
         <span class="label-text">Tipe Pekerjaan</span>
         <div class="tipe-toggle">
-          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')">📅 HARIAN</div>
-          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')">📆 MULTI-HARI</div>
+          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> HARIAN</div>
+          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</div>
         </div>
 
         <!-- FORM HARIAN -->
@@ -82,15 +82,15 @@
             </div>
           </div>
           <div style="margin-bottom:0.75rem;"></div>
-          <div class="durasi-preview" id="durasiPreview">⏱ Durasi: <strong id="durasiText">-</strong></div>
+          <div class="durasi-preview" id="durasiPreview"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiText">-</strong></div>
         </div>
 
         <!-- FORM MULTI-HARI -->
         <div id="formMultihari" style="display:none;">
           <div style="background:#1a0d3d;border:1px solid #6b3dbf;border-radius:6px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#c9aaff;">
-            💡 Untuk pekerjaan yang berlangsung lebih dari 1 hari (vendor, instalasi, dll)
+            <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Untuk pekerjaan yang berlangsung lebih dari 1 hari (vendor, instalasi, dll)
           </div>
-          <span class="label-text" style="color:#9b6dff;">📅 Tanggal & Jam MULAI</span>
+          <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tanggal & Jam MULAI</span>
           <div class="row g-2">
             <div class="col-7">
               <input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="input-custom" style="margin-bottom:0;">
@@ -100,7 +100,7 @@
             </div>
           </div>
           <div style="margin-bottom:0.5rem;"></div>
-          <span class="label-text" style="color:#9b6dff;">🏁 Tanggal & Jam SELESAI</span>
+          <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Tanggal & Jam SELESAI</span>
           <div class="row g-2">
             <div class="col-7">
               <input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="input-custom" style="margin-bottom:0;">
@@ -110,7 +110,7 @@
             </div>
           </div>
           <div style="margin-bottom:0.5rem;"></div>
-          <div class="durasi-preview" id="durasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;">⏱ Durasi: <strong id="durasiTextMulti">-</strong></div>
+          <div class="durasi-preview" id="durasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiTextMulti">-</strong></div>
         </div>
 
         <hr class="separator-line">
@@ -139,12 +139,12 @@
           <option value="Solved">SOLVED</option>
           <option value="Pending">PENDING</option>
         </select>
-        <span class="label-text" style="color:#ffc107;">📷 Foto AWAL (Sebelum)</span>
+        <span class="label-text" style="color:#ffc107;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto AWAL (Sebelum)</span>
         <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*" capture="environment">
-        <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
-        <span class="label-text" style="color:#90ee90;">📷 Foto SESUDAH (Solved)</span>
+        <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
+        <span class="label-text" style="color:#90ee90;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto SESUDAH (Solved)</span>
         <input type="file" name="foto" class="input-custom file-compress" accept="image/*" capture="environment">
-        <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
+        <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
         <button type="submit" class="btn btn-light w-100 fw-bold mt-2">SIMPAN DATA</button>
       </form>
     </div>
@@ -156,7 +156,7 @@
       <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index:1055;">
         <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert">
           <div class="d-flex">
-            <div class="toast-body">✅ Data berhasil disimpan.</div>
+            <div class="toast-body"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Data berhasil disimpan.</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
           </div>
         </div>
@@ -165,10 +165,10 @@
 
       <!-- NOTES -->
       <div class="mb-3 p-3" style="background:#161b22;border-radius:8px;border:1px solid #333;">
-        <div style="color:#fff;font-weight:700;margin-bottom:10px;font-size:0.9rem;">📝 CATATAN (NOTES)</div>
+        <div style="color:#fff;font-weight:700;margin-bottom:10px;font-size:0.9rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> CATATAN (NOTES)</div>
         <input type="text" id="noteTitle" placeholder="Judul catatan..." class="form-control bg-dark text-white border-secondary mb-2">
         <textarea id="noteContent" placeholder="Isi catatan..." class="form-control bg-dark text-white border-secondary mb-2" rows="2"></textarea>
-        <button onclick="addNoteAdmin()" class="btn btn-sm btn-success fw-bold">➕ TAMBAH CATATAN</button>
+        <button onclick="addNoteAdmin()" class="btn btn-sm btn-success fw-bold"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> TAMBAH CATATAN</button>
         <div id="adminNotesList" style="color:#aaa;font-size:0.85rem;margin-top:12px;">Loading notes...</div>
       </div>
 
@@ -220,24 +220,24 @@
             <tr style="<%= isMulti ? 'background: #fffbf0 !important;' : '' %>">
               <td style="min-width:145px;">
                 <% if (isMulti && item.tanggalMulai && item.tanggalSelesai) { %>
-                  <span class="multi-badge">📆 MULTI-HARI</span>
+                  <span class="multi-badge"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</span>
                   <div style="font-size:0.78rem;color:#6600aa;font-weight:600;margin-top:3px;">
-                    🗓 <%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                    <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
                     <% if(item.jamMulai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamMulai %></span><% } %>
                   </div>
                   <div style="font-size:0.7rem;color:#888;margin:1px 0;">  ↓</div>
                   <div style="font-size:0.78rem;color:#6600aa;font-weight:600;">
-                    🏁 <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
+                    <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
                     <% if(item.jamSelesai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamSelesai %></span><% } %>
                   </div>
-                  <% if(item.durasiMenit) { %><span class="durasi-badge durasi-badge-multi">⏱ <%= formatDurasi(item.durasiMenit) %></span><% } %>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge durasi-badge-multi"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <%= formatDurasi(item.durasiMenit) %></span><% } %>
                 <% } else { %>
                   <div style="font-family:monospace;font-size:0.8rem;color:#006666;font-weight:600;">
                     <%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
                   </div>
-                  <% if(item.jamMulai) { %><div class="jam-info">🕐 Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
-                  <% if(item.jamSelesai) { %><div class="jam-info">🕔 Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
-                  <% if(item.durasiMenit) { %><span class="durasi-badge">⏱ <%= formatDurasi(item.durasiMenit) %></span><% } %>
+                  <% if(item.jamMulai) { %><div class="jam-info"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg> Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
+                  <% if(item.jamSelesai) { %><div class="jam-info"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 12"/></svg> Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <%= formatDurasi(item.durasiMenit) %></span><% } %>
                 <% } %>
               </td>
               <td style="white-space:nowrap;">
@@ -251,12 +251,12 @@
               <td><span class="<%= item.status==='Solved' ? 'status-solved' : 'status-pending' %>"><%= item.status %></span></td>
               <td style="min-width:115px;">
                 <% if(item.fotoAwalUrl) { %>
-                  <button class="btn-foto btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Kondisi AWAL')">📷 AWAL</button>
+                  <button class="btn-foto btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Kondisi AWAL')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> AWAL</button>
                 <% } else { %>
                   <button class="btn-foto btn-tambah-awal" onclick="openUploadAwalModal(<%= item.id %>)">+ Foto Awal</button>
                 <% } %>
                 <% if(item.fotoUrl) { %>
-                  <button class="btn-foto btn-foto-sesudah" onclick="showFoto('<%= item.fotoUrl %>','Kondisi SESUDAH')">📷 SESUDAH</button>
+                  <button class="btn-foto btn-foto-sesudah" onclick="showFoto('<%= item.fotoUrl %>','Kondisi SESUDAH')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> SESUDAH</button>
                 <% } else { %>
                   <button class="btn-foto btn-tambah-sesudah" onclick="openUploadModal(<%= item.id %>)">+ Foto Sesudah</button>
                 <% } %>
@@ -313,13 +313,13 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark border-secondary">
       <div class="modal-header border-secondary">
-        <h5 class="modal-title text-white">📷 Upload Foto SESUDAH</h5>
+        <h5 class="modal-title text-white"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Upload Foto SESUDAH</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
           <input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment">
-          <small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto dikompres!</small>
+          <small class="text-success fw-bold d-none compress-msg mt-1"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
         </div>
         <div class="modal-footer border-secondary">
           <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
@@ -335,13 +335,13 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark border-warning">
       <div class="modal-header border-warning">
-        <h5 class="modal-title text-white">📷 Upload Foto AWAL</h5>
+        <h5 class="modal-title text-white"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Upload Foto AWAL</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formUploadAwal" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
           <input type="file" name="fotoAwal" class="input-custom m-0 file-compress" required accept="image/*" capture="environment">
-          <small class="text-success fw-bold d-none compress-msg mt-1">✅ Foto dikompres!</small>
+          <small class="text-success fw-bold d-none compress-msg mt-1"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
         </div>
         <div class="modal-footer border-warning">
           <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
@@ -357,7 +357,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content bg-dark border-secondary">
       <div class="modal-header border-secondary">
-        <h5 class="modal-title text-white">✏️ Edit Data Jurnal</h5>
+        <h5 class="modal-title text-white"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Data Jurnal</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
@@ -367,8 +367,8 @@
             <div class="col-12 mb-2">
               <span class="label-text">Tipe Pekerjaan</span>
               <div class="tipe-toggle">
-                <div class="tipe-btn active-harian" id="editBtnHarian" onclick="setEditTipe('harian')">📅 HARIAN</div>
-                <div class="tipe-btn" id="editBtnMulti" onclick="setEditTipe('multihari')">📆 MULTI-HARI</div>
+                <div class="tipe-btn active-harian" id="editBtnHarian" onclick="setEditTipe('harian')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> HARIAN</div>
+                <div class="tipe-btn" id="editBtnMulti" onclick="setEditTipe('multihari')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</div>
               </div>
             </div>
 
@@ -387,24 +387,24 @@
                 </div>
               </div>
               <div style="margin-bottom:0.5rem;"></div>
-              <div class="durasi-preview" id="editDurasiPreview">⏱ Durasi: <strong id="editDurasiText">-</strong></div>
+              <div class="durasi-preview" id="editDurasiPreview"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="editDurasiText">-</strong></div>
             </div>
 
             <!-- EDIT MULTI-HARI -->
             <div class="col-md-6" id="editFormMultihari" style="display:none;">
-              <span class="label-text" style="color:#9b6dff;">📅 Tgl &amp; Jam MULAI</span>
+              <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tgl &amp; Jam MULAI</span>
               <div class="row g-2">
                 <div class="col-7"><input type="date" name="tanggalMulaiDate" id="edit_tanggalMulai" class="input-custom" style="margin-bottom:0;"></div>
                 <div class="col-5"><input type="time" name="jamMulaiMulti" id="edit_jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
               </div>
               <div style="margin-bottom:0.5rem;"></div>
-              <span class="label-text" style="color:#9b6dff;">🏁 Tgl &amp; Jam SELESAI</span>
+              <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Tgl &amp; Jam SELESAI</span>
               <div class="row g-2">
                 <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="edit_tanggalSelesai" class="input-custom" style="margin-bottom:0;"></div>
                 <div class="col-5"><input type="time" name="jamSelesaiMulti" id="edit_jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
               </div>
               <div style="margin-bottom:0.5rem;"></div>
-              <div class="durasi-preview" id="editDurasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;display:none;">⏱ Durasi: <strong id="editDurasiTextMulti">-</strong></div>
+              <div class="durasi-preview" id="editDurasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;display:none;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="editDurasiTextMulti">-</strong></div>
             </div>
 
             <div class="col-md-6">
@@ -431,12 +431,12 @@
               </select>
             </div>
             <div class="col-md-6">
-              <span class="label-text" style="color:#ffc107;">📷 Ganti Foto AWAL (Opsional)</span>
+              <span class="label-text" style="color:#ffc107;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ganti Foto AWAL (Opsional)</span>
               <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*">
-              <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
-              <span class="label-text" style="color:#90ee90;">📷 Ganti Foto SESUDAH (Opsional)</span>
+              <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
+              <span class="label-text" style="color:#90ee90;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ganti Foto SESUDAH (Opsional)</span>
               <input type="file" name="foto" class="input-custom file-compress" accept="image/*">
-              <small class="text-success fw-bold d-none compress-msg">✅ Foto dikompres!</small>
+              <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
             </div>
             <div class="col-12">
               <span class="label-text">Deskripsi</span>
@@ -458,13 +458,13 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content bg-dark border-danger">
       <div class="modal-header border-danger">
-        <h5 class="modal-title text-white">🗑️ Konfirmasi Hapus</h5>
+        <h5 class="modal-title text-white"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Konfirmasi Hapus</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <p class="text-white mb-1">Yakin mau hapus data ini?</p>
         <p id="deleteItemName" class="fw-bold" style="color:#ff6b6b;font-size:0.9rem;"></p>
-        <p class="text-secondary" style="font-size:0.8rem;">⚠️ Data yang dihapus tidak bisa dikembalikan.</p>
+        <p class="text-secondary" style="font-size:0.8rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Data yang dihapus tidak bisa dikembalikan.</p>
       </div>
       <div class="modal-footer border-danger">
         <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
@@ -568,7 +568,7 @@ document.getElementById('tanggalInput').value = new Date().toISOString().split('
 // ========== FOTO & MODAL ==========
 function showFoto(url, judul) {
     document.getElementById('popupImageAdmin').src = url;
-    document.getElementById('fotoModalTitle').textContent = '📷 ' + (judul||'Dokumentasi');
+    document.getElementById('fotoModalTitle').textContent = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ' + (judul||'Dokumentasi');
     new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show();
 }
 function openUploadModal(id) {
@@ -657,7 +657,7 @@ async function loadAdminNotes() {
             var d = new Date(n.createdAt).toLocaleString('id-ID', { dateStyle:'short', timeStyle:'short' });
             return '<div style="background:#0d0d0d;padding:10px;border-radius:4px;margin-bottom:6px;border-left:2px solid #0d6efd;display:flex;justify-content:space-between;align-items:start;">' +
                 '<div><strong style="color:#fff;font-size:0.9rem;">' + n.title + '</strong><p style="color:#999;margin:2px 0 0 0;font-size:0.8rem;">' + n.content + '</p><small style="color:#666;">' + d + '</small></div>' +
-                '<button onclick="deleteAdminNote(' + n.id + ')" class="btn btn-sm btn-danger fw-bold" style="padding:2px 6px;font-size:0.7rem;">🗑️</button></div>';
+                '<button onclick="deleteAdminNote(' + n.id + ')" class="btn btn-sm btn-danger fw-bold" style="padding:2px 6px;font-size:0.7rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button></div>';
         }).join('');
     } catch(e) { document.getElementById('adminNotesList').innerHTML = '<p style="color:#f00;">Error</p>'; }
 }

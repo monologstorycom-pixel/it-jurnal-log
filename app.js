@@ -12,13 +12,14 @@ const { uploadDir }    = require('./helpers/photo');
 // ==========================================
 // ROUTES
 // ==========================================
-const authRoutes    = require('./routes/auth');
-const journalRoutes = require('./routes/journal');
-const auditRoutes   = require('./routes/audit');
-const asetRoutes    = require('./routes/aset');
-const vendorRoutes  = require('./routes/vendor');
-const usersRoutes   = require('./routes/users');
-const aiRoutes      = require('./routes/ai');
+const authRoutes     = require('./routes/auth');
+const journalRoutes  = require('./routes/journal');
+const auditRoutes    = require('./routes/audit');
+const asetRoutes     = require('./routes/aset');
+const vendorRoutes   = require('./routes/vendor');
+const usersRoutes    = require('./routes/users');
+const aiRoutes       = require('./routes/ai');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/', asetRoutes);
 app.use('/', vendorRoutes);
 app.use('/', usersRoutes);
 app.use('/', aiRoutes);
+app.use('/', settingsRoutes);
 
 // ==========================================
 // START SERVER

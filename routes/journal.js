@@ -88,27 +88,7 @@ router.get('/kerja', requireLogin, async (req, res) => {
         return res.status(403).render('403', { message: 'Anda tidak punya izin melihat Log Jurnal.' });
     }
     try {
-        const { month, year, status, saved } = req.query;
-        let whereClause = {};
-
-        if (month && year) {
-            const m = parseInt(month), y = parseInt(year);
-            const startDate = new Date(y, m - 1, 1);
-            const endDate   = new Date(y, m, 0, 23, 59, 59);
-            whereClause = {
-                OR: [
-                    { tipeInput: { not: 'multihari' }, tanggalManual: { gte: startDate, lte: endDate } },
-                    { tipeInput: 'multihari', tanggalMulai: { lte: endDate }, tanggalSelesai: { gte: startDate } }
-                ]
-            };
-        }
-        if (status && status !== '') {
-            whereClause = whereClause.OR
-                ? { AND: [{ OR: whereClause.OR }, { status }] }
-                : { ...whereClause, status };
-        }
-
-        const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
+        const { dateFrom, dateTo, status, saved } = req.query;
 
         const today      = new Date();
         const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0,  0,  0);
@@ -117,6 +97,46 @@ router.get('/kerja', requireLogin, async (req, res) => {
             { tipeInput: { not: 'multihari' }, tanggalManual: { gte: todayStart, lte: todayEnd } },
             { tipeInput: 'multihari', tanggalMulai: { lte: todayEnd }, tanggalSelesai: { gte: todayStart } }
         ]};
+
+        // Tentukan mode filter
+        const isFiltered = dateFrom || dateTo || (status && status !== '');
+        const isCustomRange = dateFrom || dateTo;
+
+        let whereClause = {};
+        let filterLabel = 'Hari Ini';
+
+        if (isCustomRange) {
+            // Date range filter dari user
+            const from = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date('2000-01-01');
+            const to   = dateTo   ? new Date(dateTo   + 'T23:59:59') : new Date('2099-12-31');
+            whereClause = {
+                OR: [
+                    { tipeInput: { not: 'multihari' }, tanggalManual: { gte: from, lte: to } },
+                    { tipeInput: 'multihari', tanggalMulai: { lte: to }, tanggalSelesai: { gte: from } }
+                ]
+            };
+            if (dateFrom === dateTo || (!dateTo && dateFrom)) {
+                filterLabel = new Date(from).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            } else {
+                const fmtFrom = dateFrom ? new Date(from).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '...';
+                const fmtTo   = dateTo   ? new Date(to  ).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '...';
+                filterLabel = fmtFrom + ' — ' + fmtTo;
+            }
+        } else {
+            // Default: hari ini
+            whereClause = todayWhere;
+            filterLabel = 'Hari Ini';
+        }
+
+        // Apply status filter
+        if (status && status !== '') {
+            filterLabel += ' · ' + status;
+            whereClause = whereClause.OR
+                ? { AND: [{ OR: whereClause.OR }, { status }] }
+                : { ...whereClause, status };
+        }
+
+        const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
 
         const [totalHariIni, solvedHariIni, pendingHariIni, totalAllTime, pendingAllTime, pendingItems] = await Promise.all([
             prisma.journal.count({ where: todayWhere }),
@@ -133,7 +153,7 @@ router.get('/kerja', requireLogin, async (req, res) => {
         ]);
 
         const pendingWithAge = pendingItems.map(p => {
-            const tgl     = p.tanggalManual ? new Date(p.tanggalManual) : new Date();
+            const tgl      = p.tanggalManual ? new Date(p.tanggalManual) : new Date();
             const diffDays = Math.floor((Date.now() - tgl.getTime()) / (1000 * 60 * 60 * 24));
             return { ...p, hariPending: diffDays };
         });
@@ -143,6 +163,11 @@ router.get('/kerja', requireLogin, async (req, res) => {
             yearOptions: getYearOptions(),
             saved: saved === '1',
             formatDurasi,
+            filterLabel,
+            isFiltered,
+            filterDateFrom: dateFrom || '',
+            filterDateTo:   dateTo   || '',
+            filterStatus:   status   || '',
             stats: { totalHariIni, solvedHariIni, pendingHariIni, totalAllTime, pendingAllTime, pendingItems: pendingWithAge }
         });
     } catch (error) { console.error(error); res.status(500).send('Database Error!'); }
@@ -336,10 +361,18 @@ router.get('/export', requireLogin, (req, res, next) => {
     next();
 }, async (req, res) => {
     try {
-        const { date, month, year } = req.query;
+        const { date, month, year, dateFrom, dateTo } = req.query;
         let whereClause = {}, fileName = 'Log-IT.xlsx';
 
-        if (date) {
+        if (dateFrom || dateTo) {
+            const from = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date('2000-01-01');
+            const to   = dateTo   ? new Date(dateTo   + 'T23:59:59') : new Date('2099-12-31');
+            whereClause = { OR: [
+                { tipeInput: { not: 'multihari' }, tanggalManual: { gte: from, lte: to } },
+                { tipeInput: 'multihari', tanggalMulai: { lte: to }, tanggalSelesai: { gte: from } }
+            ]};
+            fileName = 'Log-IT-' + (dateFrom || '') + (dateTo && dateTo !== dateFrom ? '_sd_' + dateTo : '') + '.xlsx';
+        } else if (date) {
             const d = new Date(date);
             const s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
             const e = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
