@@ -111,10 +111,6 @@
         /* ALERT */
         .alert-success-custom { background: #0d2a18; border: 1px solid #1a5c30; color: #4ade80; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
         .alert-error-custom   { background: #2a0d0d; border: 1px solid #5c1a1a; color: #f87171; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
-
-        /* VERIFIED BADGE */
-        .verified-badge { display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:14px;height:14px;vertical-align:middle;margin-left:3px;position:relative;top:-0.5px;cursor:default; }
-        .verified-badge svg { width:14px;height:14px;display:block;filter:drop-shadow(0 0 3px rgba(29,155,240,0.45)); }
         .you-badge { display: inline-block; background: #1a2a0d; color: #86efac; border: 1px solid #2d5c1a; border-radius: 3px; padding: 1px 6px; font-size: 0.6rem; font-weight: 700; margin-left: 6px; vertical-align: middle; }
 
         /* PASS STRENGTH */
@@ -269,7 +265,7 @@
               <tr>
                 <td style="color:var(--body-text3);font-size:0.75rem;"><%= i+1 %></td>
                 <td>
-                  <strong><%= u.nama %></strong><span class="verified-badge" title="Akun Terverifikasi"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 2l2.09 1.09 2.33-.4 1.09 2.09 2.09 1.09-.4 2.33L20.28 10l-1.18 2-1.18 2 .4 2.33-2.09 1.09-1.09 2.09-2.33-.4L10 20.28l-2-1.18-2 1.18-1.09-2.09-2.09-1.09.4-2.33L1.72 12l1.18-2L1.72 8l.4-2.33 2.09-1.09L5.3 2.49l2.33.4L10 1.72 12 2z" fill="#1d9bf0"/></svg></span>
+                  <strong><%= u.nama %></strong>
                   <% if (currentUser && u.id === currentUser.id) { %><span class="you-badge">KAMU</span><% } %>
                   <div style="font-size:0.72rem;margin-top:3px;">
                     <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:var(--body-bg);color:var(--body-text2);border:1px solid var(--body-border2);"><%= u.role %></span>

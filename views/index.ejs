@@ -83,29 +83,26 @@
         .search-bar {
             background: var(--body-card);
             border: 0.5px solid var(--body-border);
-            border-radius: 10px;
-            padding: 0.5rem 0.75rem;
-            margin-bottom: 0.75rem;
-            display: flex; align-items: center; gap: 8px;
-            max-width: 540px;
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 10px;
         }
         .search-bar input[type="text"] {
-            flex: 1; background: transparent !important;
-            border: none !important;
-            color: var(--body-text) !important;
-            padding: 4px 4px; font-size: 13px; outline: none;
-            min-width: 0;
+            flex: 1; background: var(--body-input) !important;
+            border: 0.5px solid var(--body-input-border) !important;
+            border-radius: 8px; color: var(--body-text) !important;
+            padding: 7px 12px; font-size: 13px; outline: none;
         }
-        .search-bar input[type="text"]:focus { border: none !important; box-shadow: none !important; }
+        .search-bar input[type="text"]:focus { border-color: var(--body-input-focus) !important; }
         .search-bar input::placeholder { color: var(--body-text3); }
         .search-result-info {
-            font-size: 11px; color: var(--body-accent);
-            padding: 3px 9px; border-radius: 20px;
+            font-size: 12px; color: var(--body-text2);
+            padding: 4px 12px; border-radius: 20px;
             background: var(--body-accent-bg);
             border: 0.5px solid var(--body-accent);
-            white-space: nowrap; flex-shrink: 0;
+            color: var(--body-accent); white-space: nowrap;
         }
-        .search-bar .btn-filter { flex-shrink: 0; }
 
         /* TABLE */
         .table-wrap {
@@ -176,37 +173,35 @@
 
         <div class="row g-3">
 
-            <!-- SEARCH + FILTER TANGGAL: 1 baris -->
+            <!-- SEARCH BAR -->
             <div class="col-12">
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                    <!-- Search bar compact -->
-                    <form action="/" method="GET" class="search-bar" style="margin-bottom:0;flex:1;min-width:200px;max-width:400px;">
-                        <span style="color:var(--body-text3);flex-shrink:0;display:flex;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-                        <input type="text" name="q" value="<%= searchQuery %>"
-                            placeholder="Cari aktivitas, nama, divisi...">
-                        <% if (isSearch) { %>
-                            <a href="/" class="btn-filter" style="padding:4px 8px;font-size:12px;"><svg class="lc" style="width:12px;height:12px;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></a>
-                            <span class="search-result-info"><%= journals.length %> hasil</span>
-                        <% } else { %>
-                            <button type="submit" class="btn-filter primary" style="padding:4px 10px;font-size:12px;">Cari</button>
-                        <% } %>
-                    </form>
-
-                    <!-- Filter tanggal — sembunyikan kalau mode search -->
-                    <% if (!isSearch) { %>
-                    <form action="/" method="GET" class="filter-bar" style="margin-bottom:0;flex:0 0 auto;padding:0.4rem 0.75rem;">
-                        <span class="filter-label" style="display:none;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-                        <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="color:var(--body-text3);width:14px;height:14px;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                        <input type="date" name="date" value="<%= filterInfo.date %>" style="width:140px;">
-                        <button type="submit" class="btn-filter primary" style="padding:4px 10px;font-size:12px;">Lihat</button>
-                        <a href="/" class="btn-filter" style="padding:4px 10px;font-size:12px;">Hari Ini</a>
-                        <span class="date-display" style="font-size:11px;">
-                            <strong><%= filterInfo.dateDisplay %></strong>
-                        </span>
-                    </form>
+                <form action="/" method="GET" class="search-bar">
+                    <span style="font-size:16px;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                    <input type="text" name="q" value="<%= searchQuery %>"
+                        placeholder="Cari aktivitas, nama, divisi, deskripsi...">
+                    <button type="submit" class="btn-filter primary">Cari</button>
+                    <% if (isSearch) { %>
+                        <a href="/" class="btn-filter"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Reset</a>
+                        <span class="search-result-info"><%= journals.length %> hasil untuk "<%= searchQuery %>"</span>
                     <% } %>
-                </div>
+                </form>
             </div>
+
+            <!-- FILTER TANGGAL — sembunyikan kalau mode search -->
+            <% if (!isSearch) { %>
+            <div class="col-12">
+                <form action="/" method="GET" class="filter-bar">
+                    <span class="filter-label"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tanggal</span>
+                    <input type="date" name="date" value="<%= filterInfo.date %>" style="width:160px;">
+                    <button type="submit" class="btn-filter primary">Lihat</button>
+                    <a href="/" class="btn-filter">Hari Ini</a>
+
+                    <span class="date-display">
+                        <strong><%= filterInfo.dateDisplay %></strong>
+                    </span>
+                </form>
+            </div>
+            <% } %>
 
             <!-- TABLE -->
             <div class="col-12">

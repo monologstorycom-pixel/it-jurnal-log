@@ -120,6 +120,8 @@ router.post('/vendor/hapus/:id', requireLogin, async (req, res) => {
         const id     = parseInt(req.params.id);
         const vendor = await prisma.vendor.findUnique({ where: { id } });
 
+        if (!vendor) return res.redirect('/vendor?msg=Vendor+tidak+ditemukan&msgType=error');
+
         const isAdmin    = hasPerm(req.session.user, 'canUsers');
         const userDivisi = req.session.user.divisi || 'IT';
         if (!isAdmin && userDivisi !== 'IT' && userDivisi !== 'IT & IC' && vendor.divisi !== userDivisi) {

@@ -41,6 +41,10 @@ router.post('/api/ai-chat-public', async (req, res) => {
     try {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
+        if (message.length > 1000) return res.status(400).json({ error: 'Pesan terlalu panjang (maks 1000 karakter).' });
+
+        // Batasi history maksimal 20 pesan terakhir agar tidak boros token
+        const safeHistory = Array.isArray(history) ? history.slice(-20) : [];
 
         const { text: asetContext } = await getAsetContext();
 
@@ -67,7 +71,7 @@ Contoh respons yang benar untuk pertanyaan detail:
 === DATA ASET (ringkasan umum per divisi) ===
 ${publicContext}`;
 
-        const rawReply = await callGemini(systemPrompt, message, history || []);
+        const rawReply = await callGemini(systemPrompt, message, safeHistory);
         res.json({ reply: rawReply.trim(), photos: [] });
     } catch (err) {
         console.error('AI Public Chat error:', err);
@@ -82,6 +86,10 @@ router.post('/api/ai-chat', requireLogin, async (req, res) => {
     try {
         const { message, history } = req.body;
         if (!message) return res.status(400).json({ error: 'Pesan tidak boleh kosong.' });
+        if (message.length > 1000) return res.status(400).json({ error: 'Pesan terlalu panjang (maks 1000 karakter).' });
+
+        // Batasi history maksimal 20 pesan terakhir
+        const safeHistory = Array.isArray(history) ? history.slice(-20) : [];
 
         const user  = req.session.user;
         const scope = getAiScope(user);
@@ -159,7 +167,7 @@ Panduan tambahan:
 - Jangan buat data fiktif di luar konteks
 - Berikan tips troubleshooting IT praktis jika diminta (khusus scope IT/admin)`;
 
-        const rawReply = await callGemini(systemPrompt, message, history || []);
+        const rawReply = await callGemini(systemPrompt, message, safeHistory);
         let replyText = rawReply.trim(), photos = [];
 
         try {

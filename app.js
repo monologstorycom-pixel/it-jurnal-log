@@ -44,7 +44,7 @@ app.use(express.static(path.resolve(__dirname, 'public')));
 // SESSION
 // ==========================================
 app.use(session({
-    secret:            'itlog-rsby-secret-2026',
+    secret:            process.env.SESSION_SECRET || 'itlog-rsby-secret-2026',
     resave:            false,
     saveUninitialized: false,
     cookie:            { maxAge: 8 * 60 * 60 * 1000 }
@@ -66,6 +66,14 @@ app.use('/', vendorRoutes);
 app.use('/', usersRoutes);
 app.use('/', aiRoutes);
 app.use('/', settingsRoutes);
+
+// ==========================================
+// GLOBAL ERROR HANDLER
+// ==========================================
+app.use((err, req, res, next) => {
+    console.error('[UNHANDLED ERROR]', err.stack || err.message);
+    res.status(500).send('Terjadi kesalahan server: ' + (err.message || 'Unknown error'));
+});
 
 // ==========================================
 // START SERVER

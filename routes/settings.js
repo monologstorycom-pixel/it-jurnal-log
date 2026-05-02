@@ -96,6 +96,10 @@ router.post('/settings/foto', requireLogin, (req, res) => {
             res.redirect('/settings?msg=Foto+profil+berhasil+diperbarui&msgType=success');
         } catch (e) {
             console.error('[SETTINGS FOTO]', e.message);
+            // Hapus file tmp jika ada error agar tidak numpuk
+            if (req.file && req.file.path) {
+                try { require('fs').unlinkSync(req.file.path); } catch (_) {}
+            }
             res.redirect('/settings?msg=Gagal+simpan+foto:+' + encodeURIComponent(e.message) + '&msgType=error');
         }
     });

@@ -139,6 +139,7 @@ router.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
 router.post('/users/hapus/:id', requireLogin, requireAdmin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.redirect('/users?msg=ID+user+tidak+valid&msgType=error');
         if (req.session.user && req.session.user.id === id) {
             return res.redirect('/users?msg=Tidak+bisa+hapus+akun+sendiri&msgType=error');
         }

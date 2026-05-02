@@ -19,7 +19,10 @@ function getUserPerms(user) {
                 canAudit:   p.canAudit   === true,
                 canVendor:  p.canVendor  === true,
             };
-        } catch(e) {}
+        } catch(e) {
+            console.warn('[getUserPerms] Gagal parse permissions:', e.message);
+            return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false };
+        }
     }
     return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false };
 }

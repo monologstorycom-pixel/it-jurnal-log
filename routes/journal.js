@@ -192,11 +192,16 @@ router.post('/save', requireLogin, (req, res, next) => {
             tanggalSelesaiDate = '', jamSelesaiMulti = ''
         } = req.body;
 
+        if (!aktivitas || !aktivitas.trim()) return res.status(400).send('Gagal: Aktivitas wajib diisi.');
+        if (!divisi    || !divisi.trim())    return res.status(400).send('Gagal: Divisi wajib diisi.');
+        if (!pemesan   || !pemesan.trim())   return res.status(400).send('Gagal: Pemesan wajib diisi.');
+
         const fotoFile     = req.files?.foto?.[0]     || null;
         const fotoAwalFile = req.files?.fotoAwal?.[0] || null;
 
         let dataToSave = {
-            aktivitas, divisi, pemesan, deskripsi, status, tipeInput,
+            aktivitas: aktivitas.trim(), divisi: divisi.trim(), pemesan: pemesan.trim(),
+            deskripsi: deskripsi || '', status, tipeInput,
             fotoUrl:     fotoFile     ? await saveCompressedPhoto(fotoFile,     'foto',     'log') : null,
             fotoAwalUrl: fotoAwalFile ? await saveCompressedPhoto(fotoAwalFile, 'fotoAwal', 'log') : null
         };
@@ -238,7 +243,9 @@ router.post('/update-status/:id', requireLogin, (req, res, next) => {
     next();
 }, async (req, res) => {
     try {
-        await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { status: req.body.newStatus } });
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.status(400).send('ID tidak valid.');
+        await prisma.journal.update({ where: { id }, data: { status: req.body.newStatus } });
         res.redirect('/kerja');
     } catch (error) { console.error(error); res.status(500).send('Gagal Update.'); }
 });
@@ -292,18 +299,26 @@ router.post('/edit/:id', requireLogin, (req, res, next) => {
             tanggalSelesaiDate = '', jamSelesaiMulti = ''
         } = req.body;
 
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.status(400).send('Gagal: ID tidak valid.');
+
+        if (!aktivitas || !aktivitas.trim()) return res.status(400).send('Gagal: Aktivitas wajib diisi.');
+        if (!divisi    || !divisi.trim())    return res.status(400).send('Gagal: Divisi wajib diisi.');
+        if (!pemesan   || !pemesan.trim())   return res.status(400).send('Gagal: Pemesan wajib diisi.');
+
         const fotoFile     = req.files?.foto?.[0]     || null;
         const fotoAwalFile = req.files?.fotoAwal?.[0] || null;
 
-        let updateData = { aktivitas, divisi, pemesan, deskripsi, status, tipeInput };
+        let updateData = { aktivitas: aktivitas.trim(), divisi: divisi.trim(), pemesan: pemesan.trim(), deskripsi: deskripsi || '', status, tipeInput };
         if (fotoFile)     updateData.fotoUrl     = await saveCompressedPhoto(fotoFile,     'foto',     'log');
         if (fotoAwalFile) updateData.fotoAwalUrl = await saveCompressedPhoto(fotoAwalFile, 'fotoAwal', 'log');
 
         if (tipeInput === 'multihari') {
             const dtMulai   = buildDateTime(tanggalMulaiDate,   jamMulaiMulti);
             const dtSelesai = buildDateTime(tanggalSelesaiDate, jamSelesaiMulti);
-            if (!dtMulai)   return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
-            if (!dtSelesai) return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
+            if (!dtMulai)              return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
+            if (!dtSelesai)            return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
+            if (dtSelesai <= dtMulai)  return res.status(400).send('Gagal: Tanggal Selesai harus lebih besar dari Tanggal Mulai.');
             Object.assign(updateData, {
                 tanggalManual: dtMulai, tanggalMulai: dtMulai, tanggalSelesai: dtSelesai,
                 jamMulai: jamMulaiMulti || null, jamSelesai: jamSelesaiMulti || null,
@@ -319,7 +334,7 @@ router.post('/edit/:id', requireLogin, (req, res, next) => {
             });
         }
 
-        await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: updateData });
+        await prisma.journal.update({ where: { id }, data: updateData });
         res.redirect('/kerja');
     } catch (error) {
         console.error('[EDIT ERROR]', error.message);
@@ -337,7 +352,9 @@ router.post('/delete/:id', requireLogin, (req, res, next) => {
     try {
         const fs   = require('fs');
         const path = require('path');
-        const item = await prisma.journal.findUnique({ where: { id: parseInt(req.params.id) } });
+        const id   = parseInt(req.params.id);
+        if (isNaN(id)) return res.status(400).send('ID tidak valid.');
+        const item = await prisma.journal.findUnique({ where: { id } });
         if (item) {
             [item.fotoUrl, item.fotoAwalUrl].forEach(u => {
                 if (u) {
@@ -346,7 +363,7 @@ router.post('/delete/:id', requireLogin, (req, res, next) => {
                 }
             });
         }
-        await prisma.journal.delete({ where: { id: parseInt(req.params.id) } });
+        await prisma.journal.delete({ where: { id } });
         res.redirect('/kerja');
     } catch (error) { console.error(error); res.status(500).send('Gagal Delete.'); }
 });
@@ -421,7 +438,7 @@ router.get('/export', requireLogin, (req, res, next) => {
             return jam ? d + ' ' + jam : d;
         };
 
-        const base = 'http://server.rsby.cloud:3001';
+        const base = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
         journals.forEach((item, i) => {
             const isMulti = item.tipeInput === 'multihari';
             const row = worksheet.addRow({

@@ -18,10 +18,11 @@ router.get('/aset-public', async (req, res) => {
             const divisi = req.session.user.divisi || 'IT';
             return res.redirect('/aset-public/' + encodeURIComponent(divisi));
         }
-        const { q, kategori } = req.query;
+        const q       = (req.query.q       || '').trim();
+        const kategori = (req.query.kategori || '').trim();
         let where = { divisi: { in: ['IT', 'IT & IC'] } };
-        if (q)                        where.OR       = [{ nama: { contains: q } }, { kategori: { contains: q } }];
-        if (kategori && kategori !== '') where.kategori = kategori;
+        if (q)                   where.OR       = [{ nama: { contains: q } }, { kategori: { contains: q } }];
+        if (kategori)            where.kategori = kategori;
 
         const aset = await prisma.aset.findMany({
             where, orderBy: { nama: 'asc' },
@@ -266,6 +267,7 @@ router.post('/aset/tambah', requireLogin, (req, res, next) => {
 }, uploadAsetFoto, async (req, res) => {
     try {
         const nama       = (req.body.nama      || '').toString().trim();
+        if (!nama) return res.status(400).send('Gagal: Nama aset wajib diisi.');
         const kategori   = (req.body.kategori  || 'UMUM').toString().trim().toUpperCase();
         const satuan     = (req.body.satuan    || '').toString().trim();
         const kondisi    = (req.body.kondisi   || 'Baik').toString().trim();
@@ -308,7 +310,7 @@ router.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         const resPinjam = await prisma.$queryRawUnsafe("SELECT COALESCE(SUM(jumlah),0) as total FROM AsetPinjam WHERE asetId = ? AND status = 'Dipinjam'", asetId);
         const totalPakai  = Number(resPakai[0].total)  || 0;
         const totalPinjam = Number(resPinjam[0].total) || 0;
-        const stokBaru    = stokAwalNum - totalPakai - totalPinjam;
+        const stokBaru    = Math.max(0, stokAwalNum - totalPakai - totalPinjam);
 
         const asetExisting = await prisma.aset.findUnique({ where: { id: asetId } });
         if (!asetExisting) return res.status(404).send('Aset tidak ditemukan');
@@ -316,14 +318,18 @@ router.post('/aset/edit/:id', requireLogin, (req, res, next) => {
         const files = req.files || {};
 
         // Proses foto baru jika diupload — kalau tidak upload, pertahankan yang lama
-        const fotoUrl  = files['foto']?.[0]  ? await saveCompressedPhoto(files['foto'][0],  'foto', 'aset', asetExisting.divisi)  : asetExisting.fotoUrl;
-        const foto2Url = files['foto2']?.[0] ? await saveCompressedPhoto(files['foto2'][0], 'foto', 'aset', asetExisting.divisi) : asetExisting.foto2Url;
-        const foto3Url = files['foto3']?.[0] ? await saveCompressedPhoto(files['foto3'][0], 'foto', 'aset', asetExisting.divisi) : asetExisting.foto3Url;
+        const newFoto1 = files['foto']?.[0]  ? await saveCompressedPhoto(files['foto'][0],  'foto', 'aset', asetExisting.divisi)  : null;
+        const newFoto2 = files['foto2']?.[0] ? await saveCompressedPhoto(files['foto2'][0], 'foto', 'aset', asetExisting.divisi) : null;
+        const newFoto3 = files['foto3']?.[0] ? await saveCompressedPhoto(files['foto3'][0], 'foto', 'aset', asetExisting.divisi) : null;
 
-        // Hapus foto lama dari disk jika ada foto baru yang menggantikan
-        if (files['foto']?.[0]  && asetExisting.fotoUrl)  deleteFotoFile(asetExisting.fotoUrl);
-        if (files['foto2']?.[0] && asetExisting.foto2Url) deleteFotoFile(asetExisting.foto2Url);
-        if (files['foto3']?.[0] && asetExisting.foto3Url) deleteFotoFile(asetExisting.foto3Url);
+        // Hapus foto lama dari disk hanya setelah foto baru berhasil disimpan
+        if (newFoto1 && asetExisting.fotoUrl)  deleteFotoFile(asetExisting.fotoUrl);
+        if (newFoto2 && asetExisting.foto2Url) deleteFotoFile(asetExisting.foto2Url);
+        if (newFoto3 && asetExisting.foto3Url) deleteFotoFile(asetExisting.foto3Url);
+
+        const fotoUrl  = newFoto1 || asetExisting.fotoUrl;
+        const foto2Url = newFoto2 || asetExisting.foto2Url;
+        const foto3Url = newFoto3 || asetExisting.foto3Url;
 
         // Hapus foto yang di-checklist "hapus" oleh user
         if (req.body.hapusFoto1 === '1') { deleteFotoFile(asetExisting.fotoUrl);  }

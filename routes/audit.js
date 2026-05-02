@@ -17,8 +17,16 @@ router.get('/audit', requireLogin, async (req, res) => {
         const { date, status, divisi, asetDivisi, chartPeriod } = req.query;
         const now = new Date();
 
-        // Filter tabel log harian
-        const selectedDate = date ? new Date(date) : now;
+        // Validasi date — fallback ke hari ini jika tidak valid
+        let selectedDate = now;
+        if (date) {
+            const parsed = new Date(date);
+            if (!isNaN(parsed.getTime())) selectedDate = parsed;
+        }
+
+        // Sanitasi chartPeriod — hanya boleh angka atau 'all'
+        const allowedPeriods = ['7', '14', '30', '60', '90', 'all'];
+        const period = allowedPeriods.includes(chartPeriod) ? chartPeriod : '30';
         const tStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0,  0,  0);
         const tEnd   = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
 
@@ -34,7 +42,6 @@ router.get('/audit', requireLogin, async (req, res) => {
         const journals = await prisma.journal.findMany({ where: tableWhere, orderBy: { tanggalManual: 'desc' } });
 
         // Filter analitik & chart
-        const period = chartPeriod || '30';
         let chartWhere = {};
         if (period !== 'all') {
             const pastDate = new Date();

@@ -295,42 +295,6 @@
   .role-viewer { background: var(--role-viewer-bg); color: var(--role-viewer-text); }
   .role-custom { background: var(--role-viewer-bg); color: var(--role-viewer-text); }
 
-
-  /* VERIFIED BADGE — Instagram corner style */
-  .avatar-verified-wrap {
-    position: relative;
-    flex-shrink: 0;
-    display: inline-flex;
-  }
-  .verified-corner {
-    position: absolute;
-    bottom: -1px;
-    right: -2px;
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    background: var(--nav-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1px;
-    box-shadow: 0 0 0 1.5px var(--nav-bg);
-  }
-  .verified-corner svg {
-    width: 11px;
-    height: 11px;
-    display: block;
-    filter: drop-shadow(0 0 2px rgba(29,155,240,0.6));
-  }
-  /* Sidebar — badge lebih besar */
-  .avatar-verified-wrap.lg .verified-corner {
-    width: 15px;
-    height: 15px;
-    bottom: -1px;
-    right: -3px;
-  }
-  .avatar-verified-wrap.lg .verified-corner svg { width: 13px; height: 13px; }
-
   /* LOGOUT BTN */
   .it-nav-logout {
     padding: 5px 12px;
@@ -665,13 +629,11 @@
     <!-- USER PILL + DROPDOWN -->
     <div class="it-nav-user-wrap">
       <div class="it-nav-user" onclick="toggleUserDropdown(event)">
-        <span class="avatar-verified-wrap">
-          <div class="it-nav-avatar">
-            <% if (currentUser.fotoUrl) { %>
-              <img src="<%= currentUser.fotoUrl %>" alt="<%= initials %>">
-            <% } else { %><%= initials %><% } %>
-          </div><span class="verified-corner" title="Akun Terverifikasi"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l2.09 1.09 2.33-.4 1.09 2.09 2.09 1.09-.4 2.33L20.28 10l-1.18 2-1.18 2 .4 2.33-2.09 1.09-1.09 2.09-2.33-.4L10 20.28l-2-1.18-2 1.18-1.09-2.09-2.09-1.09.4-2.33L1.72 12l1.18-2L1.72 8l.4-2.33 2.09-1.09L5.3 2.49l2.33.4L10 1.72 12 2z" fill="#1d9bf0"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </span>
+        <div class="it-nav-avatar">
+          <% if (currentUser.fotoUrl) { %>
+            <img src="<%= currentUser.fotoUrl %>" alt="<%= initials %>">
+          <% } else { %><%= initials %><% } %>
+        </div>
         <span class="it-nav-name"><%= currentUser.nama %></span>
         <span class="it-nav-role <%= roleClass %>"><%= currentUser.role.toUpperCase() %></span>
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:0.5;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
@@ -792,13 +754,11 @@
 
     <% if (typeof currentUser !== 'undefined' && currentUser) { %>
     <div class="m-user">
-      <span class="avatar-verified-wrap lg">
-        <div class="it-nav-avatar" style="width:36px;height:36px;font-size:13px;overflow:hidden;">
-          <% if (currentUser.fotoUrl) { %>
-            <img src="<%= currentUser.fotoUrl %>" alt="<%= initials %>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
-          <% } else { %><%= initials %><% } %>
-        </div><span class="verified-corner" title="Akun Terverifikasi"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l2.09 1.09 2.33-.4 1.09 2.09 2.09 1.09-.4 2.33L20.28 10l-1.18 2-1.18 2 .4 2.33-2.09 1.09-1.09 2.09-2.33-.4L10 20.28l-2-1.18-2 1.18-1.09-2.09-2.09-1.09.4-2.33L1.72 12l1.18-2L1.72 8l.4-2.33 2.09-1.09L5.3 2.49l2.33.4L10 1.72 12 2z" fill="#1d9bf0"/><path d="M9 12l2 2 4-4" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-      </span>
+      <div class="it-nav-avatar" style="width:36px;height:36px;font-size:13px;overflow:hidden;">
+        <% if (currentUser.fotoUrl) { %>
+          <img src="<%= currentUser.fotoUrl %>" alt="<%= initials %>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        <% } else { %><%= initials %><% } %>
+      </div>
       <div class="m-user-info">
         <span class="m-user-name"><%= currentUser.nama %></span>
         <div class="m-user-role-wrap">
@@ -813,12 +773,6 @@
     <a href="/logout" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#dc2626;font-size:13px;font-weight:600;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(220,38,38,0.08)'" onmouseout="this.style.background='none'">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Keluar
-    </a>
-    <% } else { %>
-    <!-- Tombol Login untuk public (belum login) -->
-    <a href="/login" onclick="closeSidebar()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 12px;border-radius:9px;background:var(--body-accent);color:var(--body-bg);font-size:13px;font-weight:700;text-decoration:none;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      Login
     </a>
     <% } %>
   </div>
@@ -896,10 +850,8 @@ document.addEventListener('click', function() {
 </script>
 
 <!-- ============================================================ -->
-<!-- RSBY-AI CHATBOT WIDGET (hanya untuk user yang sudah login)   -->
-<!-- Public view: widget dihandle oleh navbar-public.ejs          -->
+<!-- RSBY-AI CHATBOT WIDGET (DYNAMIC ROLE)                        -->
 <!-- ============================================================ -->
-<% if (typeof currentUser !== 'undefined' && currentUser) { %>
 <%
   // LOGIKA PESAN SAMBUTAN AI BERDASARKAN ROLE
   let aiWelcome = "";
@@ -1143,4 +1095,3 @@ document.addEventListener('click', function() {
   };
 })();
 </script>
-<% } /* end currentUser check for AI widget */ %>
