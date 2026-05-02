@@ -22,7 +22,7 @@ async function callGemini(systemPrompt, userMessage, history = []) {
             body: JSON.stringify({
                 system_instruction: { parts: [{ text: systemPrompt }] },
                 contents: [...geminiHistory, { role: 'user', parts: [{ text: userMessage }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
+                generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
             })
         }
     );

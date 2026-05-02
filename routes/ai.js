@@ -128,7 +128,7 @@ TUGAS UTAMAMU:
 2. Cari anomali, inefisiensi, indikasi pemborosan, atau ketidakwajaran (misal: aset ditangani berkali-kali, pending berhari-hari, stok janggal, masalah berulang pada user yang sama).
 3. Cross-check data pemakaian aset dengan log jurnal IT.
 4. Berikan insight, kesimpulan, dan rekomendasi audit yang berbobot berdasarkan data yang ada.`;
-            rulePanjang = 'Jawab dalam Bahasa Indonesia dengan SANGAT DETAIL, komprehensif, dan profesional layaknya Auditor. Gunakan format poin-poin/list untuk menjabarkan temuan audit agar mudah dibaca. JANGAN batasi panjang kalimatmu.';
+            rulePanjang = 'Jawab dalam Bahasa Indonesia secara profesional dan to the point layaknya Auditor. Gunakan format poin-poin singkat untuk temuan audit. Maksimal 5-6 poin utama, setiap poin 1-2 kalimat. Jangan bertele-tele.';
         } else if (scope.role === 'it') {
             scopeDesc = `Kamu diakses oleh staf IT (${user.nama}). Kamu bisa membahas log IT jurnal. Untuk data aset, kamu hanya bisa melihat aset divisi IT.\nJika ditanya aset divisi lain, tolak dengan sopan: "Maaf, informasi aset divisi lain di luar akses kamu. Hubungi Administrator untuk info lintas divisi. 🔒"`;
         } else {
