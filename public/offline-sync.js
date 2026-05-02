@@ -1,70 +1,95 @@
 /**
- * IT Support Log — Offline Sync Module v2.0
- * 
- * Cara kerja:
- * 1. Saat form submit & offline → simpan ke IndexedDB
- * 2. Saat online kembali → proses queue satu-satu ke server
- * 3. Background Sync API (kalau browser support) sebagai backup
- * 
- * GUNAKAN FILE INI: tambahkan <script src="/offline-sync.js"> di admin.ejs
+ * IT Support Log — Offline Sync Module v3.0
+ * - IndexedDB queue untuk form data
+ * - Foto support via base64 (FileReader)
+ * - Retry limit 5x, hapus otomatis kalau gagal terus
+ * - Queue viewer built-in
+ * - UI indicator offline yang proper
  */
 
-(function() {
+(function () {
     'use strict';
 
     const DB_NAME    = 'itlog-offline-db';
-    const DB_VERSION = 1;
+    const DB_VERSION = 2; // naik versi karena schema berubah (support foto)
     const STORE_NAME = 'pendingForms';
+    const MAX_RETRY  = 5;
 
-    let db = null;
+    let db        = null;
     let isSyncing = false;
 
     // ============================================================
-    // INDEXEDDB SETUP
+    // INDEXEDDB
     // ============================================================
     function openDB() {
         return new Promise((resolve, reject) => {
             if (db) return resolve(db);
-
             const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-            request.onupgradeneeded = function(event) {
-                const database = event.target.result;
-                if (!database.objectStoreNames.contains(STORE_NAME)) {
-                    const store = database.createObjectStore(STORE_NAME, {
-                        keyPath: 'id',
-                        autoIncrement: true
-                    });
-                    store.createIndex('timestamp', 'timestamp', { unique: false });
-                    store.createIndex('status', 'status', { unique: false });
+            request.onupgradeneeded = function (e) {
+                const database = e.target.result;
+                // Hapus store lama kalau ada (upgrade dari v1)
+                if (database.objectStoreNames.contains(STORE_NAME)) {
+                    database.deleteObjectStore(STORE_NAME);
                 }
+                const store = database.createObjectStore(STORE_NAME, {
+                    keyPath: 'id', autoIncrement: true
+                });
+                store.createIndex('timestamp', 'timestamp', { unique: false });
+                store.createIndex('status',    'status',    { unique: false });
             };
 
-            request.onsuccess = function(event) {
-                db = event.target.result;
-                resolve(db);
-            };
-
-            request.onerror = function(event) {
-                console.error('[OfflineSync] IndexedDB error:', event.target.error);
-                reject(event.target.error);
-            };
+            request.onsuccess = e => { db = e.target.result; resolve(db); };
+            request.onerror   = e => reject(e.target.error);
         });
     }
 
     // ============================================================
-    // SIMPAN KE QUEUE
+    // FILE → BASE64
+    // ============================================================
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file || file.size === 0) return resolve(null);
+            const reader = new FileReader();
+            reader.onload  = e => resolve({
+                _isBase64: true,
+                data:      e.target.result, // data:image/...;base64,...
+                name:      file.name,
+                type:      file.type,
+                size:      file.size
+            });
+            reader.onerror = () => reject(new Error('Gagal baca file'));
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // BASE64 → Blob → File
+    function base64ToFile(b64obj) {
+        const arr    = b64obj.data.split(',');
+        const mime   = arr[0].match(/:(.*?);/)[1];
+        const bstr   = atob(arr[1]);
+        const n      = bstr.length;
+        const u8arr  = new Uint8Array(n);
+        for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
+        return new File([u8arr], b64obj.name, { type: mime });
+    }
+
+    // ============================================================
+    // CRUD QUEUE
     // ============================================================
     async function saveToQueue(formData, actionUrl) {
         const database = await openDB();
+        const dataObj  = {};
 
-        // Convert FormData ke plain object (tidak bisa store FormData langsung)
-        const dataObj = {};
         for (const [key, value] of formData.entries()) {
-            // Skip file fields — file tidak bisa disimpan di IndexedDB dengan mudah
             if (value instanceof File) {
                 if (value.size > 0) {
-                    dataObj[key] = { _isFile: true, name: value.name, size: value.size };
+                    try {
+                        dataObj[key] = await fileToBase64(value);
+                        console.log('[OfflineSync] Foto', key, 'tersimpan base64 (', Math.round(value.size/1024), 'KB)');
+                    } catch {
+                        console.warn('[OfflineSync] Gagal konversi foto:', key);
+                    }
                 }
             } else {
                 dataObj[key] = value;
@@ -72,118 +97,89 @@
         }
 
         const entry = {
-            actionUrl: actionUrl,
-            data: dataObj,
-            timestamp: Date.now(),
-            status: 'pending',
-            retryCount: 0
+            actionUrl,
+            data:       dataObj,
+            timestamp:  Date.now(),
+            status:     'pending',
+            retryCount: 0,
+            hasPhoto:   Object.values(dataObj).some(v => v && v._isBase64)
         };
 
         return new Promise((resolve, reject) => {
-            const tx = database.transaction(STORE_NAME, 'readwrite');
+            const tx    = database.transaction(STORE_NAME, 'readwrite');
             const store = tx.objectStore(STORE_NAME);
-            const req = store.add(entry);
-
-            req.onsuccess = function() {
-                console.log('[OfflineSync] Data tersimpan ke queue, ID:', req.result);
-                resolve(req.result);
-                updateQueueBadge();
-            };
-            req.onerror = function() {
-                reject(req.error);
-            };
+            const req   = store.add(entry);
+            req.onsuccess = () => { resolve(req.result); updateQueueBadge(); };
+            req.onerror   = () => reject(req.error);
         });
     }
 
-    // ============================================================
-    // AMBIL SEMUA QUEUE
-    // ============================================================
     async function getQueue() {
         const database = await openDB();
         return new Promise((resolve, reject) => {
-            const tx = database.transaction(STORE_NAME, 'readonly');
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.getAll();
-
-            req.onsuccess = function() {
-                resolve(req.result || []);
-            };
-            req.onerror = function() {
-                reject(req.error);
-            };
+            const tx  = database.transaction(STORE_NAME, 'readonly');
+            const req = tx.objectStore(STORE_NAME).getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror   = () => reject(req.error);
         });
     }
 
-    // ============================================================
-    // HAPUS DARI QUEUE
-    // ============================================================
     async function removeFromQueue(id) {
         const database = await openDB();
         return new Promise((resolve, reject) => {
-            const tx = database.transaction(STORE_NAME, 'readwrite');
-            const store = tx.objectStore(STORE_NAME);
-            const req = store.delete(id);
-
-            req.onsuccess = function() {
-                resolve();
-                updateQueueBadge();
-            };
-            req.onerror = function() {
-                reject(req.error);
-            };
+            const tx  = database.transaction(STORE_NAME, 'readwrite');
+            const req = tx.objectStore(STORE_NAME).delete(id);
+            req.onsuccess = () => { resolve(); updateQueueBadge(); };
+            req.onerror   = () => reject(req.error);
         });
     }
 
-    // ============================================================
-    // UPDATE RETRY COUNT
-    // ============================================================
-    async function updateRetry(id, retryCount) {
+    async function updateItem(id, changes) {
         const database = await openDB();
         return new Promise((resolve, reject) => {
-            const tx = database.transaction(STORE_NAME, 'readwrite');
-            const store = tx.objectStore(STORE_NAME);
-            const getReq = store.get(id);
-
-            getReq.onsuccess = function() {
+            const tx       = database.transaction(STORE_NAME, 'readwrite');
+            const store    = tx.objectStore(STORE_NAME);
+            const getReq   = store.get(id);
+            getReq.onsuccess = () => {
                 const item = getReq.result;
-                if (item) {
-                    item.retryCount = retryCount;
-                    item.status = 'retrying';
-                    const putReq = store.put(item);
-                    putReq.onsuccess = () => resolve();
-                    putReq.onerror = () => reject(putReq.error);
-                } else {
-                    resolve();
-                }
+                if (!item) return resolve();
+                Object.assign(item, changes);
+                const putReq = store.put(item);
+                putReq.onsuccess = () => resolve();
+                putReq.onerror   = () => reject(putReq.error);
             };
         });
     }
 
     // ============================================================
-    // PROSES QUEUE — kirim ke server
+    // PROSES QUEUE
     // ============================================================
     async function processQueue() {
-        if (isSyncing) return;
+        if (isSyncing)         return;
         if (!navigator.onLine) return;
 
         const queue = await getQueue();
         if (queue.length === 0) return;
 
         isSyncing = true;
-        showSyncToast('🔄 Menyinkronkan ' + queue.length + ' data offline...');
-        console.log('[OfflineSync] Memproses', queue.length, 'item dari queue');
+        showToast('🔄 Menyinkronkan ' + queue.length + ' data offline...', 'info');
 
-        let successCount = 0;
-        let failCount = 0;
+        let ok = 0, fail = 0;
 
         for (const item of queue) {
+            // Buang item yang sudah melewati batas retry
+            if (item.retryCount >= MAX_RETRY) {
+                console.warn('[OfflineSync] Item', item.id, 'melewati batas retry, dihapus');
+                await removeFromQueue(item.id);
+                continue;
+            }
+
             try {
-                // Convert plain object kembali ke FormData
                 const formData = new FormData();
                 for (const [key, value] of Object.entries(item.data)) {
-                    if (value && value._isFile) {
-                        // Skip file fields yang tidak bisa disimpan
-                        console.warn('[OfflineSync] Melewati file field:', key);
+                    if (value && value._isBase64) {
+                        // Konversi base64 kembali ke File
+                        formData.append(key, base64ToFile(value), value.name);
                     } else {
                         formData.append(key, value || '');
                     }
@@ -191,238 +187,326 @@
 
                 const response = await fetch(item.actionUrl, {
                     method: 'POST',
-                    body: formData
+                    body:   formData
                 });
 
                 if (response.ok || response.redirected) {
                     await removeFromQueue(item.id);
-                    successCount++;
-                    console.log('[OfflineSync] Berhasil sync item ID:', item.id);
+                    ok++;
                 } else {
-                    console.warn('[OfflineSync] Server error untuk item', item.id, ':', response.status);
-                    await updateRetry(item.id, (item.retryCount || 0) + 1);
-                    failCount++;
+                    await updateItem(item.id, {
+                        retryCount: item.retryCount + 1,
+                        status:     'retrying',
+                        lastError:  'HTTP ' + response.status
+                    });
+                    fail++;
                 }
             } catch (err) {
-                console.error('[OfflineSync] Gagal kirim item', item.id, ':', err.message);
-                await updateRetry(item.id, (item.retryCount || 0) + 1);
-                failCount++;
+                await updateItem(item.id, {
+                    retryCount: item.retryCount + 1,
+                    status:     'retrying',
+                    lastError:  err.message
+                });
+                fail++;
             }
         }
 
         isSyncing = false;
 
-        if (successCount > 0) {
-            showSyncToast('✅ ' + successCount + ' data berhasil disinkronkan!', 'success');
-            // Reload halaman setelah sync berhasil agar data terbaru tampil
+        if (ok > 0) {
+            showToast('✅ ' + ok + ' data berhasil disinkronkan!', 'success');
             setTimeout(() => {
-                if (window.location.pathname === '/kerja') {
-                    window.location.reload();
-                }
+                if (window.location.pathname === '/kerja') window.location.reload();
             }, 2000);
         }
-
-        if (failCount > 0 && successCount === 0) {
-            showSyncToast('⚠️ ' + failCount + ' data gagal sync. Akan dicoba lagi.', 'warning');
+        if (fail > 0 && ok === 0) {
+            showToast('⚠️ ' + fail + ' data gagal sync, akan dicoba lagi.', 'warning');
         }
 
         updateQueueBadge();
     }
 
     // ============================================================
-    // UI HELPERS
+    // UI — BADGE
     // ============================================================
-
-    // Badge jumlah pending di navbar
     async function updateQueueBadge() {
         try {
             const queue = await getQueue();
             const count = queue.length;
-
-            let badge = document.getElementById('offline-queue-badge');
+            let badge   = document.getElementById('offline-queue-badge');
 
             if (count > 0) {
                 if (!badge) {
-                    badge = document.createElement('span');
+                    badge = document.createElement('div');
                     badge.id = 'offline-queue-badge';
-                    badge.style.cssText = `
-                        display:inline-flex;align-items:center;justify-content:center;
-                        background:#fb923c;color:#000;border-radius:50%;
-                        width:18px;height:18px;font-size:0.65rem;font-weight:800;
-                        position:fixed;top:12px;right:220px;z-index:9999;
-                        animation:pulse-badge 1.5s infinite;
-                    `;
-                    // Tambah animasi
-                    if (!document.getElementById('offline-badge-style')) {
-                        const style = document.createElement('style');
-                        style.id = 'offline-badge-style';
-                        style.textContent = `
-                            @keyframes pulse-badge {
-                                0%,100%{transform:scale(1);opacity:1}
-                                50%{transform:scale(1.2);opacity:0.8}
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
+                    badge.style.cssText = [
+                        'position:fixed',
+                        'bottom:72px',
+                        'right:16px',
+                        'z-index:9998',
+                        'background:#fb923c',
+                        'color:#000',
+                        'border-radius:20px',
+                        'padding:6px 12px',
+                        'font-size:12px',
+                        'font-weight:700',
+                        'cursor:pointer',
+                        'box-shadow:0 4px 12px rgba(0,0,0,0.4)',
+                        'display:flex',
+                        'align-items:center',
+                        'gap:6px',
+                        'font-family:monospace'
+                    ].join(';');
+                    badge.onclick = showQueueViewer;
                     document.body.appendChild(badge);
                 }
-                badge.textContent = count;
-                badge.title = count + ' data pending — akan sync saat online';
+                const hasPhoto = queue.some(q => q.hasPhoto);
+                badge.innerHTML = '📦 ' + count + ' pending' + (hasPhoto ? ' 📷' : '');
+                badge.title     = count + ' data belum tersync — klik untuk lihat';
             } else if (badge) {
                 badge.remove();
             }
         } catch (e) {}
     }
 
-    // Toast notification
-    function showSyncToast(message, type) {
+    // ============================================================
+    // UI — TOAST
+    // ============================================================
+    function showToast(message, type) {
         type = type || 'info';
-
-        // Hapus toast lama kalau ada
-        const existing = document.getElementById('sync-toast-container');
+        const existing = document.getElementById('sync-toast');
         if (existing) existing.remove();
 
         const colors = {
-            info:    { bg: '#0d2a18', border: '#1a5c30', text: '#4ade80' },
-            success: { bg: '#0d2a18', border: '#1a5c30', text: '#4ade80' },
-            warning: { bg: '#2a1a0d', border: '#5c3010', text: '#fb923c' },
-            error:   { bg: '#2a0d0d', border: '#5c1a1a', text: '#f87171' }
+            info:    { bg: '#0d2a18', border: '#1a5c30', color: '#4ade80' },
+            success: { bg: '#0d2a18', border: '#22c55e', color: '#4ade80' },
+            warning: { bg: '#2a1a0d', border: '#f97316', color: '#fb923c' },
+            error:   { bg: '#2a0d0d', border: '#ef4444', color: '#f87171' }
         };
-        const c = colors[type] || colors.info;
-
+        const c     = colors[type] || colors.info;
         const toast = document.createElement('div');
-        toast.id = 'sync-toast-container';
-        toast.style.cssText = `
-            position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-            background:${c.bg};border:1px solid ${c.border};color:${c.text};
-            padding:10px 20px;border-radius:8px;font-size:0.83rem;font-weight:700;
-            z-index:9999;animation:slideUp 0.3s ease;max-width:380px;text-align:center;
-            box-shadow:0 8px 24px rgba(0,0,0,0.4);
-        `;
-
-        if (!document.getElementById('sync-toast-style')) {
-            const style = document.createElement('style');
-            style.id = 'sync-toast-style';
-            style.textContent = `
-                @keyframes slideUp {
-                    from{opacity:0;transform:translateX(-50%) translateY(20px)}
-                    to{opacity:1;transform:translateX(-50%) translateY(0)}
-                }
-            `;
-            document.head.appendChild(style);
-        }
-
+        toast.id    = 'sync-toast';
+        toast.style.cssText = [
+            'position:fixed',
+            'bottom:24px',
+            'left:50%',
+            'transform:translateX(-50%)',
+            'background:' + c.bg,
+            'border:1px solid ' + c.border,
+            'color:' + c.color,
+            'padding:10px 20px',
+            'border-radius:8px',
+            'font-size:13px',
+            'font-weight:700',
+            'z-index:9999',
+            'max-width:360px',
+            'text-align:center',
+            'font-family:monospace',
+            'box-shadow:0 8px 24px rgba(0,0,0,0.5)'
+        ].join(';');
         toast.textContent = message;
         document.body.appendChild(toast);
 
         setTimeout(() => {
             if (toast.parentNode) {
-                toast.style.opacity = '0';
+                toast.style.opacity    = '0';
                 toast.style.transition = 'opacity 0.3s';
                 setTimeout(() => toast.remove(), 300);
             }
         }, 4000);
     }
 
-    // Banner status offline/online
+    // ============================================================
+    // UI — OFFLINE BANNER
+    // ============================================================
     function showOfflineBanner() {
-        let banner = document.getElementById('offline-status-banner');
-        if (!banner) {
-            banner = document.createElement('div');
-            banner.id = 'offline-status-banner';
-            banner.style.cssText = `
-                position:fixed;top:52px;left:0;right:0;z-index:998;
-                background:#2a1a0d;border-bottom:1px solid #5c3010;
-                color:#fb923c;text-align:center;padding:7px;
-                font-size:0.78rem;font-weight:700;letter-spacing:0.04em;
-            `;
-            banner.innerHTML = '📡 OFFLINE MODE —  sync otomatis saat online';
-            document.body.appendChild(banner);
-        }
+        let banner = document.getElementById('offline-banner');
+        if (banner) return;
+        banner = document.createElement('div');
+        banner.id = 'offline-banner';
+        banner.style.cssText = [
+            'position:fixed',
+            'top:52px',
+            'left:0',
+            'right:0',
+            'z-index:997',
+            'background:#2a1a0d',
+            'border-bottom:1px solid #f97316',
+            'color:#fb923c',
+            'text-align:center',
+            'padding:6px',
+            'font-size:12px',
+            'font-weight:700',
+            'letter-spacing:0.05em',
+            'font-family:monospace'
+        ].join(';');
+        banner.innerHTML = '📡 OFFLINE MODE — input tetap bisa, sync otomatis saat online';
+        document.body.appendChild(banner);
     }
 
     function hideOfflineBanner() {
-        const banner = document.getElementById('offline-status-banner');
-        if (banner) {
-            banner.style.background = '#0d2a18';
-            banner.style.borderColor = '#1a5c30';
-            banner.style.color = '#4ade80';
-            banner.innerHTML = '✅ ONLINE — Menyinkronkan data...';
-            setTimeout(() => banner.remove(), 3000);
+        const banner = document.getElementById('offline-banner');
+        if (!banner) return;
+        banner.style.background   = '#0d2a18';
+        banner.style.borderColor  = '#22c55e';
+        banner.style.color        = '#4ade80';
+        banner.innerHTML          = '✅ ONLINE — menyinkronkan data...';
+        setTimeout(() => banner.remove(), 3000);
+    }
+
+    // ============================================================
+    // UI — QUEUE VIEWER
+    // ============================================================
+    async function showQueueViewer() {
+        const existing = document.getElementById('queue-viewer-overlay');
+        if (existing) { existing.remove(); return; }
+
+        const queue = await getQueue();
+
+        const overlay = document.createElement('div');
+        overlay.id    = 'queue-viewer-overlay';
+        overlay.style.cssText = [
+            'position:fixed',
+            'inset:0',
+            'background:rgba(0,0,0,0.7)',
+            'z-index:10000',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'padding:1rem'
+        ].join(';');
+
+        const panel = document.createElement('div');
+        panel.style.cssText = [
+            'background:#111',
+            'border:1px solid #1a3a1a',
+            'border-radius:12px',
+            'padding:1.5rem',
+            'max-width:480px',
+            'width:100%',
+            'max-height:80vh',
+            'overflow-y:auto',
+            'font-family:monospace'
+        ].join(';');
+
+        const title = document.createElement('div');
+        title.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;';
+        title.innerHTML = [
+            '<span style="color:#39ff14;font-weight:700;font-size:14px;">📦 Queue Offline (' + queue.length + ')</span>',
+            '<button onclick="document.getElementById(\'queue-viewer-overlay\').remove()" style="background:none;border:none;color:#666;font-size:18px;cursor:pointer;">✕</button>'
+        ].join('');
+
+        panel.appendChild(title);
+
+        if (queue.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.cssText = 'color:#444;font-size:13px;text-align:center;padding:2rem 0;';
+            empty.textContent   = 'Queue kosong — semua data tersync ✅';
+            panel.appendChild(empty);
+        } else {
+            queue.forEach(item => {
+                const el = document.createElement('div');
+                el.style.cssText = [
+                    'background:#0d0d0d',
+                    'border:0.5px solid #1a3a1a',
+                    'border-radius:8px',
+                    'padding:10px 12px',
+                    'margin-bottom:8px',
+                    'font-size:12px'
+                ].join(';');
+
+                const time   = new Date(item.timestamp).toLocaleString('id-ID');
+                const fields = Object.keys(item.data).filter(k => !['_token'].includes(k));
+                const photos = Object.values(item.data).filter(v => v && v._isBase64);
+
+                el.innerHTML = [
+                    '<div style="color:#39ff14;margin-bottom:4px;">ID: ' + item.id + ' &nbsp;|&nbsp; ' + time + '</div>',
+                    '<div style="color:#666;margin-bottom:4px;">URL: ' + item.actionUrl + '</div>',
+                    '<div style="color:#888;margin-bottom:4px;">Fields: ' + fields.join(', ') + '</div>',
+                    photos.length > 0 ? '<div style="color:#fb923c;margin-bottom:4px;">📷 ' + photos.length + ' foto tersimpan (' + photos.map(p => Math.round(p.size/1024) + 'KB').join(', ') + ')</div>' : '',
+                    item.retryCount > 0 ? '<div style="color:#f87171;">Retry: ' + item.retryCount + '/' + MAX_RETRY + (item.lastError ? ' — ' + item.lastError : '') + '</div>' : '',
+                    '<div style="margin-top:6px;">',
+                    '<button onclick="window.__offlineSync.removeItem(' + item.id + ')" style="background:#3a1a1a;border:0.5px solid #ef4444;color:#f87171;border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:monospace;">✕ Hapus</button>',
+                    '</div>'
+                ].join('');
+
+                panel.appendChild(el);
+            });
+
+            // Tombol aksi bawah
+            const actions = document.createElement('div');
+            actions.style.cssText = 'display:flex;gap:8px;margin-top:1rem;';
+            actions.innerHTML = [
+                '<button onclick="window.__offlineSync.processQueue();document.getElementById(\'queue-viewer-overlay\').remove();" style="flex:1;background:#0d2a18;border:1px solid #39ff14;color:#39ff14;border-radius:6px;padding:8px;font-size:12px;cursor:pointer;font-family:monospace;">🔄 Sync Sekarang</button>',
+                '<button onclick="window.__offlineSync.clearQueue();document.getElementById(\'queue-viewer-overlay\').remove();" style="background:#2a0d0d;border:1px solid #ef4444;color:#f87171;border-radius:6px;padding:8px 12px;font-size:12px;cursor:pointer;font-family:monospace;">🗑 Clear All</button>'
+            ].join('');
+            panel.appendChild(actions);
         }
+
+        overlay.appendChild(panel);
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) overlay.remove();
+        });
+        document.body.appendChild(overlay);
     }
 
     // ============================================================
     // INTERCEPT FORM SUBMIT
     // ============================================================
     function interceptForms() {
-        // Hanya intercept form /save (tambah jurnal baru)
-        // Edit, hapus, upload foto tidak di-intercept karena kompleks
-        document.addEventListener('submit', async function(event) {
-            const form = event.target;
-            const action = form.getAttribute('action') || form.action || '';
-
-            // Hanya tangkap form /save
+        document.addEventListener('submit', async function (event) {
+            const form      = event.target;
+            const action    = form.getAttribute('action') || form.action || '';
             if (!action.includes('/save')) return;
-
-            // Kalau online, biarkan submit normal
             if (navigator.onLine) return;
 
-            // OFFLINE — intercept!
             event.preventDefault();
 
-            const formData = new FormData(form);
+            const formData  = new FormData(form);
             const actionUrl = action.startsWith('/') ? action : '/' + action;
 
             try {
                 await saveToQueue(formData, actionUrl);
-
-                // Reset form
                 form.reset();
-                // Set tanggal default lagi
+
                 const tglInput = document.getElementById('tanggalInput');
                 if (tglInput) tglInput.value = new Date().toISOString().split('T')[0];
 
-                showSyncToast('💾 Data tersimpan offline! Akan sync saat online.', 'warning');
+                const hasPhoto = [...formData.entries()].some(([, v]) => v instanceof File && v.size > 0);
+                showToast(
+                    hasPhoto
+                        ? '💾 Data + foto tersimpan offline! Sync saat online.'
+                        : '💾 Data tersimpan offline! Sync saat online.',
+                    'warning'
+                );
                 updateQueueBadge();
 
-                // Daftarkan background sync kalau browser support
                 if ('serviceWorker' in navigator && 'SyncManager' in window) {
                     const sw = await navigator.serviceWorker.ready;
                     await sw.sync.register('sync-jurnal-queue');
-                    console.log('[OfflineSync] Background sync terdaftar');
                 }
-
             } catch (err) {
-                console.error('[OfflineSync] Gagal simpan ke queue:', err);
-                showSyncToast('❌ Gagal simpan offline: ' + err.message, 'error');
+                console.error('[OfflineSync] Gagal simpan:', err);
+                showToast('❌ Gagal simpan offline: ' + err.message, 'error');
             }
-        }, true); // capture phase
+        }, true);
     }
 
     // ============================================================
-    // EVENT LISTENERS — online/offline
+    // NETWORK LISTENERS
     // ============================================================
     function setupNetworkListeners() {
-        window.addEventListener('online', function() {
-            console.log('[OfflineSync] Kembali online!');
+        window.addEventListener('online', () => {
             hideOfflineBanner();
-            // Delay sedikit agar koneksi stabil
             setTimeout(() => processQueue(), 1500);
         });
-
-        window.addEventListener('offline', function() {
-            console.log('[OfflineSync] Offline!');
+        window.addEventListener('offline', () => {
             showOfflineBanner();
         });
 
-        // Terima pesan dari Service Worker untuk proses queue
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('message', function(event) {
-                if (event.data && event.data.type === 'PROCESS_QUEUE') {
-                    console.log('[OfflineSync] SW minta proses queue');
-                    processQueue();
-                }
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data && e.data.type === 'PROCESS_QUEUE') processQueue();
             });
         }
     }
@@ -431,54 +515,50 @@
     // INIT
     // ============================================================
     async function init() {
-        console.log('[OfflineSync] Inisialisasi...');
-
         try {
             await openDB();
-            console.log('[OfflineSync] IndexedDB siap');
         } catch (e) {
             console.error('[OfflineSync] IndexedDB gagal:', e);
-            return; // Berhenti kalau IndexedDB tidak tersedia
+            return;
         }
 
         setupNetworkListeners();
         interceptForms();
 
-        // Cek status awal
-        if (!navigator.onLine) {
-            showOfflineBanner();
-        }
+        if (!navigator.onLine) showOfflineBanner();
 
-        // Update badge saat load
         await updateQueueBadge();
 
-        // Kalau online dan ada queue, proses sekarang
         if (navigator.onLine) {
             const queue = await getQueue();
             if (queue.length > 0) {
-                console.log('[OfflineSync] Ada', queue.length, 'item pending, memproses...');
+                console.log('[OfflineSync]', queue.length, 'item pending, memproses...');
                 setTimeout(() => processQueue(), 2000);
             }
         }
-
-        console.log('[OfflineSync] Siap!');
     }
 
-    // Jalankan setelah DOM siap
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 
-    // Expose ke global untuk debugging
+    // Global API
     window.__offlineSync = {
         getQueue,
         processQueue,
-        clearQueue: async function() {
+        showQueueViewer,
+        removeItem: async (id) => {
+            await removeFromQueue(id);
+            const overlay = document.getElementById('queue-viewer-overlay');
+            if (overlay) overlay.remove();
+            await showQueueViewer();
+        },
+        clearQueue: async () => {
             const queue = await getQueue();
             for (const item of queue) await removeFromQueue(item.id);
-            console.log('[OfflineSync] Queue dibersihkan');
+            showToast('🗑 Queue dibersihkan', 'info');
         }
     };
 

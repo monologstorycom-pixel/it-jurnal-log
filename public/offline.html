@@ -1,130 +1,206 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline — IT Support Log</title>
+    <title>Offline — IT Jurnal Log</title>
+    <meta name="theme-color" content="#1a3a1a">
     <style>
-        :root {
-            --bg: #080a10; --bg2: #0f1117; --border: #1e2130;
-            --text: #e2e8f0; --text2: #8b8fa8; --text3: #3b4263;
-            --accent: #4ade80; --accent-bg: #0d2a18;
-            --warn: #fb923c; --warn-bg: #2a1a0d;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background: var(--bg); color: var(--text);
-            font-family: 'Courier New', monospace;
-            min-height: 100vh; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             padding: 2rem;
+            overflow: hidden;
         }
-        .container { max-width: 480px; width: 100%; text-align: center; }
-        .icon { font-size: 4rem; margin-bottom: 1.5rem; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-        h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
-        .sub { font-size: 0.85rem; color: var(--text2); margin-bottom: 2rem; line-height: 1.6; }
-        .status-box {
-            background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
-            padding: 1.25rem; margin-bottom: 1.5rem; text-align: left;
+
+        /* Grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(57,255,20,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(57,255,20,0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
         }
-        .status-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 0.82rem; color: var(--text2); }
-        .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .dot-red { background: #f87171; animation: pulse 1.5s infinite; }
-        .dot-green { background: var(--accent); }
-        .dot-yellow { background: var(--warn); animation: pulse 2s infinite; }
-        .pending-info {
-            background: var(--warn-bg); border: 1px solid var(--warn); border-radius: 8px;
-            padding: 1rem; margin-bottom: 1.5rem; font-size: 0.82rem; color: var(--warn);
+
+        .container {
+            position: relative;
+            text-align: center;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 14px;
+            color: #39ff14;
+            opacity: 0.6;
+            margin-bottom: 2rem;
+            letter-spacing: 3px;
+        }
+
+        .terminal-box {
+            background: #111;
+            border: 1px solid #1a3a1a;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 0.5px solid #1a3a1a;
+        }
+
+        .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+        }
+        .dot-r { background: #3a1a1a; }
+        .dot-y { background: #3a3a1a; }
+        .dot-g { background: #1a3a1a; }
+
+        .terminal-title {
+            font-size: 11px;
+            color: #444;
+            margin-left: auto;
+            letter-spacing: 1px;
+        }
+
+        .status-icon {
+            font-size: 48px;
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+
+        .prompt {
+            color: #39ff14;
+            font-size: 13px;
+            text-align: left;
+            line-height: 2;
+        }
+
+        .prompt .cmd { color: #39ff14; }
+        .prompt .err { color: #ff4444; }
+        .prompt .info { color: #666; }
+        .prompt .warn { color: #f0a500; }
+
+        .cursor {
+            display: inline-block;
+            width: 8px; height: 14px;
+            background: #39ff14;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        .btn-retry {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #1a3a1a;
+            border: 1px solid #39ff14;
+            color: #39ff14;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s;
+            margin-top: 0.5rem;
+        }
+        .btn-retry:hover { background: #243a24; }
+
+        .status-bar {
+            font-size: 11px;
+            color: #333;
+            margin-top: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .online-toast {
             display: none;
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a3a1a;
+            border: 1px solid #39ff14;
+            color: #39ff14;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            animation: fadeIn 0.3s ease;
         }
-        .pending-info.show { display: block; }
-        .btn {
-            background: var(--accent-bg); border: 1px solid var(--accent);
-            color: var(--accent); padding: 10px 24px; border-radius: 8px;
-            font-size: 0.85rem; font-weight: 700; cursor: pointer;
-            text-decoration: none; display: inline-block;
-            transition: all 0.2s; letter-spacing: 0.04em;
-        }
-        .btn:hover { background: #1a4a2a; }
-        .queue-count { font-size: 1.5rem; font-weight: 800; color: var(--warn); }
-        .auto-msg { font-size: 0.72rem; color: var(--text3); margin-top: 1rem; }
+        @keyframes fadeIn { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="icon">📡</div>
-        <h1>OFFLINE MODE</h1>
-        <p class="sub">Koneksi internet terputus.<br>Halaman sebelumnya masih bisa diakses dari cache.</p>
+        <div class="logo">&gt;_ IT JURNAL LOG</div>
 
-        <div class="status-box">
-            <div class="status-item">
-                <div class="dot dot-red" id="netDot"></div>
-                <span id="netStatus">Tidak ada koneksi internet</span>
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="dot dot-r"></div>
+                <div class="dot dot-y"></div>
+                <div class="dot dot-g"></div>
+                <span class="terminal-title">network.log</span>
             </div>
-            <div class="status-item">
-                <div class="dot dot-green"></div>
-                <span>Cache halaman tersedia — bisa akses halaman yang sudah dibuka sebelumnya</span>
-            </div>
-            <div class="status-item">
-                <div class="dot dot-yellow" id="syncDot"></div>
-                <span id="syncStatus">Data offline akan auto-sync saat online</span>
+
+            <div class="prompt">
+                <div><span class="cmd">$ ping server.itlog.local</span></div>
+                <div><span class="err">ERR  Request timeout — no route to host</span></div>
+                <div><span class="info">---  koneksi internet terputus</span></div>
+                <div>&nbsp;</div>
+                <div><span class="warn">WARN Bekerja dalam mode offline</span></div>
+                <div><span class="info">INFO Data terakhir tersedia dari cache</span></div>
+                <div>&nbsp;</div>
+                <div><span class="cmd">$ waiting for connection</span><span class="cursor"></span></div>
             </div>
         </div>
 
-        <div class="pending-info" id="pendingBox">
-            Ada <span class="queue-count" id="queueCount">0</span> data pending di antrian.<br>
-            Akan otomatis dikirim saat koneksi kembali.
-        </div>
+        <a href="/" class="btn-retry" onclick="window.location.reload(); return false;">
+            ↺ &nbsp;Coba Reconnect
+        </a>
 
-        <a href="/kerja" class="btn">COBA BUKA DASHBOARD</a>
-        <div class="auto-msg" id="autoMsg">Memantau koneksi... akan redirect otomatis saat online.</div>
+        <div class="status-bar" id="statusBar">status: offline</div>
+    </div>
+
+    <div class="online-toast" id="onlineToast">
+        ✓ &nbsp;Koneksi pulih — mengalihkan...
     </div>
 
     <script>
-    // Cek pending queue dari IndexedDB
-    async function checkQueue() {
-        try {
-            const db = await openDB();
-            const tx = db.transaction('pendingForms', 'readonly');
-            const store = tx.objectStore('pendingForms');
-            const req = store.getAll();
-            req.onsuccess = function() {
-                const count = (req.result || []).length;
-                if (count > 0) {
-                    document.getElementById('queueCount').textContent = count;
-                    document.getElementById('pendingBox').classList.add('show');
-                }
-            };
-        } catch(e) {}
-    }
-
-    function openDB() {
-        return new Promise((resolve, reject) => {
-            const req = indexedDB.open('itlog-offline-db', 1);
-            req.onupgradeneeded = e => {
-                e.target.result.createObjectStore('pendingForms', { keyPath: 'id', autoIncrement: true });
-            };
-            req.onsuccess = e => resolve(e.target.result);
-            req.onerror = e => reject(e);
+        // Auto redirect kalau online
+        window.addEventListener('online', () => {
+            const toast = document.getElementById('onlineToast');
+            toast.style.display = 'block';
+            document.getElementById('statusBar').textContent = 'status: reconnecting...';
+            setTimeout(() => window.location.href = '/', 1500);
         });
-    }
 
-    // Monitor koneksi
-    function updateStatus() {
-        const dot = document.getElementById('netDot');
-        const txt = document.getElementById('netStatus');
-        if (navigator.onLine) {
-            dot.className = 'dot dot-green';
-            dot.style.animation = 'none';
-            txt.textContent = 'Koneksi kembali! Mengalihkan...';
-            document.getElementById('autoMsg').textContent = '✅ Online! Redirect dalam 1 detik...';
-            setTimeout(() => { window.location.href = '/kerja'; }, 1000);
-        }
-    }
+        window.addEventListener('offline', () => {
+            document.getElementById('statusBar').textContent = 'status: offline';
+        });
 
-    window.addEventListener('online', updateStatus);
-    checkQueue();
+        // Cek status saat load
+        document.getElementById('statusBar').textContent =
+            navigator.onLine ? 'status: online (halaman di-cache)' : 'status: offline';
     </script>
 </body>
 </html>
