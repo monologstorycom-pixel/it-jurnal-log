@@ -281,38 +281,6 @@
       </div>
       <% } %>
 
-      <!-- ===== NOTES ===== -->
-      <div class="section-panel notes-box mb-3">
-        <div style="color:var(--body-text);font-weight:700;margin-bottom:10px;font-size:0.9rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> CATATAN (NOTES)</div>
-        <input type="text" id="noteTitle" placeholder="Judul catatan..." class="form-control mb-2">
-        <textarea id="noteContent" placeholder="Isi catatan..." class="form-control mb-2" rows="2"></textarea>
-        <button onclick="addNoteAdmin()" class="btn btn-sm btn-success fw-bold"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> TAMBAH CATATAN</button>
-        <div id="adminNotesList" style="color:var(--body-text2);font-size:0.85rem;margin-top:12px;">Loading notes...</div>
-      </div>
-
-      <!-- MODAL EDIT NOTES -->
-      <div class="modal fade" id="editNoteModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
-            <div class="modal-header" style="border-color:var(--body-border);">
-              <h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Catatan</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:var(--body-text2)=='#1a1a2e'?'invert(0)':'invert(1)';"></button>
-            </div>
-            <div class="modal-body">
-              <input type="hidden" id="editNoteId">
-              <label class="label-text">Judul</label>
-              <input type="text" id="editNoteTitle" class="form-control mb-2">
-              <label class="label-text">Isi Catatan</label>
-              <textarea id="editNoteContent" class="form-control" rows="4"></textarea>
-            </div>
-            <div class="modal-footer" style="border-color:var(--body-border);">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="button" class="btn btn-primary fw-bold" onclick="saveEditNote()">Simpan</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- FILTER -->
       <div class="section-panel mb-3">
         <form action="/kerja" method="GET" id="filterForm">
