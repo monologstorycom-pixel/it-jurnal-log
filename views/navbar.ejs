@@ -774,6 +774,12 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Keluar
     </a>
+    <% } else { %>
+    <!-- Tombol Login untuk public (belum login) -->
+    <a href="/login" onclick="closeSidebar()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 12px;border-radius:9px;background:var(--body-accent);color:var(--body-bg);font-size:13px;font-weight:700;text-decoration:none;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Login
+    </a>
     <% } %>
   </div>
 </div>
@@ -850,8 +856,10 @@ document.addEventListener('click', function() {
 </script>
 
 <!-- ============================================================ -->
-<!-- RSBY-AI CHATBOT WIDGET (DYNAMIC ROLE)                        -->
+<!-- RSBY-AI CHATBOT WIDGET (hanya untuk user yang sudah login)   -->
+<!-- Public view: widget dihandle oleh navbar-public.ejs          -->
 <!-- ============================================================ -->
+<% if (typeof currentUser !== 'undefined' && currentUser) { %>
 <%
   // LOGIKA PESAN SAMBUTAN AI BERDASARKAN ROLE
   let aiWelcome = "";
@@ -1095,3 +1103,4 @@ document.addEventListener('click', function() {
   };
 })();
 </script>
+<% } /* end currentUser check for AI widget */ %>
