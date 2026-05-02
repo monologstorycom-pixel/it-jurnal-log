@@ -361,14 +361,15 @@ router.post('/aset/hapus/:id', requireLogin, (req, res, next) => {
     next();
 }, async (req, res) => {
     try {
-        // Hapus foto dari disk sebelum delete record
-        const aset = await prisma.aset.findUnique({ where: { id: parseInt(req.params.id) } });
+        const asetId = parseInt(req.params.id);
+        if (isNaN(asetId)) return res.status(400).send('ID tidak valid.');
+        const aset = await prisma.aset.findUnique({ where: { id: asetId } });
         if (aset) {
             deleteFotoFile(aset.fotoUrl);
             deleteFotoFile(aset.foto2Url);
             deleteFotoFile(aset.foto3Url);
         }
-        await prisma.aset.delete({ where: { id: parseInt(req.params.id) } });
+        await prisma.aset.delete({ where: { id: asetId } });
         res.redirect('/aset');
     } catch (error) { console.error(error); res.status(500).send('Gagal hapus: ' + error.message); }
 });
@@ -405,12 +406,14 @@ router.post('/aset/pakai-hapus/:penggunaanId', requireLogin, (req, res, next) =>
     next();
 }, async (req, res) => {
     try {
-        const penggunaan = await prisma.asetPenggunaan.findUnique({ where: { id: parseInt(req.params.penggunaanId) } });
+        const penggunaanId = parseInt(req.params.penggunaanId);
+        if (isNaN(penggunaanId)) return res.status(400).send('ID tidak valid.');
+        const penggunaan = await prisma.asetPenggunaan.findUnique({ where: { id: penggunaanId } });
         if (!penggunaan) return res.status(404).send('Data tidak ditemukan');
         if (penggunaan.fotoUrl) { const p = path.join(__dirname, '..', 'public', penggunaan.fotoUrl); if (fs.existsSync(p)) fs.unlinkSync(p); }
         await prisma.$transaction([
             prisma.aset.update({ where: { id: penggunaan.asetId }, data: { stok: { increment: penggunaan.jumlah } } }),
-            prisma.asetPenggunaan.delete({ where: { id: parseInt(req.params.penggunaanId) } })
+            prisma.asetPenggunaan.delete({ where: { id: penggunaanId } })
         ]);
         res.redirect('/aset/' + penggunaan.asetId);
     } catch (error) { console.error(error); res.status(500).send('Gagal hapus penggunaan: ' + error.message); }
@@ -448,11 +451,13 @@ router.post('/aset/kembali/:pinjamId', requireLogin, (req, res, next) => {
     next();
 }, async (req, res) => {
     try {
-        const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
+        const pinjamId = parseInt(req.params.pinjamId);
+        if (isNaN(pinjamId)) return res.status(400).send('ID tidak valid.');
+        const pinjam = await prisma.asetPinjam.findUnique({ where: { id: pinjamId } });
         if (!pinjam)                         return res.status(404).send('Data pinjaman tidak ditemukan');
         if (pinjam.status === 'Dikembalikan') return res.status(400).send('Sudah dikembalikan.');
         await prisma.$transaction([
-            prisma.asetPinjam.update({ where: { id: parseInt(req.params.pinjamId) }, data: { status: 'Dikembalikan', tanggalKembali: new Date() } }),
+            prisma.asetPinjam.update({ where: { id: pinjamId }, data: { status: 'Dikembalikan', tanggalKembali: new Date() } }),
             prisma.aset.update({ where: { id: pinjam.asetId }, data: { stok: { increment: pinjam.jumlah } } })
         ]);
         res.redirect('/aset/' + pinjam.asetId + '?saved=kembali');
@@ -467,10 +472,12 @@ router.post('/aset/pinjam-hapus/:pinjamId', requireLogin, (req, res, next) => {
     next();
 }, async (req, res) => {
     try {
-        const pinjam = await prisma.asetPinjam.findUnique({ where: { id: parseInt(req.params.pinjamId) } });
+        const pinjamId = parseInt(req.params.pinjamId);
+        if (isNaN(pinjamId)) return res.status(400).send('ID tidak valid.');
+        const pinjam = await prisma.asetPinjam.findUnique({ where: { id: pinjamId } });
         if (!pinjam) return res.status(404).send('Tidak ditemukan');
         if (pinjam.fotoUrl) { const p = path.join(__dirname, '..', 'public', pinjam.fotoUrl); if (fs.existsSync(p)) fs.unlinkSync(p); }
-        const ops = [prisma.asetPinjam.delete({ where: { id: parseInt(req.params.pinjamId) } })];
+        const ops = [prisma.asetPinjam.delete({ where: { id: pinjamId } })];
         if (pinjam.status === 'Dipinjam') ops.push(prisma.aset.update({ where: { id: pinjam.asetId }, data: { stok: { increment: pinjam.jumlah } } }));
         await prisma.$transaction(ops);
         res.redirect('/aset/' + pinjam.asetId);
@@ -552,10 +559,12 @@ router.post('/aset/service-hapus/:serviceId', requireLogin, (req, res, next) => 
     next();
 }, async (req, res) => {
     try {
-        const sv = await prisma.asetService.findUnique({ where: { id: parseInt(req.params.serviceId) } });
+        const serviceId = parseInt(req.params.serviceId);
+        if (isNaN(serviceId)) return res.status(400).send('ID tidak valid.');
+        const sv = await prisma.asetService.findUnique({ where: { id: serviceId } });
         if (!sv) return res.status(404).send('Tidak ditemukan');
         if (sv.fotoUrl) { const p = path.join(__dirname, '..', 'public', sv.fotoUrl); if (fs.existsSync(p)) fs.unlinkSync(p); }
-        await prisma.asetService.delete({ where: { id: sv.id } });
+        await prisma.asetService.delete({ where: { id: serviceId } });
         res.redirect('/aset/' + sv.asetId);
     } catch (error) { console.error(error); res.status(500).send('Gagal hapus: ' + error.message); }
 });

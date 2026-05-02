@@ -525,8 +525,8 @@
     Chart.defaults.font.family = 'Inter, sans-serif';
 
     // 1. Chart Divisi
-    const divisiLabels = <%- JSON.stringify(stats.divisiBreakdown.map(d => d.divisi).slice(0, 8)) %>;
-    const divisiData = <%- JSON.stringify(stats.divisiBreakdown.map(d => d.total).slice(0, 8)) %>;
+    const divisiLabels = <%- JSON.stringify(stats.divisiBreakdown.map(d => d.divisi).slice(0, 8)).replace(/<\//g, "<\/") %>;
+    const divisiData = <%- JSON.stringify(stats.divisiBreakdown.map(d => d.total).slice(0, 8)).replace(/<\//g, "<\/") %>;
 
     new Chart(document.getElementById('divisiChart'), {
         type: 'bar',
@@ -551,8 +551,8 @@
     });
 
     // 2. Chart Masalah
-    const masalahLabels = <%- JSON.stringify(stats.masalahSering.map(m => m.nama)) %>;
-    const masalahData = <%- JSON.stringify(stats.masalahSering.map(m => m.total)) %>;
+    const masalahLabels = <%- JSON.stringify(stats.masalahSering.map(m => m.nama)).replace(/<\//g, "<\\/") %>;
+    const masalahData = <%- JSON.stringify(stats.masalahSering.map(m => m.total)).replace(/<\//g, "<\\/") %>;
 
     new Chart(document.getElementById('masalahChart'), {
         type: 'doughnut',
@@ -575,8 +575,8 @@
     });
 
     // 3. Chart Pemesan (User Paling Sering)
-    const pemesanLabels = <%- JSON.stringify(stats.pemesanSering.map(u => u.nama)) %>;
-    const pemesanData = <%- JSON.stringify(stats.pemesanSering.map(u => u.total)) %>;
+    const pemesanLabels = <%- JSON.stringify(stats.pemesanSering.map(u => u.nama)).replace(/<\//g, "<\\/") %>;
+    const pemesanData = <%- JSON.stringify(stats.pemesanSering.map(u => u.total)).replace(/<\//g, "<\\/") %>;
 
     new Chart(document.getElementById('userChart'), {
         type: 'bar',
