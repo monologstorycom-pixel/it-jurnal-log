@@ -462,20 +462,51 @@
 
             event.preventDefault();
 
-            const formData  = new FormData(form);
             const actionUrl = action.startsWith('/') ? action : '/' + action;
 
             try {
+                // Buat FormData manual — baca file LANGSUNG dari input element
+                // karena FormData(form) kadang tidak baca file yang di-replace via DataTransfer
+                const formData = new FormData();
+
+                // Ambil semua field text/select/textarea
+                const elements = form.querySelectorAll('input:not([type=file]), select, textarea');
+                elements.forEach(el => {
+                    if (el.name && el.type !== 'submit' && el.type !== 'button') {
+                        if (el.type === 'checkbox' || el.type === 'radio') {
+                            if (el.checked) formData.append(el.name, el.value);
+                        } else {
+                            formData.append(el.name, el.value || '');
+                        }
+                    }
+                });
+
+                // Ambil file LANGSUNG dari input[type=file]
+                const fileInputs = form.querySelectorAll('input[type=file]');
+                fileInputs.forEach(input => {
+                    if (input.name && input.files && input.files[0]) {
+                        formData.append(input.name, input.files[0], input.files[0].name);
+                        console.log('[OfflineSync] File dari input', input.name, ':', input.files[0].name, Math.round(input.files[0].size/1024) + 'KB');
+                    }
+                });
+
                 await saveToQueue(formData, actionUrl);
                 form.reset();
+
+                // Reset preview compress msg
+                form.querySelectorAll('.compress-msg').forEach(el => el.classList.add('d-none'));
 
                 const tglInput = document.getElementById('tanggalInput');
                 if (tglInput) tglInput.value = new Date().toISOString().split('T')[0];
 
-                const hasPhoto = [...formData.entries()].some(([, v]) => v instanceof File && v.size > 0);
+                // Cek apakah ada foto yang tersimpan
+                const fileCount = [...form.querySelectorAll('input[type=file]')].filter(
+                    i => i.files && i.files[0]
+                ).length;
+
                 showToast(
-                    hasPhoto
-                        ? '💾 Data + foto tersimpan offline! Sync saat online.'
+                    fileCount > 0
+                        ? '💾 Data + ' + fileCount + ' foto tersimpan offline! Sync saat online.'
                         : '💾 Data tersimpan offline! Sync saat online.',
                     'warning'
                 );
