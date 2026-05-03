@@ -752,7 +752,12 @@
       <span id="sidebarThemeLabel">Light Mode</span>
     </button>
 
-    <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+    <% if (typeof currentUser === 'undefined' || !currentUser) { %>
+    <a href="/login" onclick="closeSidebar()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 12px;border-radius:9px;background:var(--body-accent);color:var(--body-bg);font-size:13px;font-weight:700;text-decoration:none;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Login
+    </a>
+    <% } else { %>
     <div class="m-user">
       <div class="it-nav-avatar" style="width:36px;height:36px;font-size:13px;overflow:hidden;">
         <% if (currentUser.fotoUrl) { %>
