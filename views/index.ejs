@@ -206,7 +206,41 @@
         }
         .row-active .chevron-icon { transform: rotate(180deg); }
 
-        @media (max-width: 768px) { .page-wrap { padding: 1rem; } }
+        /* SKELETON LOADING */
+        @keyframes skeletonShimmer {
+            0%   { background-position: -600px 0; }
+            100% { background-position: 600px 0; }
+        }
+        .skeleton-line {
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--body-bg3) 25%, var(--body-border) 50%, var(--body-bg3) 75%);
+            background-size: 600px 100%;
+            animation: skeletonShimmer 1.4s infinite linear;
+        }
+        .skeleton-wrap {
+            background: var(--body-card);
+            border: 0.5px solid var(--body-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .skeleton-thead {
+            padding: 12px 14px;
+            background: var(--body-table-head);
+            border-bottom: 0.5px solid var(--body-border);
+            display: flex; gap: 16px; align-items: center;
+        }
+        .skeleton-row {
+            padding: 16px 14px;
+            border-bottom: 0.5px solid var(--body-table-border);
+            display: flex; gap: 16px; align-items: center;
+        }
+        .skeleton-row:last-child { border-bottom: none; }
+        .sk-cell { flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; }
+
+        /* Sembunyiin tabel asli saat loading */
+        .table-wrap.is-loading { display: none; }
+
+
     </style>
 </head>
 <body>
@@ -250,7 +284,45 @@
 
             <!-- TABLE -->
             <div class="col-12">
-                <div class="table-wrap table-responsive">
+
+                <!-- SKELETON -->
+                <div class="skeleton-wrap" id="skeletonTable">
+                    <div class="skeleton-thead">
+                        <div class="skeleton-line" style="height:10px;width:110px;"></div>
+                        <div class="skeleton-line" style="height:10px;width:70px;"></div>
+                        <div class="skeleton-line" style="height:10px;flex:1;"></div>
+                        <div class="skeleton-line" style="height:10px;width:55px;"></div>
+                        <div class="skeleton-line" style="height:10px;width:60px;"></div>
+                    </div>
+                    <% for(var s=0; s<5; s++) { %>
+                    <div class="skeleton-row">
+                        <div class="sk-cell" style="width:130px;">
+                            <div class="skeleton-line" style="height:11px;width:90px;"></div>
+                            <div class="skeleton-line" style="height:10px;width:110px;"></div>
+                            <div class="skeleton-line" style="height:10px;width:75px;"></div>
+                            <div class="skeleton-line" style="height:18px;width:70px;border-radius:20px;margin-top:2px;"></div>
+                        </div>
+                        <div class="sk-cell" style="width:110px;">
+                            <div class="skeleton-line" style="height:11px;width:90px;"></div>
+                            <div class="skeleton-line" style="height:10px;width:75px;"></div>
+                        </div>
+                        <div class="sk-cell" style="flex:1;">
+                            <div class="skeleton-line" style="height:12px;width:60%;"></div>
+                            <div class="skeleton-line" style="height:10px;width:90%;"></div>
+                            <div class="skeleton-line" style="height:10px;width:75%;"></div>
+                        </div>
+                        <div class="sk-cell" style="width:65px;">
+                            <div class="skeleton-line" style="height:20px;width:60px;border-radius:20px;"></div>
+                        </div>
+                        <div class="sk-cell" style="width:100px;align-items:center;">
+                            <div class="skeleton-line" style="height:26px;width:90px;border-radius:6px;"></div>
+                            <div class="skeleton-line" style="height:26px;width:90px;border-radius:6px;"></div>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+
+                <div class="table-wrap table-responsive is-loading" id="realTable">
                     <table class="table table-borderless mb-0">
                         <thead>
                             <tr>
@@ -436,6 +508,41 @@
                 navigator.serviceWorker.register('/sw.js').catch(function() {});
             });
         }
+
+        // SKELETON → TABEL
+        // Sembunyiin skeleton, tampilkan tabel asli setelah semua konten siap
+        document.addEventListener('DOMContentLoaded', function() {
+            var skeleton = document.getElementById('skeletonTable');
+            var realTable = document.getElementById('realTable');
+            // Simulasi minimum shimmer 400ms biar keliatan (UX feel)
+            var minDelay = 400;
+            var start = Date.now();
+            function reveal() {
+                var elapsed = Date.now() - start;
+                var remaining = Math.max(0, minDelay - elapsed);
+                setTimeout(function() {
+                    if (skeleton) {
+                        skeleton.style.transition = 'opacity 0.25s ease';
+                        skeleton.style.opacity = '0';
+                        setTimeout(function() { skeleton.style.display = 'none'; }, 250);
+                    }
+                    if (realTable) {
+                        realTable.classList.remove('is-loading');
+                        realTable.style.opacity = '0';
+                        realTable.style.transition = 'opacity 0.25s ease';
+                        setTimeout(function() { realTable.style.opacity = '1'; }, 20);
+                    }
+                }, remaining);
+            }
+            // Kalau gambar/resource masih loading, tunggu window load
+            if (document.readyState === 'complete') {
+                reveal();
+            } else {
+                window.addEventListener('load', reveal);
+                // Fallback maksimal 1.5 detik
+                setTimeout(reveal, 1500);
+            }
+        });
     </script>
 </body>
 </html>
