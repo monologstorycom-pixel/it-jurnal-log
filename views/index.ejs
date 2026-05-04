@@ -168,6 +168,44 @@
         .empty-state { text-align: center; padding: 4rem 2rem; color: var(--body-text3); font-size: 14px; }
         .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
 
+        /* ANIMASI ROW MASUK */
+        @keyframes rowFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .table tbody tr.data-row {
+            animation: rowFadeIn 0.3s ease both;
+            cursor: pointer;
+        }
+        .table tbody tr.data-row.row-active td {
+            background: var(--body-bg3) !important;
+        }
+
+        /* EXPAND DETAIL ROW */
+        .detail-row td {
+            padding: 0 !important;
+            border-bottom: 0.5px solid var(--body-table-border) !important;
+            background: var(--body-bg3) !important;
+        }
+        .detail-inner {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            padding: 14px 18px;
+            animation: rowFadeIn 0.2s ease both;
+        }
+        .detail-item { display: flex; flex-direction: column; gap: 2px; }
+        .detail-label {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.07em; color: var(--body-text3);
+        }
+        .detail-value { font-size: 13px; color: var(--body-text); line-height: 1.5; }
+        .chevron-icon {
+            display: inline-block; transition: transform 0.2s ease;
+            margin-left: 6px; vertical-align: middle; color: var(--body-text3);
+        }
+        .row-active .chevron-icon { transform: rotate(180deg); }
+
         @media (max-width: 768px) { .page-wrap { padding: 1rem; } }
     </style>
 </head>
@@ -240,8 +278,19 @@
                                 </td>
                             </tr>
                             <% } else { %>
-                            <% journals.forEach(function(item) { %>
-                            <tr>
+                            <% journals.forEach(function(item, idx) { %>
+                            <tr class="data-row"
+                                style="animation-delay:<%= idx * 45 %>ms"
+                                onclick="toggleDetail(this)"
+                                data-aktivitas="<%= encodeURIComponent(item.aktivitas||'') %>"
+                                data-deskripsi="<%= encodeURIComponent(item.deskripsi||'') %>"
+                                data-divisi="<%= encodeURIComponent(item.divisi||'') %>"
+                                data-pemesan="<%= encodeURIComponent(item.pemesan||'') %>"
+                                data-status="<%= item.status %>"
+                                data-durasi="<%= item.durasiMenit ? formatDurasi(item.durasiMenit) : '' %>"
+                                data-foto-awal="<%= item.fotoAwalUrl || '' %>"
+                                data-foto-sesudah="<%= item.fotoUrl || '' %>"
+                            >
                                 <td style="white-space:nowrap;min-width:140px;">
                                     <% if (item.tipeInput === 'multihari' && item.tanggalMulai && item.tanggalSelesai) { %>
                                         <span class="multi-badge"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</span>
@@ -261,7 +310,10 @@
                                     <div style="font-size:12px;color:var(--body-text2);">User: <%= item.pemesan %></div>
                                 </td>
                                 <td>
-                                    <div style="font-weight:600;margin-bottom:3px;"><%= item.aktivitas %></div>
+                                    <div style="font-weight:600;margin-bottom:3px;">
+                                        <%= item.aktivitas %>
+                                        <svg class="lc chevron-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="13" height="13"><polyline points="6 9 12 15 18 9"/></svg>
+                                    </div>
                                     <div style="font-size:12px;color:var(--body-text2);"><%= item.deskripsi %></div>
                                 </td>
                                 <td>
@@ -271,7 +323,7 @@
                                         <span class="badge-pending">Pending</span>
                                     <%}%>
                                 </td>
-                                <td style="min-width:110px;">
+                                <td style="min-width:110px;" onclick="event.stopPropagation()">
                                     <% if(item.fotoAwalUrl){%>
                                         <button class="btn-foto btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Kondisi AWAL')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Awal</button>
                                     <%}%>
@@ -309,6 +361,63 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function toggleDetail(row) {
+            var isActive = row.classList.contains('row-active');
+
+            // Tutup semua detail row yang terbuka
+            document.querySelectorAll('.detail-row').forEach(function(r) { r.remove(); });
+            document.querySelectorAll('.row-active').forEach(function(r) { r.classList.remove('row-active'); });
+
+            if (isActive) return; // klik row sama = tutup
+
+            row.classList.add('row-active');
+
+            var d = row.dataset;
+            var aktivitas  = decodeURIComponent(d.aktivitas  || '');
+            var deskripsi  = decodeURIComponent(d.deskripsi  || '');
+            var divisi     = decodeURIComponent(d.divisi     || '');
+            var pemesan    = decodeURIComponent(d.pemesan    || '');
+            var status     = d.status    || '';
+            var durasi     = d.durasi    || '';
+            var fotoAwal   = d.fotoAwal  || '';
+            var fotoSesudah= d.fotoSesudah || '';
+
+            var colCount = row.cells.length;
+
+            // Foto buttons HTML
+            var fotoHtml = '';
+            if (fotoAwal) {
+                fotoHtml += '<button class="btn-foto btn-foto-awal" style="width:auto;margin-right:6px;" onclick="showFoto(\'' + fotoAwal + '\',\'Kondisi AWAL\')">'
+                    + '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto Awal</button>';
+            }
+            if (fotoSesudah) {
+                fotoHtml += '<button class="btn-foto btn-foto-sesudah" style="width:auto;" onclick="showFoto(\'' + fotoSesudah + '\',\'Kondisi SESUDAH\')">'
+                    + '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto Sesudah</button>';
+            }
+            if (!fotoAwal && !fotoSesudah) fotoHtml = '<span style="color:var(--body-text3);font-size:12px;">Tidak ada foto</span>';
+
+            var badgeHtml = status === 'Solved'
+                ? '<span class="badge-solved">Solved</span>'
+                : '<span class="badge-pending">Pending</span>';
+
+            var detailHtml = '<tr class="detail-row"><td colspan="' + colCount + '">'
+                + '<div class="detail-inner">'
+                + '<div class="detail-item"><div class="detail-label">Aktivitas</div><div class="detail-value" style="font-weight:600;">' + escHtml(aktivitas) + '</div></div>'
+                + '<div class="detail-item"><div class="detail-label">Deskripsi</div><div class="detail-value">' + escHtml(deskripsi || '—') + '</div></div>'
+                + '<div class="detail-item"><div class="detail-label">Divisi</div><div class="detail-value">' + escHtml(divisi) + '</div></div>'
+                + '<div class="detail-item"><div class="detail-label">User / Pemesan</div><div class="detail-value">' + escHtml(pemesan) + '</div></div>'
+                + '<div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">' + badgeHtml + '</div></div>'
+                + (durasi ? '<div class="detail-item"><div class="detail-label">Durasi</div><div class="detail-value">' + escHtml(durasi) + '</div></div>' : '')
+                + '<div class="detail-item" style="grid-column:1/-1;"><div class="detail-label">Dokumentasi</div><div class="detail-value" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">' + fotoHtml + '</div></div>'
+                + '</div></td></tr>';
+
+            row.insertAdjacentHTML('afterend', detailHtml);
+        }
+
+        function escHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
         function showFoto(url, judul) {
             document.getElementById('popupImage').src = url;
             // FIX: Pisah SVG (innerHTML) dan judul teks (createTextNode) untuk cegah XSS

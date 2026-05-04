@@ -111,95 +111,181 @@
         .btn-pending-edit  { padding: 4px 10px; border-radius: 6px; border: none; background: #0d2d6e; color: #4da6ff; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
         .btn-pending-edit:hover  { background: #0d6efd; color: #fff; }
         @media (max-width: 576px) { .pending-actions { flex-direction: column; gap: 3px; } }
-@media (max-width: 768px) { .container-fluid { padding: 1rem !important; } .form-sidebar { margin-bottom: 2rem; } }
+        @media (max-width: 768px) { .container-fluid { padding: 1rem !important; } }
+
+        /* ===== DRAWER FORM ===== */
+        .drawer-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            z-index: 1040; opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+        .drawer-panel {
+            position: fixed; top: 0; right: 0; bottom: 0;
+            width: 380px; max-width: 96vw;
+            background: var(--body-card);
+            border-left: 1px solid var(--body-border);
+            z-index: 1041;
+            transform: translateX(100%);
+            transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        .drawer-panel.open { transform: translateX(0); }
+
+        .drawer-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--body-border);
+            flex-shrink: 0;
+        }
+        .drawer-title {
+            font-size: 0.85rem; font-weight: 700; color: var(--body-text);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .drawer-close {
+            background: none; border: none; color: var(--body-text2);
+            cursor: pointer; padding: 4px; border-radius: 6px;
+            display: flex; align-items: center;
+            transition: background 0.15s, color 0.15s;
+        }
+        .drawer-close:hover { background: var(--body-bg3); color: var(--body-text); }
+
+        .drawer-body {
+            flex: 1; overflow-y: auto; padding: 16px 18px;
+        }
+        .drawer-body::-webkit-scrollbar { width: 4px; }
+        .drawer-body::-webkit-scrollbar-thumb { background: var(--body-border); border-radius: 4px; }
+
+        /* ===== FAB BUTTON ===== */
+        .fab-tambah {
+            position: fixed; bottom: 88px; right: 24px;
+            z-index: 1039;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff; border: none;
+            border-radius: 50px;
+            padding: 13px 22px;
+            font-size: 0.85rem; font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(34,197,94,0.4);
+            display: flex; align-items: center; gap: 8px;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .fab-tambah:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 26px rgba(34,197,94,0.5);
+        }
+        .fab-tambah.hidden { opacity: 0; pointer-events: none; transform: scale(0.85); }
+        .fab-tambah svg { width: 18px; height: 18px; }
     </style>
 </head>
 <body>
 <%- include('navbar', {activePage: 'dashboard'}) %>
 <span id="btnInstallPwa" style="display:none;"></span>
 
+<!-- ===== DRAWER OVERLAY ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ===== DRAWER PANEL ===== -->
+<div class="drawer-panel" id="drawerPanel">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Tambah Log Baru
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <form action="/save" method="POST" enctype="multipart/form-data" id="mainForm">
+      <input type="hidden" name="tipeInput" id="tipeInputVal" value="harian">
+      <span class="label-text">Tipe Pekerjaan</span>
+      <div class="tipe-toggle">
+        <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> HARIAN</div>
+        <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</div>
+      </div>
+      <div id="formHarian">
+        <span class="label-text">Tanggal</span>
+        <input type="date" name="tanggalManual" id="tanggalInput" class="input-custom" required>
+        <div class="row g-2">
+          <div class="col-6"><span class="label-text">Jam Mulai</span><input type="time" name="jamMulai" id="jamMulaiInput" class="input-custom" style="margin-bottom:0;"></div>
+          <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="jamSelesaiInput" class="input-custom" style="margin-bottom:0;"></div>
+        </div>
+        <div style="margin-bottom:0.75rem;"></div>
+        <div class="durasi-preview" id="durasiPreview"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiText">-</strong></div>
+      </div>
+      <div id="formMultihari" style="display:none;">
+        <div style="background:#1a0d3d;border:1px solid #6b3dbf;border-radius:6px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#c9aaff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Untuk pekerjaan yang berlangsung lebih dari 1 hari</div>
+        <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tanggal & Jam MULAI</span>
+        <div class="row g-2">
+          <div class="col-7"><input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="input-custom" style="margin-bottom:0;"></div>
+          <div class="col-5"><input type="time" name="jamMulaiMulti" id="jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+        </div>
+        <div style="margin-bottom:0.5rem;"></div>
+        <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Tanggal & Jam SELESAI</span>
+        <div class="row g-2">
+          <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="input-custom" style="margin-bottom:0;"></div>
+          <div class="col-5"><input type="time" name="jamSelesaiMulti" id="jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+        </div>
+        <div style="margin-bottom:0.5rem;"></div>
+        <div class="durasi-preview" id="durasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiTextMulti">-</strong></div>
+      </div>
+      <hr class="separator-line">
+      <span class="label-text">Pemesan (User)</span>
+      <input type="text" name="pemesan" class="input-custom" required>
+      <span class="label-text">Aktivitas</span>
+      <input type="text" name="aktivitas" class="input-custom" required>
+      <span class="label-text">Divisi</span>
+      <select name="divisi" class="input-custom">
+        <option value="IT & IC">IT &amp; IC</option>
+        <option value="HRGA">HRGA</option>
+        <option value="Accounting">Accounting</option>
+        <option value="Exim & Pembelian">Exim &amp; Pembelian</option>
+        <option value="Operasional">Operasional</option>
+        <option value="Finance">Finance</option>
+        <option value="Produksi">Produksi</option>
+        <option value="Bahanbaku">Bahanbaku</option>
+        <option value="MAINTENANCE">MAINTENANCE</option>
+        <option value="Admin Sales">Admin Sales</option>
+      </select>
+      <span class="label-text">Deskripsi</span>
+      <div style="position:relative;">
+        <textarea name="deskripsi" id="add_deskripsi" class="input-custom" rows="3" required></textarea>
+        <button type="button" id="btn_ai_desc" onclick="aiGenerateDesc()" title="Generate deskripsi pakai AI"
+          style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:opacity 0.15s;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg>
+          AI
+        </button>
+      </div>
+      <span class="label-text">Status</span>
+      <select name="status" class="input-custom">
+        <option value="Solved">SOLVED</option>
+        <option value="Pending">PENDING</option>
+      </select>
+      <span class="label-text" style="color:#ffc107;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto AWAL (Sebelum)</span>
+      <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*" capture="environment">
+      <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
+      <span class="label-text" style="color:#90ee90;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto SESUDAH (Solved)</span>
+      <input type="file" name="foto" class="input-custom file-compress" accept="image/*" capture="environment">
+      <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
+      <button type="submit" class="btn btn-light w-100 fw-bold mt-2">SIMPAN DATA</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== FAB BUTTON ===== -->
+<button class="fab-tambah" id="fabTambah" onclick="openDrawer()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Tambah Log
+</button>
+
 <div class="container-fluid p-4">
   <div class="row">
 
-    <!-- ===== FORM SIDEBAR ===== -->
-    <div class="col-md-3 form-sidebar">
-      <form action="/save" method="POST" enctype="multipart/form-data" id="mainForm">
-        <input type="hidden" name="tipeInput" id="tipeInputVal" value="harian">
-        <span class="label-text">Tipe Pekerjaan</span>
-        <div class="tipe-toggle">
-          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> HARIAN</div>
-          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</div>
-        </div>
-        <div id="formHarian">
-          <span class="label-text">Tanggal</span>
-          <input type="date" name="tanggalManual" id="tanggalInput" class="input-custom" required>
-          <div class="row g-2">
-            <div class="col-6"><span class="label-text">Jam Mulai</span><input type="time" name="jamMulai" id="jamMulaiInput" class="input-custom" style="margin-bottom:0;"></div>
-            <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="jamSelesaiInput" class="input-custom" style="margin-bottom:0;"></div>
-          </div>
-          <div style="margin-bottom:0.75rem;"></div>
-          <div class="durasi-preview" id="durasiPreview"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiText">-</strong></div>
-        </div>
-        <div id="formMultihari" style="display:none;">
-          <div style="background:#1a0d3d;border:1px solid #6b3dbf;border-radius:6px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#c9aaff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg> Untuk pekerjaan yang berlangsung lebih dari 1 hari</div>
-          <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tanggal & Jam MULAI</span>
-          <div class="row g-2">
-            <div class="col-7"><input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="input-custom" style="margin-bottom:0;"></div>
-            <div class="col-5"><input type="time" name="jamMulaiMulti" id="jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
-          </div>
-          <div style="margin-bottom:0.5rem;"></div>
-          <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Tanggal & Jam SELESAI</span>
-          <div class="row g-2">
-            <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="input-custom" style="margin-bottom:0;"></div>
-            <div class="col-5"><input type="time" name="jamSelesaiMulti" id="jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
-          </div>
-          <div style="margin-bottom:0.5rem;"></div>
-          <div class="durasi-preview" id="durasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiTextMulti">-</strong></div>
-        </div>
-        <hr class="separator-line">
-        <span class="label-text">Pemesan (User)</span>
-        <input type="text" name="pemesan" class="input-custom" required>
-        <span class="label-text">Aktivitas</span>
-        <input type="text" name="aktivitas" class="input-custom" required>
-        <span class="label-text">Divisi</span>
-        <select name="divisi" class="input-custom">
-          <option value="IT & IC">IT &amp; IC</option>
-          <option value="HRGA">HRGA</option>
-          <option value="Accounting">Accounting</option>
-          <option value="Exim & Pembelian">Exim &amp; Pembelian</option>
-          <option value="Operasional">Operasional</option>
-          <option value="Finance">Finance</option>
-          <option value="Produksi">Produksi</option>
-          <option value="Bahanbaku">Bahanbaku</option>
-          <option value="MAINTENANCE">MAINTENANCE</option>
-          <option value="Admin Sales">Admin Sales</option>
-        </select>
-        <span class="label-text">Deskripsi</span>
-        <div style="position:relative;">
-          <textarea name="deskripsi" id="add_deskripsi" class="input-custom" rows="3" required></textarea>
-          <button type="button" id="btn_ai_desc" onclick="aiGenerateDesc()" title="Generate deskripsi pakai AI"
-            style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;transition:opacity 0.15s;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg>
-            AI
-          </button>
-        </div>
-        <span class="label-text">Status</span>
-        <select name="status" class="input-custom">
-          <option value="Solved">SOLVED</option>
-          <option value="Pending">PENDING</option>
-        </select>
-        <span class="label-text" style="color:#ffc107;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto AWAL (Sebelum)</span>
-        <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*" capture="environment">
-        <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
-        <span class="label-text" style="color:#90ee90;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Foto SESUDAH (Solved)</span>
-        <input type="file" name="foto" class="input-custom file-compress" accept="image/*" capture="environment">
-        <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
-        <button type="submit" class="btn btn-light w-100 fw-bold mt-2">SIMPAN DATA</button>
-      </form>
-    </div>
-
-    <!-- ===== TABEL ===== -->
-    <div class="col-md-9">
+    <!-- ===== TABEL FULL WIDTH ===== -->
+    <div class="col-12">
 
       <% if (saved) { %>
       <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index:1055;">
@@ -729,7 +815,7 @@ document.querySelectorAll('.file-compress').forEach(function(input){input.addEve
 // ========== PWA ==========
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js');});}
 var saveToastEl=document.getElementById('saveToast');
-if(saveToastEl)new bootstrap.Toast(saveToastEl,{delay:4000}).show();
+if(saveToastEl) new bootstrap.Toast(saveToastEl,{delay:4000}).show();
 var deferredPrompt,installBtn=document.getElementById('btnInstallPwa');
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;installBtn.style.display='block';});
 installBtn.addEventListener('click',async function(){if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;installBtn.style.display='none';}});
@@ -893,6 +979,25 @@ async function aiGenerateDescEdit() {
     textarea.value = 'Gagal koneksi ke AI.';
   }
 }
+// ===== DRAWER =====
+function openDrawer() {
+    document.getElementById('drawerPanel').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+    document.getElementById('fabTambah').classList.add('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+    document.getElementById('drawerPanel').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('open');
+    document.getElementById('fabTambah').classList.remove('hidden');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDrawer();
+    if (e.key === 'n' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'SELECT') {
+        e.preventDefault(); openDrawer();
+    }
+});
 </script>
 
 <script src="/offline-sync.js"></script>
