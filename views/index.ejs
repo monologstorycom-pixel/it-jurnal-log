@@ -147,10 +147,10 @@
 
         /* DURASI */
         .durasi-badge { display:inline-block;background:var(--body-bg3);color:var(--body-text2);border:0.5px solid var(--body-border);border-radius:20px;padding:2px 8px;font-size:11px;font-weight:500;margin-top:3px;white-space:nowrap; }
-        .durasi-badge-multi { background:#f0e8fd;color:#6600aa;border-color:#d0b0f0; }
-        .multi-badge { display:inline-block;background:#f0e8fd;color:#6600aa;border:0.5px solid #d0b0f0;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;margin-bottom:4px; }
+        .durasi-badge-multi { background:var(--body-accent-bg, #f0e8fd);color:var(--body-accent, #6600aa);border-color:var(--body-accent, #d0b0f0); }
+        .multi-badge { display:inline-block;background:var(--body-accent-bg, #f0e8fd);color:var(--body-accent, #6600aa);border:0.5px solid var(--body-accent, #d0b0f0);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;margin-bottom:4px; }
         .jam-info { font-size:12px;color:var(--body-text2);margin-top:2px; }
-        .tgl-range { font-size:12px;color:#6600aa;font-weight:500; }
+        .tgl-range { font-size:12px;color:var(--body-accent, #6600aa);font-weight:500; }
 
         /* FOTO BTN */
         .btn-foto {
@@ -311,8 +311,15 @@
     <script>
         function showFoto(url, judul) {
             document.getElementById('popupImage').src = url;
-            document.getElementById('fotoModalLabel').innerHTML = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ' + (judul || 'Dokumentasi');
-            new bootstrap.Modal(document.getElementById('fotoModal')).show();
+            // FIX: Pisah SVG (innerHTML) dan judul teks (createTextNode) untuk cegah XSS
+            var label = document.getElementById('fotoModalLabel');
+            label.innerHTML = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> ';
+            label.appendChild(document.createTextNode(judul || 'Dokumentasi'));
+            // FIX: Reuse instance modal agar tidak menumpuk di memory
+            var modalEl = document.getElementById('fotoModal');
+            var existing = bootstrap.Modal.getInstance(modalEl);
+            if (existing) { existing.dispose(); }
+            new bootstrap.Modal(modalEl).show();
         }
 
         if ('serviceWorker' in navigator) {
