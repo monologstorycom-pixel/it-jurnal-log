@@ -158,6 +158,33 @@
         .drawer-body::-webkit-scrollbar { width: 4px; }
         .drawer-body::-webkit-scrollbar-thumb { background: var(--body-border); border-radius: 4px; }
 
+        /* ===== DESKTOP MODAL CENTER ===== */
+        @media (min-width: 768px) {
+            /* Di desktop, drawer jadi modal center */
+            .drawer-overlay.open { display: flex; align-items: center; justify-content: center; }
+            .drawer-panel {
+                position: static;
+                transform: none !important;
+                width: 520px; max-width: 90vw;
+                max-height: 88vh;
+                border-left: none;
+                border: 1px solid var(--body-border);
+                border-radius: 14px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+                display: none;
+                flex-direction: column;
+                transition: none;
+            }
+            .drawer-panel.open {
+                display: flex;
+                animation: modalFadeIn 0.22s cubic-bezier(0.4,0,0.2,1);
+            }
+            @keyframes modalFadeIn {
+                from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+                to   { opacity: 1; transform: scale(1) translateY(0); }
+            }
+        }
+
         /* ===== FAB BUTTON ===== */
         .fab-tambah {
             position: fixed; bottom: 88px; right: 24px;
@@ -188,7 +215,7 @@
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
 <!-- ===== DRAWER PANEL ===== -->
-<div class="drawer-panel" id="drawerPanel">
+<div class="drawer-panel" id="drawerPanel" onclick="event.stopPropagation()">
   <div class="drawer-header">
     <div class="drawer-title">
       <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -979,18 +1006,33 @@ async function aiGenerateDescEdit() {
     textarea.value = 'Gagal koneksi ke AI.';
   }
 }
-// ===== DRAWER =====
+// ===== DRAWER / MODAL =====
+function isDesktop() { return window.innerWidth >= 768; }
 function openDrawer() {
-    document.getElementById('drawerPanel').classList.add('open');
-    document.getElementById('drawerOverlay').classList.add('open');
-    document.getElementById('fabTambah').classList.add('hidden');
+    var panel = document.getElementById('drawerPanel');
+    var overlay = document.getElementById('drawerOverlay');
+    var fab = document.getElementById('fabTambah');
+    if (isDesktop()) {
+        // Desktop: pindahkan panel ke dalam overlay agar modal center
+        overlay.appendChild(panel);
+    }
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    if (fab) fab.classList.add('hidden');
     document.body.style.overflow = 'hidden';
 }
 function closeDrawer() {
-    document.getElementById('drawerPanel').classList.remove('open');
-    document.getElementById('drawerOverlay').classList.remove('open');
-    document.getElementById('fabTambah').classList.remove('hidden');
+    var panel = document.getElementById('drawerPanel');
+    var overlay = document.getElementById('drawerOverlay');
+    var fab = document.getElementById('fabTambah');
+    panel.classList.remove('open');
+    overlay.classList.remove('open');
+    if (fab) fab.classList.remove('hidden');
     document.body.style.overflow = '';
+    // Kembalikan panel ke body agar mobile drawer tetap benar
+    if (isDesktop()) {
+        document.body.appendChild(panel);
+    }
 }
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeDrawer();
