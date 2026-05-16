@@ -5,7 +5,7 @@ const router   = express.Router();
 const prisma                    = require('../services/prisma');
 const { requireLogin }          = require('../middleware/auth');
 const { hasPerm }               = require('../helpers/permissions');
-const { uploadFields, upload, saveCompressedPhoto } = require('../helpers/photo');
+const { uploadFields, upload, saveCompressedPhoto, deleteFotoFile } = require('../helpers/photo');
 const {
     buildDateTime, hitungDurasiDateTime, hitungDurasiJam,
     formatDurasi, getYearOptions
@@ -309,9 +309,18 @@ router.post('/edit/:id', requireLogin, (req, res, next) => {
         const fotoFile     = req.files?.foto?.[0]     || null;
         const fotoAwalFile = req.files?.fotoAwal?.[0] || null;
 
+        // Ambil data lama untuk hapus foto lama dari disk jika diganti
+        const dataLama = await prisma.journal.findUnique({ where: { id }, select: { fotoUrl: true, fotoAwalUrl: true } });
+
         let updateData = { aktivitas: aktivitas.trim(), divisi: divisi.trim(), pemesan: pemesan.trim(), deskripsi: deskripsi || '', status, tipeInput };
-        if (fotoFile)     updateData.fotoUrl     = await saveCompressedPhoto(fotoFile,     'foto',     'log');
-        if (fotoAwalFile) updateData.fotoAwalUrl = await saveCompressedPhoto(fotoAwalFile, 'fotoAwal', 'log');
+        if (fotoFile) {
+            if (dataLama?.fotoUrl) deleteFotoFile(dataLama.fotoUrl);
+            updateData.fotoUrl = await saveCompressedPhoto(fotoFile, 'foto', 'log');
+        }
+        if (fotoAwalFile) {
+            if (dataLama?.fotoAwalUrl) deleteFotoFile(dataLama.fotoAwalUrl);
+            updateData.fotoAwalUrl = await saveCompressedPhoto(fotoAwalFile, 'fotoAwal', 'log');
+        }
 
         if (tipeInput === 'multihari') {
             const dtMulai   = buildDateTime(tanggalMulaiDate,   jamMulaiMulti);

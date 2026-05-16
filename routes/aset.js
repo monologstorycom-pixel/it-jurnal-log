@@ -93,7 +93,12 @@ router.get('/aset-public/:divisi', requireLogin, async (req, res) => {
 // ==========================================
 // EXPORT PDF ASET
 // ==========================================
-router.get('/aset/export-pdf', requireLogin, async (req, res) => {
+router.get('/aset/export-pdf', requireLogin, (req, res, next) => {
+    if (!hasPerm(req.session.user, 'canExport') && !hasPerm(req.session.user, 'canAudit')) {
+        return res.status(403).render('403', { message: 'Akses ditolak. Anda tidak memiliki izin export PDF aset.' });
+    }
+    next();
+}, async (req, res) => {
     try {
         const seeAll       = canSeeAllAset(req.session.user);
         const userDivisi   = req.session.user.divisi || 'IT';
