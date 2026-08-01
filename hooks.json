@@ -1,0 +1,17 @@
+[
+  {
+    "id": "redeploy-it-jurnal",
+    "execute-command": "/DATA/AppData/it-jurnal-rsby/webhook_pull.sh",
+    "command-working-directory": "/DATA/AppData/it-jurnal-rsby"
+  },
+  {
+    "id": "redeploy-chat-apps",
+    "execute-command": "/DATA/AppData/it-jurnal-rsby/webhook_pull_chat.sh",
+    "command-working-directory": "/DATA/AppData/rsby-chat-apps"
+  },
+  {
+    "id": "portofolio",
+    "execute-command": "/DATA/AppData/it-jurnal-rsby/webhook_pull_cv.sh",
+    "command-working-directory": "/DATA/AppData/cv"
+  }
+]

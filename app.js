@@ -78,8 +78,9 @@ app.use((err, req, res, next) => {
 // ==========================================
 // START SERVER
 // ==========================================
-app.listen(3001, '0.0.0.0', () => {
-    console.log('🚀 SYSTEM READY AT PORT 3001');
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 SYSTEM READY AT PORT ${PORT}`);
     console.log('📁 Upload directory:', uploadDir);
     if (!fs.existsSync(uploadDir)) {
         console.warn('⚠️  Upload directory tidak ditemukan, membuat...');
