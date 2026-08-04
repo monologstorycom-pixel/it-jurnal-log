@@ -511,22 +511,26 @@
   // 2. KUNCI AUDIT: Jika dia dicentang Audit DAN bukan Admin Utama, kunci total menunya!
   var isAuditOnly = currentUser && userPerms && userPerms.canAudit && !isAdmin;
   
-  // 3. Logika untuk user IT atau Admin
-  var isItOrAdmin = currentUser && !isAuditOnly && (
+  // 3. Cek apakah user Maintenance
+  var isMaintenance = currentUser && !isAdmin && (currentUser.divisi || '').toUpperCase() === 'MAINTENANCE';
+
+  // 4. Logika untuk user IT atau Admin
+  var isItOrAdmin = currentUser && !isAuditOnly && !isMaintenance && (
     isAdmin ||
     (currentUser.divisi && currentUser.divisi.toLowerCase() === 'it')
   );
   
-  // 4. Logika untuk user divisi biasa (non-IT, non-Audit)
-  var isNonItUser = currentUser && !isItOrAdmin && !isAuditOnly && userPerms && userPerms.canAsset && !userPerms.canViewLog;
+  // 5. Logika untuk user divisi biasa (non-IT, non-Audit, non-Maintenance)
+  var isNonItUser = currentUser && !isItOrAdmin && !isAuditOnly && !isMaintenance && userPerms && userPerms.canAsset && !userPerms.canViewLog;
   
   var asetPublicHref = currentUser ? '/aset-public/' + encodeURIComponent(currentUser.divisi || 'IT') : '/aset-public';
 
   /* LOGIKA KLIK LOGO BRAND */
   var brandHref = '/kerja';
-  if (isAuditOnly) brandHref = '/audit';
-  else if (isNonItUser) brandHref = '/aset';
-  else if (!currentUser) brandHref = '/';
+  if (isAuditOnly)     brandHref = '/audit';
+  else if (isMaintenance) brandHref = '/maintenance';
+  else if (isNonItUser)   brandHref = '/aset';
+  else if (!currentUser)  brandHref = '/';
 %>
 
 <nav class="it-nav" id="mainNav">
@@ -556,6 +560,13 @@
         Vendor
       </a>
       <% } %>
+
+    <% } else if (isMaintenance) { %>
+      <!-- JIKA YANG LOGIN TIM MAINTENANCE -->
+      <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#fb923c;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 2.5L11 5l-2-2 2.5-2.5a3 3 0 0 0-4 4L2 11a1 1 0 0 0 1.4 1.4l5.5-5.5a3 3 0 0 0 4-4z"/></svg>
+        Dashboard Maintenance
+      </a>
 
     <% } else { %>
       <!-- JIKA YANG LOGIN ADMIN / IT / PUBLIC -->
@@ -704,6 +715,12 @@
         Vendor
       </a>
       <% } %>
+    <% } else if (isMaintenance) { %>
+      <!-- MAINTENANCE USER SIDEBAR -->
+      <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#fb923c;" onclick="closeSidebar()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 2.5L11 5l-2-2 2.5-2.5a3 3 0 0 0-4 4L2 11a1 1 0 0 0 1.4 1.4l5.5-5.5a3 3 0 0 0 4-4z"/></svg>
+        Dashboard Maintenance
+      </a>
     <% } else { %>
       <% if (!currentUser || (userPerms && userPerms.canViewLog)) { %>
       <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>" onclick="closeSidebar()">

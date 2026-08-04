@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1a2a3a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MTC Log">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAINTENANCE JURNAL LOG</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+        .input-custom { background: var(--body-bg3, #1e1e2e) !important; border: 1.5px solid var(--body-border) !important; border-radius: 10px; color: var(--body-text) !important; padding: 10px 13px; width: 100%; margin-bottom: 0.65rem; font-size: 0.875rem; transition: border-color 0.18s, box-shadow 0.18s; box-shadow: none; }
+        .input-custom:focus { outline: none; border-color: #f97316 !important; box-shadow: 0 0 0 3px rgba(249,115,22,0.13) !important; }
+        .label-text { color: var(--body-text2); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+        .table-container { background: var(--body-card) !important; border-radius: 10px; border: 1px solid var(--body-border); }
+        .table { min-width: 1000px; margin: 0; }
+        .table thead tr { background: var(--body-table-head) !important; }
+        .table thead th { color: var(--body-table-head-text) !important; }
+        .table tbody tr { background: var(--body-table-row) !important; border-bottom: 1px solid var(--body-table-border); }
+        .table td { padding: 0.9rem 0.8rem; vertical-align: middle; color: #111827 !important; font-size: 0.82rem; line-height: 1.4; }
+        .txt-bold { color: #111827 !important; font-weight: 700; }
+        [data-theme="dark"] .table td { color: #e2e8f0 !important; }
+        [data-theme="dark"] .txt-bold { color: #e2e8f0 !important; }
+        .status-solved  { color: #008000 !important; font-weight: 800; font-size: 0.7rem; }
+        .status-pending { color: #8b6508 !important; font-weight: 800; font-size: 0.7rem; }
+        .durasi-badge { display: inline-block; background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; border-radius: 4px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-top: 3px; }
+        .durasi-badge-multi { background: #f3e5f5; color: #6a0080; border-color: #ce93d8; }
+        .jam-info { font-size: 0.72rem; color: var(--body-text2); margin-top: 2px; }
+        .durasi-preview { background: #1a1000; border: 1px solid #5c3000; border-radius: 6px; padding: 8px 12px; margin-bottom: 0.75rem; font-size: 0.82rem; color: #fb923c; font-weight: 700; text-align: center; display: none; }
+        .btn-action { border: none; padding: 3px 8px; font-size: 0.65rem; border-radius: 4px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 4px; }
+        .btn-foto { display: block; width: 100%; padding: 4px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; cursor: pointer; margin-bottom: 3px; white-space: nowrap; }
+        .btn-foto-sesudah  { background: #111; color: #fff; border: none; }
+        .btn-foto-awal     { background: #5a3e00; color: #ffc107; border: 1px solid #ffc107; }
+        .btn-tambah-sesudah { background: transparent; color: #f97316; border: 1px solid #f97316; }
+        .btn-tambah-awal    { background: transparent; color: #fbbf24; border: 1px solid #fbbf24; }
+        .tipe-toggle { display: flex; gap: 8px; margin-bottom: 1rem; }
+        .tipe-btn { flex: 1; padding: 10px 8px; border-radius: 10px; border: 1.5px solid var(--body-border); background: var(--body-bg3, #1e1e2e); color: var(--body-text2); font-size: 0.72rem; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .tipe-btn.active-harian  { background: linear-gradient(135deg,#3d1a00,#7c3300); border-color: #f97316; color: #fb923c; box-shadow: 0 2px 12px rgba(249,115,22,0.2); }
+        .tipe-btn.active-multi   { background: linear-gradient(135deg,#1e0a47,#2d1560); border-color: #7c3aed; color: #a78bfa; box-shadow: 0 2px 12px rgba(124,58,237,0.2); }
+        .multi-badge { display: inline-block; background: #1a0d3d; color: #9b6dff; border: 1px solid #6b3dbf; border-radius: 3px; padding: 1px 5px; font-size: 0.6rem; font-weight: 700; margin-left: 4px; vertical-align: middle; }
+        .separator-line { border: none; border-top: 1px solid var(--body-border); margin: 0.75rem 0; opacity: 0.5; }
+        .section-panel { background: var(--body-card); border-radius: 8px; border: 1px solid var(--body-border); padding: 1rem; margin-bottom: 0.75rem; }
+        .section-panel .form-control, .section-panel .form-select { background: var(--body-input) !important; color: var(--body-text) !important; border-color: var(--body-border) !important; }
+        .fq-btn { background: var(--body-bg3); border: 1px solid var(--body-border); color: var(--body-text2); border-radius: 6px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
+        .fq-btn:hover, .fq-btn.fq-active { background: #ea580c; border-color: #ea580c; color: #fff; }
+        .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+        .stat-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
+        .stat-card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--body-text2); margin-bottom: 4px; }
+        .stat-card-value { font-size: 1.7rem; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+        .stat-card-sub { font-size: 0.7rem; color: var(--body-text3); }
+        .stat-card.orange { border-color: #7c3300; } .stat-card.orange .stat-card-value { color: #fb923c; }
+        .stat-card.yellow { border-color: #7a5c00; } .stat-card.yellow .stat-card-value { color: #ffc107; }
+        .stat-card.blue   { border-color: #0d3d6e; } .stat-card.blue .stat-card-value   { color: #4da6ff; }
+        .stat-card.red    { border-color: #5c1a1a; } .stat-card.red .stat-card-value    { color: #ff6b6b; }
+        .stat-card-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); opacity: 0.15; }
+        @media (max-width: 768px) { .stat-cards { grid-template-columns: repeat(2, 1fr); } }
+        .pending-notif { background: var(--body-card); border: 1px solid #5c1a1a; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
+        .pending-notif-title { font-size: 0.78rem; font-weight: 700; color: #ff6b6b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .pending-notif-title span { background: #ff6b6b; color: #fff; border-radius: 20px; padding: 1px 7px; font-size: 0.65rem; }
+        .pending-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--body-bg); border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #f97316; }
+        .pending-row:last-child { margin-bottom: 0; }
+        .pending-row-info { flex: 1; min-width: 0; }
+        .pending-row-title { font-size: 0.8rem; font-weight: 600; color: var(--body-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pending-row-meta  { font-size: 0.68rem; color: var(--body-text2); margin-top: 2px; }
+        .pending-age { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+        .pending-age.urgent  { background: #5c0000; color: #ff6b6b; }
+        .pending-age.warning { background: #5c3d00; color: #ffc107; }
+        .pending-age.normal  { background: var(--body-bg3); color: var(--body-text3); }
+        .pending-actions { display: flex; gap: 5px; flex-shrink: 0; margin-left: 4px; }
+        .btn-pending-solve { padding: 4px 10px; border-radius: 6px; border: none; background: #3d1a00; color: #fb923c; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+        .btn-pending-solve:hover { background: #ea580c; color: #fff; }
+        .btn-pending-edit  { padding: 4px 10px; border-radius: 6px; border: none; background: #0d2d6e; color: #4da6ff; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+        .btn-pending-edit:hover { background: #0d6efd; color: #fff; }
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1040; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; backdrop-filter: blur(2px); }
+        .drawer-overlay.open { opacity: 1; pointer-events: all; }
+        .drawer-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 390px; max-width: 96vw; background: var(--body-card); border-left: 1px solid var(--body-border); z-index: 1041; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; overflow: hidden; }
+        .drawer-panel.open { transform: translateX(0); }
+        .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--body-border); flex-shrink: 0; background: linear-gradient(135deg, rgba(249,115,22,0.08), transparent); }
+        .drawer-title { font-size: 0.9rem; font-weight: 800; color: var(--body-text); display: flex; align-items: center; gap: 9px; }
+        .drawer-title svg { color: #f97316; }
+        .drawer-title-badge { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.25); color: #fb923c; font-size: 0.6rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.05em; }
+        .drawer-close { background: var(--body-bg3, rgba(255,255,255,0.06)); border: 1px solid var(--body-border); color: var(--body-text2); cursor: pointer; padding: 6px; border-radius: 8px; display: flex; align-items: center; transition: background 0.15s; }
+        .drawer-close:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: #f87171; }
+        .drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px 24px; }
+        .drawer-body::-webkit-scrollbar { width: 3px; }
+        .drawer-body::-webkit-scrollbar-thumb { background: var(--body-border); border-radius: 4px; }
+        .field-group { background: rgba(255,255,255,0.02); border: 1px solid var(--body-border); border-radius: 12px; padding: 14px 14px 6px; margin-bottom: 10px; }
+        .field-group-title { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--body-text2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .field-group-title::before { content: ''; width: 3px; height: 12px; background: #f97316; border-radius: 2px; display: inline-block; }
+        .btn-simpan { width: 100%; padding: 13px; background: linear-gradient(135deg, #c2410c, #f97316); color: #fff; border: none; border-radius: 12px; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; cursor: pointer; margin-top: 14px; box-shadow: 0 4px 18px rgba(249,115,22,0.3); transition: transform 0.15s, box-shadow 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-simpan:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(249,115,22,0.4); }
+        .upload-area { border: 1.5px dashed var(--body-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 0.65rem; cursor: pointer; transition: border-color 0.2s; position: relative; overflow: hidden; }
+        .upload-area:hover { border-color: #f97316; background: rgba(249,115,22,0.04); }
+        .upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .upload-area-inner { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--body-text2); pointer-events: none; }
+        .upload-area-inner span { font-weight: 600; }
+        .upload-area-inner small { font-size: 0.7rem; opacity: 0.6; display: block; }
+        .status-pills { display: flex; gap: 8px; margin-bottom: 0.65rem; }
+        .status-pill { flex: 1; padding: 9px 6px; border-radius: 10px; text-align: center; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--body-border); background: var(--body-bg3, #1e1e2e); color: var(--body-text2); transition: all 0.18s; }
+        .status-pill.active-solved  { background: linear-gradient(135deg,#3d1a00,#7c3300); border-color: #f97316; color: #fb923c; }
+        .status-pill.active-pending { background: linear-gradient(135deg,#2d1a00,#451e00); border-color: #f59e0b; color: #fbbf24; }
+        @media (min-width: 768px) {
+            .drawer-overlay.open { display: flex; align-items: center; justify-content: center; }
+            .drawer-panel { position: static; transform: none !important; width: 520px; max-width: 90vw; max-height: 88vh; border-left: none; border: 1px solid var(--body-border); border-radius: 16px; box-shadow: 0 24px 80px rgba(0,0,0,0.5); display: none; flex-direction: column; transition: none; }
+            .drawer-panel.open { display: flex; animation: modalFadeIn 0.22s cubic-bezier(0.4,0,0.2,1); }
+            @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95) translateY(-12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        }
+        .fab-tambah { position: fixed; bottom: 88px; right: 24px; z-index: 1039; background: linear-gradient(135deg, #ea580c, #f97316); color: #fff; border: none; border-radius: 50px; padding: 13px 22px; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(249,115,22,0.4); display: flex; align-items: center; gap: 8px; transition: transform 0.15s, box-shadow 0.15s; }
+        .fab-tambah:hover { transform: translateY(-2px); box-shadow: 0 6px 26px rgba(249,115,22,0.5); }
+        .fab-tambah svg { width: 18px; height: 18px; }
+        .mtc-badge { display: inline-block; background: #3d1a00; color: #fb923c; border: 1px solid #7c3300; border-radius: 4px; padding: 2px 8px; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; margin-left: 8px; }
+    </style>
+</head>
+<body>
+<%- include('navbar', {activePage: 'maintenance'}) %>
+<span id="btnInstallPwa" style="display:none;"></span>
+
+<!-- DRAWER OVERLAY -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- DRAWER PANEL -->
+<div class="drawer-panel" id="drawerPanel" onclick="event.stopPropagation()">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg class="lc" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Tambah Log Maintenance
+      <span class="drawer-title-badge">NEW</span>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <form action="/maintenance/save" method="POST" enctype="multipart/form-data" id="mainForm">
+      <input type="hidden" name="tipeInput" id="tipeInputVal" value="harian">
+      <input type="hidden" name="status" id="statusVal" value="Solved">
+      <!-- Tipe & Waktu -->
+      <div class="field-group">
+        <div class="field-group-title">Tipe Pekerjaan</div>
+        <div class="tipe-toggle">
+          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            HARIAN
+          </div>
+          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            MULTI-HARI
+          </div>
+        </div>
+        <div id="formHarian">
+          <span class="label-text">Tanggal</span>
+          <input type="date" name="tanggalManual" id="tanggalInput" class="input-custom" required>
+          <div class="row g-2">
+            <div class="col-6"><span class="label-text">Jam Mulai</span><input type="time" name="jamMulai" id="jamMulaiInput" class="input-custom" style="margin-bottom:0;"></div>
+            <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="jamSelesaiInput" class="input-custom" style="margin-bottom:0;"></div>
+          </div>
+          <div style="margin-bottom:0.6rem;"></div>
+          <div class="durasi-preview" id="durasiPreview">Durasi: <strong id="durasiText">-</strong></div>
+        </div>
+        <div id="formMultihari" style="display:none;">
+          <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#a78bfa;">
+            Untuk pekerjaan yang berlangsung lebih dari 1 hari
+          </div>
+          <span class="label-text" style="color:#a78bfa;">Tanggal &amp; Jam MULAI</span>
+          <div class="row g-2">
+            <div class="col-7"><input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="input-custom" style="margin-bottom:0;"></div>
+            <div class="col-5"><input type="time" name="jamMulaiMulti" id="jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+          </div>
+          <div style="margin-bottom:0.5rem;"></div>
+          <span class="label-text" style="color:#a78bfa;">Tanggal &amp; Jam SELESAI</span>
+          <div class="row g-2">
+            <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="input-custom" style="margin-bottom:0;"></div>
+            <div class="col-5"><input type="time" name="jamSelesaiMulti" id="jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+          </div>
+          <div style="margin-bottom:0.5rem;"></div>
+          <div class="durasi-preview" id="durasiPreviewMulti" style="background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.3);color:#a78bfa;">Durasi: <strong id="durasiTextMulti">-</strong></div>
+        </div>
+      </div>
+
+      <!-- Detail -->
+      <div class="field-group">
+        <div class="field-group-title">Detail Pekerjaan</div>
+        <span class="label-text">Pelapor / User</span>
+        <input type="text" name="pemesan" class="input-custom" placeholder="Nama pelapor" required>
+        <span class="label-text">Aktivitas</span>
+        <input type="text" name="aktivitas" class="input-custom" placeholder="Jenis pekerjaan maintenance" required>
+        <span class="label-text">Area / Divisi</span>
+        <select name="divisi" class="input-custom">
+          <option value="MAINTENANCE">MAINTENANCE</option>
+          <option value="Produksi">Produksi</option>
+          <option value="Operasional">Operasional</option>
+          <option value="HRGA">HRGA</option>
+          <option value="Accounting">Accounting</option>
+          <option value="Finance">Finance</option>
+          <option value="Bahanbaku">Bahanbaku</option>
+          <option value="Admin Sales">Admin Sales</option>
+          <option value="Exim & Pembelian">Exim &amp; Pembelian</option>
+          <option value="IT & IC">IT &amp; IC</option>
+        </select>
+        <span class="label-text">Deskripsi</span>
+        <textarea name="deskripsi" class="input-custom" rows="3" placeholder="Jelaskan pekerjaan maintenance..." required></textarea>
+      </div>
+
+      <!-- Status -->
+      <div class="field-group">
+        <div class="field-group-title">Status</div>
+        <div class="status-pills">
+          <div class="status-pill active-solved" id="pillSolved" onclick="setStatusPill('Solved')">✓ SOLVED</div>
+          <div class="status-pill" id="pillPending" onclick="setStatusPill('Pending')">⏳ PENDING</div>
+        </div>
+      </div>
+
+      <!-- Foto -->
+      <div class="field-group">
+        <div class="field-group-title">Dokumentasi Foto</div>
+        <span class="label-text" style="color:#fbbf24;">📷 Foto AWAL (Sebelum)</span>
+        <div class="upload-area">
+          <input type="file" name="fotoAwal" accept="image/*" capture="environment" onchange="updateUploadLabel(this,'lblAwal')">
+          <div class="upload-area-inner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <div><span id="lblAwal">Pilih atau ambil foto awal</span><small>JPG, PNG — tap untuk kamera</small></div>
+          </div>
+        </div>
+        <span class="label-text" style="color:#fb923c; margin-top:4px;">📷 Foto SESUDAH (Selesai)</span>
+        <div class="upload-area">
+          <input type="file" name="foto" accept="image/*" capture="environment" onchange="updateUploadLabel(this,'lblSesudah')">
+          <div class="upload-area-inner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <div><span id="lblSesudah">Pilih atau ambil foto sesudah</span><small>JPG, PNG — tap untuk kamera</small></div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-simpan">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        SIMPAN DATA
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- FAB -->
+<% if (typeof userPerms !== 'undefined' && userPerms.canAdd) { %>
+<button class="fab-tambah" id="fabTambah" onclick="openDrawer()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Tambah Log
+</button>
+<% } %>
+
+<div class="container-fluid p-4">
+  <div class="row">
+    <div class="col-12">
+
+      <% if (saved) { %>
+      <div aria-live="polite" class="position-fixed top-0 end-0 p-3" style="z-index:1055;">
+        <div id="saveToast" class="toast align-items-center text-bg-warning border-0" role="alert">
+          <div class="d-flex">
+            <div class="toast-body fw-bold">✓ Data maintenance berhasil disimpan.</div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+      <!-- PAGE HEADER -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div>
+          <h5 style="margin:0;font-weight:800;color:var(--body-text);">
+            🔧 Dashboard Maintenance
+            <span class="mtc-badge">MAINTENANCE</span>
+          </h5>
+          <div style="font-size:0.72rem;color:var(--body-text3);margin-top:3px;">Jurnal pekerjaan tim maintenance</div>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stat-cards">
+        <div class="stat-card orange">
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="stat-card-label">Solved Hari Ini</div>
+          <div class="stat-card-value"><%= stats.solvedHariIni %></div>
+          <div class="stat-card-sub">dari <%= stats.totalHariIni %> pekerjaan hari ini</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="stat-card-label">Pending Hari Ini</div>
+          <div class="stat-card-value"><%= stats.pendingHariIni %></div>
+          <div class="stat-card-sub">belum diselesaikan</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="stat-card-label">Total Log</div>
+          <div class="stat-card-value"><%= stats.totalAllTime %></div>
+          <div class="stat-card-sub">semua waktu</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg></div>
+          <div class="stat-card-label">Total Pending</div>
+          <div class="stat-card-value"><%= stats.pendingAllTime %></div>
+          <div class="stat-card-sub">semua waktu</div>
+        </div>
+      </div>
+
+      <!-- PENDING NOTIF -->
+      <% if (stats.pendingItems.length > 0) { %>
+      <div class="pending-notif">
+        <div class="pending-notif-title">
+          🔧 PEKERJAAN PENDING PERLU PERHATIAN
+          <span><%= stats.pendingAllTime %></span>
+        </div>
+        <% stats.pendingItems.forEach(function(p) { %>
+        <div class="pending-row">
+          <div class="pending-row-info">
+            <div class="pending-row-title"><%= p.aktivitas %></div>
+            <div class="pending-row-meta"><%= p.pemesan %> · <%= p.divisi %> · <%= new Date(p.tanggalManual).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) %></div>
+          </div>
+          <% if (p.hariPending >= 3) { %>
+            <span class="pending-age urgent"><%= p.hariPending %> hari</span>
+          <% } else if (p.hariPending >= 1) { %>
+            <span class="pending-age warning"><%= p.hariPending %> hari</span>
+          <% } else { %>
+            <span class="pending-age normal">Baru</span>
+          <% } %>
+          <div class="pending-actions">
+            <form method="POST" action="/maintenance/update-status/<%= p.id %>" style="margin:0;">
+              <input type="hidden" name="newStatus" value="Solved">
+              <button type="submit" class="btn-pending-solve" onclick="return confirm('Tandai sebagai Solved?')">✓ Selesai</button>
+            </form>
+            <button type="button" class="btn-pending-edit" onclick="openEditModal(
+              <%= p.id %>,
+              `<%- (p.aktivitas||'').replace(/`/g,'\\`') %>`,
+              `<%= p.divisi %>`,
+              `<%- (p.pemesan||'').replace(/`/g,'\\`') %>`,
+              `<%- (p.deskripsi||'').replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,
+              `<%= p.status %>`,
+              `<%= p.tipeInput || 'harian' %>`,
+              `<%= new Date(p.tanggalManual).toISOString().slice(0,10) %>`,
+              `<%= p.jamMulai || '' %>`,
+              `<%= p.jamSelesai || '' %>`,
+              `<%= p.tanggalMulai ? new Date(p.tanggalMulai).toISOString().slice(0,10) : '' %>`,
+              `<%= p.tanggalSelesai ? new Date(p.tanggalSelesai).toISOString().slice(0,10) : '' %>`
+            )">✏️ Edit</button>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <!-- FILTER -->
+      <div class="section-panel mb-3">
+        <form action="/maintenance" method="GET" id="filterForm">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+            <span style="font-size:0.72rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">FILTER LOG:</span>
+            <button type="button" onclick="setToday()" class="fq-btn <%= (!filterDateFrom && !filterDateTo && !filterStatus) ? 'fq-active' : '' %>">Hari Ini</button>
+            <button type="button" onclick="setYesterday()" class="fq-btn">Kemarin</button>
+            <button type="button" onclick="setLast7()" class="fq-btn">7 Hari</button>
+            <button type="button" onclick="setThisMonth()" class="fq-btn">Bulan Ini</button>
+            <div style="width:1px;height:20px;background:var(--body-border);margin:0 2px;"></div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <label style="font-size:0.7rem;font-weight:600;color:var(--body-text3);">Dari</label>
+              <input type="date" name="dateFrom" id="filterFrom" value="<%= filterDateFrom %>" class="form-control form-control-sm" style="width:140px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;">
+              <label style="font-size:0.7rem;font-weight:600;color:var(--body-text3);">s/d</label>
+              <input type="date" name="dateTo" id="filterTo" value="<%= filterDateTo %>" class="form-control form-control-sm" style="width:140px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+            </div>
+            <select name="status" class="form-select form-select-sm" style="width:auto;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+              <option value="" <%= filterStatus==='' ? 'selected' : '' %>>Semua Status</option>
+              <option value="Pending" <%= filterStatus==='Pending' ? 'selected' : '' %>>PENDING</option>
+              <option value="Solved"  <%= filterStatus==='Solved'  ? 'selected' : '' %>>SOLVED</option>
+            </select>
+            <button type="submit" class="btn btn-sm fw-bold" style="background:#ea580c;border-color:#ea580c;color:#fff;">Cari</button>
+            <% if (typeof userPerms !== 'undefined' && (userPerms.canExport || userPerms.canUsers)) { %>
+            <a href="/maintenance/export?dateFrom=<%= filterDateFrom %>&dateTo=<%= filterDateTo %>" class="btn btn-sm fw-bold" style="background:#7c3300;border:1px solid #ea580c;color:#fb923c;white-space:nowrap;">
+              ↓ Export Excel
+            </a>
+            <% } %>
+            <% if (isFiltered) { %>
+            <a href="/maintenance" class="btn btn-sm fw-bold" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);">✕ Reset</a>
+            <% } %>
+          </div>
+        </form>
+      </div>
+
+      <!-- TABLE -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:0.72rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;letter-spacing:0.06em;">LOG MAINTENANCE</span>
+        <span style="background:var(--body-bg3);border:1px solid var(--body-border);border-radius:20px;padding:2px 10px;font-size:0.72rem;font-weight:700;color:var(--body-text2);"><%= filterLabel %></span>
+        <span style="font-size:0.72rem;color:var(--body-text3);">(<%= journals.length %> data)</span>
+      </div>
+
+      <div class="table-container table-responsive">
+        <% if (journals.length === 0) { %>
+        <div style="text-align:center;padding:3rem 1rem;color:var(--body-text3);">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;display:block;margin:0 auto 12px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div style="font-size:0.85rem;font-weight:600;">Tidak ada data untuk <strong><%= filterLabel %></strong></div>
+          <div style="font-size:0.75rem;margin-top:4px;"><a href="/maintenance" style="color:#f97316;">Reset filter</a></div>
+        </div>
+        <% } else { %>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>WAKTU &amp; DURASI</th>
+              <th>AREA / DIVISI</th>
+              <th style="width:32%;">AKTIVITAS</th>
+              <th>STATUS</th>
+              <th class="text-center">FOTO</th>
+              <th class="text-center">AKSI</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% journals.forEach(item => { %>
+            <% var isMulti = item.tipeInput === 'multihari'; %>
+            <tr>
+              <td style="min-width:145px;">
+                <% if (isMulti && item.tanggalMulai && item.tanggalSelesai) { %>
+                  <span class="multi-badge">MULTI-HARI</span>
+                  <div style="font-size:0.78rem;color:#6600aa;font-weight:600;margin-top:3px;"><%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %><% if(item.jamMulai) { %> <span style="color:#888;font-size:0.7rem;"><%= item.jamMulai %></span><% } %></div>
+                  <div style="font-size:0.7rem;color:#888;margin:1px 0;">  ↓</div>
+                  <div style="font-size:0.78rem;color:#6600aa;font-weight:600;"><%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %><% if(item.jamSelesai) { %> <span style="color:#888;font-size:0.7rem;"><%= item.jamSelesai %></span><% } %></div>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge durasi-badge-multi"><%= formatDurasi(item.durasiMenit) %></span><% } %>
+                <% } else { %>
+                  <div style="font-family:monospace;font-size:0.8rem;color:#c2410c;font-weight:600;"><%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
+                  <% if(item.jamMulai) { %><div class="jam-info">Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
+                  <% if(item.jamSelesai) { %><div class="jam-info">Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
+                  <% if(item.durasiMenit) { %><span class="durasi-badge"><%= formatDurasi(item.durasiMenit) %></span><% } %>
+                <% } %>
+              </td>
+              <td style="white-space:nowrap;">
+                <div class="txt-bold"><%= item.divisi %></div>
+                <div style="font-size:0.75rem;color:var(--body-text2);">Pelapor: <%= item.pemesan %></div>
+              </td>
+              <td>
+                <div class="txt-bold" style="margin-bottom:3px;"><%= item.aktivitas %></div>
+                <div style="font-size:0.8rem;color:var(--body-text2);"><%= item.deskripsi %></div>
+              </td>
+              <td><span class="<%= item.status==='Solved' ? 'status-solved' : 'status-pending' %>"><%= item.status %></span></td>
+              <td style="min-width:115px;">
+                <% if(item.fotoAwalUrl) { %>
+                  <button class="btn-foto btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Kondisi AWAL')">📷 AWAL</button>
+                <% } else { %>
+                  <button class="btn-foto btn-tambah-awal" onclick="openUploadAwalModal(<%= item.id %>)">+ Foto Awal</button>
+                <% } %>
+                <% if(item.fotoUrl) { %>
+                  <button class="btn-foto btn-foto-sesudah" onclick="showFoto('<%= item.fotoUrl %>','Kondisi SESUDAH')">📷 SESUDAH</button>
+                <% } else { %>
+                  <button class="btn-foto btn-tambah-sesudah" onclick="openUploadModal(<%= item.id %>)">+ Foto Sesudah</button>
+                <% } %>
+              </td>
+              <td class="text-center" style="min-width:110px;">
+                <% if(item.status==='Pending') { %>
+                  <form action="/maintenance/update-status/<%= item.id %>" method="POST">
+                    <input type="hidden" name="newStatus" value="Solved">
+                    <button type="submit" class="btn-action" style="background:#ea580c;color:#fff;">SET SOLVED</button>
+                  </form>
+                <% } %>
+                <% if (typeof userPerms !== 'undefined' && userPerms.canEdit) { %>
+                <button type="button" class="btn-action" style="background:#0d6efd;color:#fff;margin-bottom:4px;" onclick="openEditModal(
+                  <%= item.id %>,
+                  `<%- item.aktivitas.replace(/`/g,'\\`') %>`,
+                  `<%= item.divisi %>`,
+                  `<%- item.pemesan.replace(/`/g,'\\`') %>`,
+                  `<%- item.deskripsi.replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,
+                  `<%= item.status %>`,
+                  `<%= item.tipeInput || 'harian' %>`,
+                  `<%= new Date(item.tanggalManual).toISOString().slice(0,10) %>`,
+                  `<%= item.jamMulai || '' %>`,
+                  `<%= item.jamSelesai || '' %>`,
+                  `<%= item.tanggalMulai ? new Date(item.tanggalMulai).toISOString().slice(0,10) : '' %>`,
+                  `<%= item.tanggalSelesai ? new Date(item.tanggalSelesai).toISOString().slice(0,10) : '' %>`
+                )">EDIT</button>
+                <% } %>
+                <% if (typeof userPerms !== 'undefined' && userPerms.canDelete) { %>
+                <button type="button" class="btn-action" style="background:#dc3545;color:#fff;" onclick="confirmDelete(<%= item.id %>,`<%- item.aktivitas.replace(/`/g,'\\`') %>`)">HAPUS</button>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FOTO -->
+<div class="modal fade" id="fotoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
+      <div class="modal-header" style="border-color:var(--body-border);">
+        <h5 class="modal-title" style="color:var(--body-text);" id="fotoModalTitle">Dokumentasi</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0" style="background:#000;min-height:200px;">
+        <img id="popupImage" src="" class="img-fluid d-block mx-auto" style="max-height:75vh;object-fit:contain;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UPLOAD SESUDAH -->
+<div class="modal fade" id="uploadSusulanModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
+      <div class="modal-header" style="border-color:var(--body-border);"><h5 class="modal-title" style="color:var(--body-text);">Upload Foto SESUDAH</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data">
+        <div class="modal-body"><input type="file" name="foto" class="input-custom m-0" required accept="image/*" capture="environment"></div>
+        <div class="modal-footer" style="border-color:var(--body-border);">
+          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+          <button type="submit" class="btn fw-bold" style="background:#ea580c;color:#fff;">UPLOAD</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UPLOAD AWAL -->
+<div class="modal fade" id="uploadAwalModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--body-card);border:1px solid #b45309;">
+      <div class="modal-header" style="border-color:#b45309;"><h5 class="modal-title" style="color:var(--body-text);">Upload Foto AWAL</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <form id="formUploadAwal" action="" method="POST" enctype="multipart/form-data">
+        <div class="modal-body"><input type="file" name="fotoAwal" class="input-custom m-0" required accept="image/*" capture="environment"></div>
+        <div class="modal-footer" style="border-color:#b45309;">
+          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+          <button type="submit" class="btn btn-warning fw-bold text-dark">UPLOAD</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
+      <div class="modal-header" style="border-color:var(--body-border);">
+        <h5 class="modal-title" style="color:var(--body-text);">✏️ Edit Data Maintenance</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="tipeInput" id="editTipeInputVal" value="harian">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-12 mb-2">
+              <span class="label-text">Tipe Pekerjaan</span>
+              <div class="tipe-toggle">
+                <div class="tipe-btn active-harian" id="editBtnHarian" onclick="setEditTipe('harian')">HARIAN</div>
+                <div class="tipe-btn" id="editBtnMulti" onclick="setEditTipe('multihari')">MULTI-HARI</div>
+              </div>
+            </div>
+            <div class="col-md-6" id="editFormHarian">
+              <span class="label-text">Tanggal</span>
+              <input type="date" name="tanggalManual" id="edit_tanggal" class="input-custom" required>
+              <div class="row g-2">
+                <div class="col-6"><span class="label-text">Jam Mulai</span><input type="time" name="jamMulai" id="edit_jamMulai" class="input-custom" style="margin-bottom:0;"></div>
+                <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="edit_jamSelesai" class="input-custom" style="margin-bottom:0;"></div>
+              </div>
+            </div>
+            <div class="col-md-6" id="editFormMultihari" style="display:none;">
+              <span class="label-text" style="color:#a78bfa;">Tgl &amp; Jam MULAI</span>
+              <div class="row g-2">
+                <div class="col-7"><input type="date" name="tanggalMulaiDate" id="edit_tanggalMulai" class="input-custom" style="margin-bottom:0;"></div>
+                <div class="col-5"><input type="time" name="jamMulaiMulti" id="edit_jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+              </div>
+              <div style="margin-bottom:0.5rem;"></div>
+              <span class="label-text" style="color:#a78bfa;">Tgl &amp; Jam SELESAI</span>
+              <div class="row g-2">
+                <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="edit_tanggalSelesai" class="input-custom" style="margin-bottom:0;"></div>
+                <div class="col-5"><input type="time" name="jamSelesaiMulti" id="edit_jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <span class="label-text">Pelapor / User</span>
+              <input type="text" name="pemesan" id="edit_pemesan" class="input-custom" required>
+              <span class="label-text">Aktivitas</span>
+              <input type="text" name="aktivitas" id="edit_aktivitas" class="input-custom" required>
+              <span class="label-text">Area / Divisi</span>
+              <select name="divisi" id="edit_divisi" class="input-custom">
+                <option value="MAINTENANCE">MAINTENANCE</option>
+                <option value="Produksi">Produksi</option>
+                <option value="Operasional">Operasional</option>
+                <option value="HRGA">HRGA</option>
+                <option value="Accounting">Accounting</option>
+                <option value="Finance">Finance</option>
+                <option value="Bahanbaku">Bahanbaku</option>
+                <option value="Admin Sales">Admin Sales</option>
+                <option value="IT & IC">IT &amp; IC</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <span class="label-text">Status</span>
+              <select name="status" id="edit_status" class="input-custom">
+                <option value="Solved">Solved</option>
+                <option value="Pending">Pending</option>
+              </select>
+              <span class="label-text">Deskripsi</span>
+              <textarea name="deskripsi" id="edit_deskripsi" class="input-custom" rows="4" required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-color:var(--body-border);">
+          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+          <button type="submit" class="btn fw-bold" style="background:#ea580c;color:#fff;">SIMPAN PERUBAHAN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE FORM (hidden) -->
+<form id="deleteForm" method="POST" action="" style="display:none;"><input type="hidden" name="_confirm" value="1"></form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ===== THEME =====
+(function(){
+    const saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+})();
+
+// ===== DRAWER =====
+function openDrawer() {
+    document.getElementById('drawerOverlay').classList.add('open');
+    document.getElementById('drawerPanel').classList.add('open');
+    setTodayDefault();
+}
+function closeDrawer() {
+    document.getElementById('drawerOverlay').classList.remove('open');
+    document.getElementById('drawerPanel').classList.remove('open');
+}
+
+// ===== TIPE TOGGLE =====
+function setTipe(t) {
+    document.getElementById('tipeInputVal').value = t;
+    document.getElementById('btnHarian').className = 'tipe-btn' + (t==='harian' ? ' active-harian' : '');
+    document.getElementById('btnMulti').className  = 'tipe-btn' + (t==='multihari' ? ' active-multi' : '');
+    document.getElementById('formHarian').style.display   = t==='harian'   ? '' : 'none';
+    document.getElementById('formMultihari').style.display = t==='multihari' ? '' : 'none';
+}
+
+// ===== STATUS PILL =====
+function setStatusPill(s) {
+    document.getElementById('statusVal').value = s;
+    document.getElementById('pillSolved').className  = 'status-pill' + (s==='Solved'  ? ' active-solved'  : '');
+    document.getElementById('pillPending').className = 'status-pill' + (s==='Pending' ? ' active-pending' : '');
+}
+
+// ===== TODAY DEFAULT =====
+function setTodayDefault() {
+    const tanggalInput = document.getElementById('tanggalInput');
+    if (tanggalInput && !tanggalInput.value) {
+        tanggalInput.value = new Date().toISOString().split('T')[0];
+    }
+}
+
+// ===== DURASI PREVIEW =====
+function pad(n){ return String(n).padStart(2,'0'); }
+function hitungDurasi(s,e){
+    if(!s||!e) return null;
+    const [hs,ms] = s.split(':').map(Number);
+    const [he,me] = e.split(':').map(Number);
+    let ts = hs*60+ms, te = he*60+me;
+    if(te < ts) te += 1440;
+    const diff = te - ts;
+    if(diff <= 0) return null;
+    const jam = Math.floor(diff/60), mnt = diff%60;
+    return (jam > 0 ? jam+' jam ' : '') + (mnt > 0 ? mnt+' menit' : '');
+}
+document.getElementById('jamMulaiInput')?.addEventListener('change', updateDurasi);
+document.getElementById('jamSelesaiInput')?.addEventListener('change', updateDurasi);
+function updateDurasi(){
+    const s = document.getElementById('jamMulaiInput').value;
+    const e = document.getElementById('jamSelesaiInput').value;
+    const d = hitungDurasi(s,e);
+    const el = document.getElementById('durasiPreview');
+    if(d){ document.getElementById('durasiText').textContent = d; el.style.display='block'; }
+    else  { el.style.display='none'; }
+}
+
+// ===== UPLOAD LABEL =====
+function updateUploadLabel(input, labelId) {
+    if(input.files && input.files[0]) document.getElementById(labelId).textContent = input.files[0].name;
+}
+
+// ===== FOTO MODAL =====
+function showFoto(url, title) {
+    document.getElementById('popupImage').src = url;
+    document.getElementById('fotoModalTitle').textContent = title;
+    new bootstrap.Modal(document.getElementById('fotoModal')).show();
+}
+
+// ===== UPLOAD MODALS =====
+function openUploadModal(id) {
+    document.getElementById('formUploadSusulan').action = '/maintenance/upload-foto/' + id;
+    new bootstrap.Modal(document.getElementById('uploadSusulanModal')).show();
+}
+function openUploadAwalModal(id) {
+    document.getElementById('formUploadAwal').action = '/maintenance/upload-foto-awal/' + id;
+    new bootstrap.Modal(document.getElementById('uploadAwalModal')).show();
+}
+
+// ===== EDIT MODAL =====
+function setEditTipe(t) {
+    document.getElementById('editTipeInputVal').value = t;
+    document.getElementById('editBtnHarian').className = 'tipe-btn' + (t==='harian'   ? ' active-harian' : '');
+    document.getElementById('editBtnMulti').className  = 'tipe-btn' + (t==='multihari' ? ' active-multi'  : '');
+    document.getElementById('editFormHarian').style.display   = t==='harian'   ? '' : 'none';
+    document.getElementById('editFormMultihari').style.display = t==='multihari' ? '' : 'none';
+}
+function openEditModal(id, aktivitas, divisi, pemesan, deskripsi, status, tipeInput, tanggal, jamMulai, jamSelesai, tanggalMulai, tanggalSelesai) {
+    document.getElementById('formEdit').action = '/maintenance/edit/' + id;
+    document.getElementById('edit_aktivitas').value = aktivitas;
+    document.getElementById('edit_pemesan').value   = pemesan;
+    document.getElementById('edit_deskripsi').value = deskripsi.replace(/\\n/g,'\n');
+    document.getElementById('edit_status').value    = status;
+    var divisiSel = document.getElementById('edit_divisi');
+    for(var i=0;i<divisiSel.options.length;i++) { if(divisiSel.options[i].value===divisi) { divisiSel.selectedIndex=i; break; } }
+    setEditTipe(tipeInput || 'harian');
+    if(tipeInput === 'multihari') {
+        document.getElementById('edit_tanggalMulai').value  = tanggalMulai || '';
+        document.getElementById('edit_tanggalSelesai').value = tanggalSelesai || '';
+        document.getElementById('edit_jamMulaiMulti').value  = jamMulai || '';
+        document.getElementById('edit_jamSelesaiMulti').value = jamSelesai || '';
+    } else {
+        document.getElementById('edit_tanggal').value  = tanggal || '';
+        document.getElementById('edit_jamMulai').value = jamMulai || '';
+        document.getElementById('edit_jamSelesai').value = jamSelesai || '';
+    }
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+// ===== DELETE =====
+function confirmDelete(id, nama) {
+    if(confirm('Hapus data "' + nama + '"?')) {
+        document.getElementById('deleteForm').action = '/maintenance/delete/' + id;
+        document.getElementById('deleteForm').submit();
+    }
+}
+
+// ===== FILTER QUICK =====
+function fmt(d){ return d.toISOString().split('T')[0]; }
+function setToday()     { const t=new Date(); document.getElementById('filterFrom').value=fmt(t); document.getElementById('filterTo').value=fmt(t); document.getElementById('filterForm').submit(); }
+function setYesterday() { const t=new Date(); t.setDate(t.getDate()-1); document.getElementById('filterFrom').value=fmt(t); document.getElementById('filterTo').value=fmt(t); document.getElementById('filterForm').submit(); }
+function setLast7()     { const e=new Date(),s=new Date(); s.setDate(s.getDate()-6); document.getElementById('filterFrom').value=fmt(s); document.getElementById('filterTo').value=fmt(e); document.getElementById('filterForm').submit(); }
+function setThisMonth() { const n=new Date(),s=new Date(n.getFullYear(),n.getMonth(),1),e=new Date(n.getFullYear(),n.getMonth()+1,0); document.getElementById('filterFrom').value=fmt(s); document.getElementById('filterTo').value=fmt(e); document.getElementById('filterForm').submit(); }
+
+// ===== TOAST =====
+window.addEventListener('load', function() {
+    const el = document.getElementById('saveToast');
+    if(el) { const t = new bootstrap.Toast(el, {delay:3500}); t.show(); }
+});
+
+// ===== THEME TOGGLE =====
+function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const nxt = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', nxt);
+    localStorage.setItem('theme', nxt);
+    updateThemeUI(nxt);
+}
+function updateThemeUI(theme) {
+    const lbl  = document.getElementById('navThemeLabel');
+    const thumb = document.getElementById('navThumb');
+    const track = document.querySelector('.t-track');
+    if(lbl) lbl.textContent = theme === 'light' ? 'Light' : 'Dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    if(track) { track.style.background = theme==='light'?'#16a34a':''; }
+    if(thumb) { thumb.style.transform = theme==='light'?'translateX(12px)':''; thumb.style.background=theme==='light'?'#fff':''; }
+}
+(function(){ updateThemeUI(localStorage.getItem('theme')||'dark'); })();
+
+function toggleUserDropdown(e) { e.stopPropagation(); document.getElementById('userDropdown')?.classList.toggle('open'); }
+document.addEventListener('click', function(){ document.getElementById('userDropdown')?.classList.remove('open'); });
+function toggleMobileNav() { document.getElementById('mobileNav')?.classList.add('open'); document.getElementById('sidebarOverlay')?.classList.add('open'); }
+function closeSidebar() { document.getElementById('mobileNav')?.classList.remove('open'); document.getElementById('sidebarOverlay')?.classList.remove('open'); }
+</script>
+</body>
+</html>

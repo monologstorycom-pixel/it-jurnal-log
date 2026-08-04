@@ -9,6 +9,7 @@ datasource db {
 
 model Journal {
   id             Int       @id @default(autoincrement())
+  jenisJurnal    String    @default("IT")       // "IT" atau "MAINTENANCE"
   tipeInput      String?   @default("harian")
   tanggalMulai   DateTime?
   tanggalSelesai DateTime?

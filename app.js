@@ -12,14 +12,15 @@ const { uploadDir }    = require('./helpers/photo');
 // ==========================================
 // ROUTES
 // ==========================================
-const authRoutes     = require('./routes/auth');
-const journalRoutes  = require('./routes/journal');
-const auditRoutes    = require('./routes/audit');
-const asetRoutes     = require('./routes/aset');
-const vendorRoutes   = require('./routes/vendor');
-const usersRoutes    = require('./routes/users');
-const aiRoutes       = require('./routes/ai');
-const settingsRoutes = require('./routes/settings');
+const authRoutes        = require('./routes/auth');
+const journalRoutes     = require('./routes/journal');
+const maintenanceRoutes = require('./routes/maintenance');
+const auditRoutes       = require('./routes/audit');
+const asetRoutes        = require('./routes/aset');
+const vendorRoutes      = require('./routes/vendor');
+const usersRoutes       = require('./routes/users');
+const aiRoutes          = require('./routes/ai');
+const settingsRoutes    = require('./routes/settings');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use(injectLocals);
 // ==========================================
 app.use('/', authRoutes);
 app.use('/', journalRoutes);
+app.use('/', maintenanceRoutes);
 app.use('/', auditRoutes);
 app.use('/', asetRoutes);
 app.use('/', vendorRoutes);

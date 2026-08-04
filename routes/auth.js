@@ -39,6 +39,9 @@ router.post('/login', async (req, res) => {
         const perms = getUserPerms(req.session.user);
         if (perms.canAudit && !perms.canViewLog) return res.redirect('/audit');
         if (!perms.canViewLog && perms.canAsset)  return res.redirect('/aset');
+        // User maintenance (divisi MAINTENANCE) redirect ke dashboard maintenance
+        const divisi = (user.divisi || '').toUpperCase();
+        if (divisi === 'MAINTENANCE' && perms.canViewLog) return res.redirect('/maintenance');
         res.redirect('/kerja');
     } catch (error) {
         console.error('[LOGIN ERROR]', error.message);

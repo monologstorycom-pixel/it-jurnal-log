@@ -12,107 +12,51 @@ const {
 } = require('../helpers/dateTime');
 
 // ==========================================
-// VIEWER PUBLIC (/)
+// CEK APAKAH USER ADALAH MAINTENANCE
 // ==========================================
-router.get('/', async (req, res) => {
-    if (req.session && req.session.user) {
-        const u = req.session.user;
-        if (!hasPerm(u, 'canViewLog')) {
-            if (hasPerm(u, 'canAsset')) return res.redirect('/aset');
-            return res.redirect('/login');
-        }
-    }
-    try {
-        const { date, q } = req.query;
-        const now = new Date();
-        let selectedDate, journals, isSearch = false;
+function isMaintenance(user) {
+    if (!user) return false;
+    return (user.divisi || '').toUpperCase() === 'MAINTENANCE';
+}
 
-        if (q && q.trim()) {
-            isSearch = true;
-            const keyword = q.trim();
-            journals = await prisma.journal.findMany({
-                where: {
-                    jenisJurnal: 'IT',
-                    OR: [
-                        { aktivitas: { contains: keyword } },
-                        { pemesan:   { contains: keyword } },
-                        { divisi:    { contains: keyword } },
-                        { deskripsi: { contains: keyword } },
-                    ]
-                },
-                orderBy: { tanggalManual: 'desc' },
-                take: 100
-            });
-            selectedDate = now;
-        } else {
-            if (date) {
-                const [year, month, day] = date.split('-');
-                selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            } else {
-                selectedDate = now;
-            }
-            const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0,  0,  0);
-            const endDate   = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
-            journals = await prisma.journal.findMany({
-                where: {
-                    jenisJurnal: 'IT',
-                    OR: [
-                        { tipeInput: { not: 'multihari' }, tanggalManual: { gte: startDate, lte: endDate } },
-                        { tipeInput: 'multihari', tanggalMulai: { lte: endDate }, tanggalSelesai: { gte: startDate } }
-                    ]
-                },
-                orderBy: { tanggalManual: 'desc' }
-            });
-        }
-
-        res.render('index', {
-            journals,
-            searchQuery: q || '',
-            isSearch,
-            filterInfo: {
-                date:        selectedDate.toISOString().split('T')[0],
-                dateDisplay: selectedDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-                month:       now.getMonth() + 1,
-                year:        now.getFullYear()
-            },
-            yearOptions: getYearOptions(),
-            formatDurasi
-        });
-    } catch (error) { console.error(error); res.status(500).send('Database Error!'); }
-});
+function requireMaintenance(req, res, next) {
+    if (!req.session || !req.session.user) return res.redirect('/login');
+    const user = req.session.user;
+    // Admin bisa akses juga
+    if (hasPerm(user, 'canUsers')) return next();
+    if (isMaintenance(user) && hasPerm(user, 'canViewLog')) return next();
+    return res.status(403).render('403', { message: 'Halaman ini hanya untuk tim Maintenance.' });
+}
 
 // ==========================================
-// DASHBOARD KERJA
+// DASHBOARD MAINTENANCE
 // ==========================================
-router.get('/kerja', requireLogin, async (req, res) => {
-    if (!hasPerm(req.session.user, 'canViewLog')) {
-        if (hasPerm(req.session.user, 'canAsset')) return res.redirect('/aset');
-        return res.status(403).render('403', { message: 'Anda tidak punya izin melihat Log Jurnal.' });
-    }
+router.get('/maintenance', requireLogin, requireMaintenance, async (req, res) => {
     try {
         const { dateFrom, dateTo, status, saved } = req.query;
 
         const today      = new Date();
         const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0,  0,  0);
         const todayEnd   = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
-        const todayWhere = { jenisJurnal: 'IT', OR: [
-            { tipeInput: { not: 'multihari' }, tanggalManual: { gte: todayStart, lte: todayEnd } },
-            { tipeInput: 'multihari', tanggalMulai: { lte: todayEnd }, tanggalSelesai: { gte: todayStart } }
-        ]};
+        const todayWhere = {
+            jenisJurnal: 'MAINTENANCE',
+            OR: [
+                { tipeInput: { not: 'multihari' }, tanggalManual: { gte: todayStart, lte: todayEnd } },
+                { tipeInput: 'multihari', tanggalMulai: { lte: todayEnd }, tanggalSelesai: { gte: todayStart } }
+            ]
+        };
 
-        // Tentukan mode filter
-        const isFiltered = dateFrom || dateTo || (status && status !== '');
+        const isFiltered   = dateFrom || dateTo || (status && status !== '');
         const isCustomRange = dateFrom || dateTo;
 
-        let whereClause = {};
-        let filterLabel = 'Hari Ini';
+        let whereClause  = {};
+        let filterLabel  = 'Hari Ini';
 
         if (isCustomRange) {
-            // Date range filter dari user
             const from = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date('2000-01-01');
             const to   = dateTo   ? new Date(dateTo   + 'T23:59:59') : new Date('2099-12-31');
             whereClause = {
-                jenisJurnal: 'IT',
+                jenisJurnal: 'MAINTENANCE',
                 OR: [
                     { tipeInput: { not: 'multihari' }, tanggalManual: { gte: from, lte: to } },
                     { tipeInput: 'multihari', tanggalMulai: { lte: to }, tanggalSelesai: { gte: from } }
@@ -126,29 +70,30 @@ router.get('/kerja', requireLogin, async (req, res) => {
                 filterLabel = fmtFrom + ' — ' + fmtTo;
             }
         } else {
-            // Default: hari ini
             whereClause = todayWhere;
             filterLabel = 'Hari Ini';
         }
 
-        // Apply status filter
         if (status && status !== '') {
             filterLabel += ' · ' + status;
             whereClause = whereClause.OR
-                ? { AND: [{ jenisJurnal: 'IT' }, { OR: whereClause.OR }, { status }] }
+                ? { AND: [{ jenisJurnal: 'MAINTENANCE' }, { OR: whereClause.OR }, { status }] }
                 : { ...whereClause, status };
         }
 
         const journals = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
 
+        const maintenanceAll = { jenisJurnal: 'MAINTENANCE' };
+
         const [totalHariIni, solvedHariIni, pendingHariIni, totalAllTime, pendingAllTime, pendingItems] = await Promise.all([
-            prisma.journal.count({ where: { jenisJurnal: 'IT', OR: todayWhere.OR } }),
-            prisma.journal.count({ where: { jenisJurnal: 'IT', AND: [{ OR: todayWhere.OR }, { status: 'Solved' }] } }),
-            prisma.journal.count({ where: { jenisJurnal: 'IT', AND: [{ OR: todayWhere.OR }, { status: 'Pending' }] } }),
-            prisma.journal.count({ where: { jenisJurnal: 'IT' } }),
-            prisma.journal.count({ where: { jenisJurnal: 'IT', status: 'Pending' } }),
+            prisma.journal.count({ where: { jenisJurnal: 'MAINTENANCE', OR: todayWhere.OR } }),
+            prisma.journal.count({ where: { jenisJurnal: 'MAINTENANCE', AND: [{ OR: todayWhere.OR }, { status: 'Solved' }] } }),
+            prisma.journal.count({ where: { jenisJurnal: 'MAINTENANCE', AND: [{ OR: todayWhere.OR }, { status: 'Pending' }] } }),
+            prisma.journal.count({ where: maintenanceAll }),
+            prisma.journal.count({ where: { jenisJurnal: 'MAINTENANCE', status: 'Pending' } }),
             prisma.journal.findMany({
-                where: { jenisJurnal: 'IT', status: 'Pending' }, orderBy: { tanggalManual: 'asc' }, take: 10,
+                where: { jenisJurnal: 'MAINTENANCE', status: 'Pending' },
+                orderBy: { tanggalManual: 'asc' }, take: 10,
                 select: { id: true, aktivitas: true, divisi: true, pemesan: true, tanggalManual: true, durasiMenit: true,
                     deskripsi: true, status: true, tipeInput: true, jamMulai: true, jamSelesai: true,
                     tanggalMulai: true, tanggalSelesai: true }
@@ -161,7 +106,7 @@ router.get('/kerja', requireLogin, async (req, res) => {
             return { ...p, hariPending: diffDays };
         });
 
-        res.render('admin', {
+        res.render('maintenance', {
             journals,
             yearOptions: getYearOptions(),
             saved: saved === '1',
@@ -177,9 +122,9 @@ router.get('/kerja', requireLogin, async (req, res) => {
 });
 
 // ==========================================
-// SIMPAN JURNAL BARU
+// SIMPAN JURNAL MAINTENANCE
 // ==========================================
-router.post('/save', requireLogin, (req, res, next) => {
+router.post('/maintenance/save', requireLogin, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canAdd')) {
         return res.status(403).render('403', { message: 'Anda tidak punya izin menambah data.' });
     }
@@ -203,7 +148,7 @@ router.post('/save', requireLogin, (req, res, next) => {
         const fotoAwalFile = req.files?.fotoAwal?.[0] || null;
 
         let dataToSave = {
-            jenisJurnal: 'IT',
+            jenisJurnal: 'MAINTENANCE',
             aktivitas: aktivitas.trim(), divisi: divisi.trim(), pemesan: pemesan.trim(),
             deskripsi: deskripsi || '', status, tipeInput,
             fotoUrl:     fotoFile     ? await saveCompressedPhoto(fotoFile,     'foto',     'log') : null,
@@ -213,9 +158,9 @@ router.post('/save', requireLogin, (req, res, next) => {
         if (tipeInput === 'multihari') {
             const dtMulai   = buildDateTime(tanggalMulaiDate,   jamMulaiMulti);
             const dtSelesai = buildDateTime(tanggalSelesaiDate, jamSelesaiMulti);
-            if (!dtMulai)              return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
-            if (!dtSelesai)            return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
-            if (dtSelesai <= dtMulai)  return res.status(400).send('Gagal: Tanggal Selesai harus lebih besar dari Tanggal Mulai.');
+            if (!dtMulai)             return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
+            if (!dtSelesai)           return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
+            if (dtSelesai <= dtMulai) return res.status(400).send('Gagal: Tanggal Selesai harus lebih besar dari Tanggal Mulai.');
             Object.assign(dataToSave, {
                 tanggalManual: dtMulai, tanggalMulai: dtMulai, tanggalSelesai: dtSelesai,
                 jamMulai: jamMulaiMulti || null, jamSelesai: jamSelesaiMulti || null,
@@ -232,64 +177,61 @@ router.post('/save', requireLogin, (req, res, next) => {
         }
 
         await prisma.journal.create({ data: dataToSave });
-        res.redirect('/kerja?saved=1');
+        res.redirect('/maintenance?saved=1');
     } catch (error) {
-        console.error('[SAVE ERROR]', error.message);
+        console.error('[MAINTENANCE SAVE ERROR]', error.message);
         res.status(500).send('Gagal Simpan: ' + error.message);
     }
 });
 
 // ==========================================
-// UPDATE STATUS
+// UPDATE STATUS MAINTENANCE
 // ==========================================
-router.post('/update-status/:id', requireLogin, (req, res, next) => {
-    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
-    next();
-}, async (req, res) => {
+router.post('/maintenance/update-status/:id', requireLogin, requireMaintenance, async (req, res) => {
     try {
+        if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
         const id = parseInt(req.params.id);
         if (isNaN(id)) return res.status(400).send('ID tidak valid.');
+        // Pastikan item ini memang jurnal maintenance
+        const item = await prisma.journal.findFirst({ where: { id, jenisJurnal: 'MAINTENANCE' } });
+        if (!item) return res.status(404).send('Data tidak ditemukan.');
         await prisma.journal.update({ where: { id }, data: { status: req.body.newStatus } });
-        res.redirect('/kerja');
+        res.redirect('/maintenance');
     } catch (error) { console.error(error); res.status(500).send('Gagal Update.'); }
 });
 
 // ==========================================
-// UPLOAD FOTO SESUDAH
+// UPLOAD FOTO SESUDAH MAINTENANCE
 // ==========================================
-router.post('/upload-foto/:id', requireLogin, (req, res, next) => {
-    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
-    next();
-}, upload.single('foto'), async (req, res) => {
+router.post('/maintenance/upload-foto/:id', requireLogin, requireMaintenance, upload.single('foto'), async (req, res) => {
     try {
+        if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
         if (req.file) {
             const fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
             await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoUrl } });
         }
-        res.redirect('/kerja');
+        res.redirect('/maintenance');
     } catch (error) { console.error(error); res.status(500).send('Gagal Upload.'); }
 });
 
 // ==========================================
-// UPLOAD FOTO AWAL
+// UPLOAD FOTO AWAL MAINTENANCE
 // ==========================================
-router.post('/upload-foto-awal/:id', requireLogin, (req, res, next) => {
-    if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
-    next();
-}, upload.single('fotoAwal'), async (req, res) => {
+router.post('/maintenance/upload-foto-awal/:id', requireLogin, requireMaintenance, upload.single('fotoAwal'), async (req, res) => {
     try {
+        if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
         if (req.file) {
             const fotoAwalUrl = await saveCompressedPhoto(req.file, 'fotoAwal', 'log');
             await prisma.journal.update({ where: { id: parseInt(req.params.id) }, data: { fotoAwalUrl } });
         }
-        res.redirect('/kerja');
+        res.redirect('/maintenance');
     } catch (error) { console.error(error); res.status(500).send('Gagal Upload Awal.'); }
 });
 
 // ==========================================
-// EDIT DATA
+// EDIT DATA MAINTENANCE
 // ==========================================
-router.post('/edit/:id', requireLogin, (req, res, next) => {
+router.post('/maintenance/edit/:id', requireLogin, requireMaintenance, (req, res, next) => {
     if (!hasPerm(req.session.user, 'canEdit')) return res.status(403).render('403', { message: 'Akses ditolak.' });
     next();
 }, uploadFields, async (req, res) => {
@@ -310,19 +252,26 @@ router.post('/edit/:id', requireLogin, (req, res, next) => {
         if (!divisi    || !divisi.trim())    return res.status(400).send('Gagal: Divisi wajib diisi.');
         if (!pemesan   || !pemesan.trim())   return res.status(400).send('Gagal: Pemesan wajib diisi.');
 
+        // Pastikan item ini milik maintenance
+        const existing = await prisma.journal.findFirst({ where: { id, jenisJurnal: 'MAINTENANCE' } });
+        if (!existing) return res.status(404).send('Data tidak ditemukan.');
+
         const fotoFile     = req.files?.foto?.[0]     || null;
         const fotoAwalFile = req.files?.fotoAwal?.[0] || null;
 
-        let updateData = { aktivitas: aktivitas.trim(), divisi: divisi.trim(), pemesan: pemesan.trim(), deskripsi: deskripsi || '', status, tipeInput };
+        let updateData = {
+            aktivitas: aktivitas.trim(), divisi: divisi.trim(), pemesan: pemesan.trim(),
+            deskripsi: deskripsi || '', status, tipeInput
+        };
         if (fotoFile)     updateData.fotoUrl     = await saveCompressedPhoto(fotoFile,     'foto',     'log');
         if (fotoAwalFile) updateData.fotoAwalUrl = await saveCompressedPhoto(fotoAwalFile, 'fotoAwal', 'log');
 
         if (tipeInput === 'multihari') {
             const dtMulai   = buildDateTime(tanggalMulaiDate,   jamMulaiMulti);
             const dtSelesai = buildDateTime(tanggalSelesaiDate, jamSelesaiMulti);
-            if (!dtMulai)              return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
-            if (!dtSelesai)            return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
-            if (dtSelesai <= dtMulai)  return res.status(400).send('Gagal: Tanggal Selesai harus lebih besar dari Tanggal Mulai.');
+            if (!dtMulai)             return res.status(400).send('Gagal: Tanggal Mulai tidak valid.');
+            if (!dtSelesai)           return res.status(400).send('Gagal: Tanggal Selesai tidak valid.');
+            if (dtSelesai <= dtMulai) return res.status(400).send('Gagal: Tanggal Selesai harus lebih besar dari Tanggal Mulai.');
             Object.assign(updateData, {
                 tanggalManual: dtMulai, tanggalMulai: dtMulai, tanggalSelesai: dtSelesai,
                 jamMulai: jamMulaiMulti || null, jamSelesai: jamSelesaiMulti || null,
@@ -339,26 +288,24 @@ router.post('/edit/:id', requireLogin, (req, res, next) => {
         }
 
         await prisma.journal.update({ where: { id }, data: updateData });
-        res.redirect('/kerja');
+        res.redirect('/maintenance');
     } catch (error) {
-        console.error('[EDIT ERROR]', error.message);
+        console.error('[MAINTENANCE EDIT ERROR]', error.message);
         res.status(500).send('Gagal Edit: ' + error.message);
     }
 });
 
 // ==========================================
-// DELETE
+// DELETE MAINTENANCE
 // ==========================================
-router.post('/delete/:id', requireLogin, (req, res, next) => {
-    if (!hasPerm(req.session.user, 'canDelete')) return res.status(403).render('403', { message: 'Akses ditolak. Hanya yang punya izin hapus.' });
-    next();
-}, async (req, res) => {
+router.post('/maintenance/delete/:id', requireLogin, requireMaintenance, async (req, res) => {
     try {
+        if (!hasPerm(req.session.user, 'canDelete')) return res.status(403).render('403', { message: 'Akses ditolak.' });
         const fs   = require('fs');
         const path = require('path');
         const id   = parseInt(req.params.id);
         if (isNaN(id)) return res.status(400).send('ID tidak valid.');
-        const item = await prisma.journal.findUnique({ where: { id } });
+        const item = await prisma.journal.findFirst({ where: { id, jenisJurnal: 'MAINTENANCE' } });
         if (item) {
             [item.fotoUrl, item.fotoAwalUrl].forEach(u => {
                 if (u) {
@@ -366,55 +313,45 @@ router.post('/delete/:id', requireLogin, (req, res, next) => {
                     if (fs.existsSync(p)) fs.unlinkSync(p);
                 }
             });
+            await prisma.journal.delete({ where: { id } });
         }
-        await prisma.journal.delete({ where: { id } });
-        res.redirect('/kerja');
+        res.redirect('/maintenance');
     } catch (error) { console.error(error); res.status(500).send('Gagal Delete.'); }
 });
 
 // ==========================================
-// EXPORT EXCEL LOG
+// EXPORT EXCEL MAINTENANCE
 // ==========================================
-router.get('/export', requireLogin, (req, res, next) => {
-    if (!hasPerm(req.session.user, 'canExport') && !hasPerm(req.session.user, 'canAudit')) {
-        return res.status(403).render('403', { message: 'Akses ditolak.' });
-    }
-    next();
-}, async (req, res) => {
+router.get('/maintenance/export', requireLogin, requireMaintenance, async (req, res) => {
     try {
+        if (!hasPerm(req.session.user, 'canExport') && !hasPerm(req.session.user, 'canAudit') && !hasPerm(req.session.user, 'canUsers')) {
+            return res.status(403).render('403', { message: 'Akses ditolak.' });
+        }
         const { date, month, year, dateFrom, dateTo } = req.query;
-        let whereClause = { jenisJurnal: 'IT' }, fileName = 'Log-IT.xlsx';
+        let whereClause = { jenisJurnal: 'MAINTENANCE' };
+        let fileName = 'Log-Maintenance.xlsx';
 
         if (dateFrom || dateTo) {
             const from = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date('2000-01-01');
             const to   = dateTo   ? new Date(dateTo   + 'T23:59:59') : new Date('2099-12-31');
-            whereClause = { jenisJurnal: 'IT', OR: [
+            whereClause = { jenisJurnal: 'MAINTENANCE', OR: [
                 { tipeInput: { not: 'multihari' }, tanggalManual: { gte: from, lte: to } },
                 { tipeInput: 'multihari', tanggalMulai: { lte: to }, tanggalSelesai: { gte: from } }
             ]};
-            fileName = 'Log-IT-' + (dateFrom || '') + (dateTo && dateTo !== dateFrom ? '_sd_' + dateTo : '') + '.xlsx';
-        } else if (date) {
-            const d = new Date(date);
-            const s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-            const e = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
-            whereClause = { jenisJurnal: 'IT', OR: [
-                { tipeInput: { not: 'multihari' }, tanggalManual: { gte: s, lte: e } },
-                { tipeInput: 'multihari', tanggalMulai: { lte: e }, tanggalSelesai: { gte: s } }
-            ]};
-            fileName = 'Log-IT-' + date + '.xlsx';
+            fileName = 'Log-Maintenance-' + (dateFrom || '') + (dateTo && dateTo !== dateFrom ? '_sd_' + dateTo : '') + '.xlsx';
         } else if (month && year) {
             const m = parseInt(month), y = parseInt(year);
             const s = new Date(y, m - 1, 1), e = new Date(y, m, 0, 23, 59, 59);
-            whereClause = { jenisJurnal: 'IT', OR: [
+            whereClause = { jenisJurnal: 'MAINTENANCE', OR: [
                 { tipeInput: { not: 'multihari' }, tanggalManual: { gte: s, lte: e } },
                 { tipeInput: 'multihari', tanggalMulai: { lte: e }, tanggalSelesai: { gte: s } }
             ]};
-            fileName = 'Log-IT-' + month + '-' + year + '.xlsx';
+            fileName = 'Log-Maintenance-' + month + '-' + year + '.xlsx';
         }
 
         const journals  = await prisma.journal.findMany({ where: whereClause, orderBy: { tanggalManual: 'desc' } });
         const workbook  = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('IT Support Log');
+        const worksheet = workbook.addWorksheet('Maintenance Log');
 
         worksheet.columns = [
             { header: 'TIPE',         key: 'tipe',       width: 10 },
@@ -431,7 +368,7 @@ router.get('/export', requireLogin, (req, res, next) => {
         ];
 
         worksheet.getRow(1).eachCell(cell => {
-            cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: '161B22' } };
+            cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1a3a2a' } };
             cell.font      = { color: { argb: 'FFFFFF' }, bold: true };
             cell.alignment = { vertical: 'middle', horizontal: 'center' };
         });
@@ -456,7 +393,7 @@ router.get('/export', requireLogin, (req, res, next) => {
                 deskripsi:  item.deskripsi,
                 status:     item.status
             });
-            if (i % 2 !== 0) row.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9F9F9' } });
+            if (i % 2 !== 0) row.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9FFF9' } });
             if (item.fotoAwalUrl) { row.getCell('fotoAwal').value = { text: 'LIHAT FOTO AWAL',    hyperlink: base + item.fotoAwalUrl }; row.getCell('fotoAwal').font = { color: { argb: '0000FF' }, underline: true }; }
             if (item.fotoUrl)     { row.getCell('foto').value     = { text: 'LIHAT FOTO SESUDAH', hyperlink: base + item.fotoUrl };    row.getCell('foto').font     = { color: { argb: '0000FF' }, underline: true }; }
         });

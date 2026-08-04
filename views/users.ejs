@@ -160,7 +160,19 @@
           <input type="text" name="role" class="f-input" placeholder="cth: IT Support, Supervisor, Operator..." value="user">
 
           <label class="f-label">Divisi <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(menentukan akses data aset)</span></label>
-          <input type="text" name="divisi" class="f-input" placeholder="cth: IT, GA, FINANCE, HR..." value="IT" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+          <select name="divisi" id="add_divisi" class="f-input" onchange="this.value=this.value.toUpperCase()">
+            <option value="IT">IT</option>
+            <option value="MAINTENANCE">MAINTENANCE</option>
+            <option value="HRGA">HRGA</option>
+            <option value="ACCOUNTING">ACCOUNTING</option>
+            <option value="FINANCE">FINANCE</option>
+            <option value="OPERASIONAL">OPERASIONAL</option>
+            <option value="PRODUKSI">PRODUKSI</option>
+            <option value="BAHANBAKU">BAHANBAKU</option>
+            <option value="ADMIN SALES">ADMIN SALES</option>
+            <option value="EXIM & PEMBELIAN">EXIM &amp; PEMBELIAN</option>
+            <option value="IT & IC">IT &amp; IC</option>
+          </select>
 
           <!-- PERMISSION BUILDER -->
           <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; margin-bottom: 0.75rem; background: var(--body-bg);">
@@ -171,8 +183,9 @@
             <!-- PRESET BUTTONS -->
             <div class="preset-row">
               <button type="button" class="preset-btn preset-admin"  onclick="setPreset('add', 'admin')">Admin</button>
-              <button type="button" class="preset-btn preset-user"   onclick="setPreset('add', 'user')">User</button>
+              <button type="button" class="preset-btn preset-user"   onclick="setPreset('add', 'user')">User IT</button>
               <button type="button" class="preset-btn preset-viewer" onclick="setPreset('add', 'viewer')">Viewer</button>
+              <button type="button" class="preset-btn" style="background:#3d1a00;color:#fb923c;border-color:#7c3300;" onclick="setPreset('add', 'maintenance')">🔧 MTC</button>
               <button type="button" class="preset-btn preset-clear"  onclick="setPreset('add', 'clear')">Clear</button>
             </div>
 
@@ -348,7 +361,19 @@
               <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
               <input type="text" name="role" id="edit_role" class="f-input" placeholder="cth: IT Support, Supervisor...">
               <label class="f-label">Divisi <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(menentukan akses data aset)</span></label>
-              <input type="text" name="divisi" id="edit_divisi" class="f-input" placeholder="cth: IT, GA, FINANCE..." style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+              <select name="divisi" id="edit_divisi" class="f-input">
+                <option value="IT">IT</option>
+                <option value="MAINTENANCE">MAINTENANCE</option>
+                <option value="HRGA">HRGA</option>
+                <option value="ACCOUNTING">ACCOUNTING</option>
+                <option value="FINANCE">FINANCE</option>
+                <option value="OPERASIONAL">OPERASIONAL</option>
+                <option value="PRODUKSI">PRODUKSI</option>
+                <option value="BAHANBAKU">BAHANBAKU</option>
+                <option value="ADMIN SALES">ADMIN SALES</option>
+                <option value="EXIM & PEMBELIAN">EXIM &amp; PEMBELIAN</option>
+                <option value="IT & IC">IT &amp; IC</option>
+              </select>
               <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
               <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrength(this.value, 'passStrengthBarEdit')">
               <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
@@ -359,8 +384,9 @@
                 <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Hak Akses</div>
                 <div class="preset-row">
                   <button type="button" class="preset-btn preset-admin"  onclick="setPreset('edit', 'admin')">Admin</button>
-                  <button type="button" class="preset-btn preset-user"   onclick="setPreset('edit', 'user')">User</button>
+                  <button type="button" class="preset-btn preset-user"   onclick="setPreset('edit', 'user')">User IT</button>
                   <button type="button" class="preset-btn preset-viewer" onclick="setPreset('edit', 'viewer')">Viewer</button>
+                  <button type="button" class="preset-btn" style="background:#3d1a00;color:#fb923c;border-color:#7c3300;" onclick="setPreset('edit', 'maintenance')">🔧 MTC</button>
                   <button type="button" class="preset-btn preset-clear"  onclick="setPreset('edit', 'clear')">Clear</button>
                 </div>
                 <div class="perm-grid" id="permGrid_edit">
@@ -454,10 +480,11 @@ var permState = {
 };
 
 var PRESETS = {
-  admin:  { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true, canViewLog:true, canAudit:false, canVendor:true },
-  user:   { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
-  viewer: { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
-  clear:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false }
+  admin:       { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true, canViewLog:true, canAudit:false, canVendor:true },
+  user:        { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
+  viewer:      { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
+  maintenance: { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
+  clear:       { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false }
 };
 
 var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor'];
@@ -472,6 +499,14 @@ function togglePerm(form, perm) {
 // Set preset
 function setPreset(form, preset) {
   permState[form] = Object.assign({}, PRESETS[preset]);
+  // Auto-set divisi sesuai preset
+  if (preset === 'maintenance') {
+    var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
+    if (divisiEl) divisiEl.value = 'MAINTENANCE';
+  } else if (preset === 'user' || preset === 'admin') {
+    var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
+    if (divisiEl && divisiEl.value === 'MAINTENANCE') divisiEl.value = 'IT';
+  }
   renderPerms(form);
   syncCheckboxes(form);
 }
