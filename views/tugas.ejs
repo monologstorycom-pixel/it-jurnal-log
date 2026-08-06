@@ -87,7 +87,7 @@
     </button>
   </div>
   <div class="drawer-body">
-    <form action="/tugas/buat" method="POST" id="formBuat">
+    <form action="/tugas/buat" method="POST" enctype="multipart/form-data" id="formBuat">
       <input type="hidden" name="prioritas" id="prioritasVal" value="Normal">
       <div class="field-group">
         <div class="field-group-title">Detail Tugas</div>
@@ -103,6 +103,16 @@
         <div class="prioritas-toggle">
           <div class="prio-btn active-normal" id="btnNormal" onclick="setPrioritas('Normal')">⚡ NORMAL</div>
           <div class="prio-btn" id="btnUrgent" onclick="setPrioritas('Urgent')">🔴 URGENT</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Foto Petunjuk Lokasi (opsional)</div>
+        <div class="upload-area">
+          <input type="file" name="foto" accept="image/*" capture="environment" onchange="document.getElementById('lblFotoTugas').textContent=this.files[0]?.name||'Pilih foto'">
+          <div class="upload-area-inner">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <div><span id="lblFotoTugas">Foto lokasi/kondisi untuk petunjuk</span><small>Opsional — tap untuk kamera</small></div>
+          </div>
         </div>
       </div>
       <button type="submit" class="btn-simpan">
@@ -229,8 +239,11 @@
           <span class="badge-status <%= t.status === 'Selesai' ? 'badge-selesai' : (t.status === 'Proses' ? 'badge-proses' : 'badge-belum') %>">
             <%= t.status === 'Selesai' ? '✓ Selesai' : (t.status === 'Proses' ? '⏳ Proses' : '○ Belum') %>
           </span>
+          <% if (t.fotoTugasUrl) { %>
+          <button onclick="showFoto('<%= t.fotoTugasUrl %>','Foto Petunjuk Lokasi')" style="background:#3d1a00;color:#fb923c;border:1px solid #7c3300;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;">📍 Lihat Lokasi</button>
+          <% } %>
           <% if (t.fotoUrl) { %>
-          <button onclick="showFoto('<%= t.fotoUrl %>')" style="background:#0d2a18;color:#4ade80;border:1px solid #1a5c30;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;">📷 Lihat Bukti</button>
+          <button onclick="showFoto('<%= t.fotoUrl %>','Bukti Selesai')" style="background:#0d2a18;color:#4ade80;border:1px solid #1a5c30;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;">📷 Lihat Bukti</button>
           <% } %>
         </div>
       </div>
@@ -239,7 +252,7 @@
         <button onclick="openStatusModal(<%= t.id %>, '<%= t.status %>', `<%- (t.judul||'').replace(/`/g,'\\`') %>`)" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">Update Status</button>
         <% } %>
         <% if (canManage) { %>
-        <button onclick="openEditModal(<%= t.id %>, `<%- (t.judul||'').replace(/`/g,'\\`') %>`, `<%- (t.deskripsi||'').replace(/`/g,'\\`') %>`, '<%= new Date(t.tanggal).toISOString().slice(0,10) %>', '<%= t.prioritas %>', '<%= t.status %>')" class="btn btn-sm fw-bold" style="background:#0d3d6e;border:1px solid #1a5a9e;color:#7eb8f7;font-size:0.7rem;">Edit</button>
+        <button onclick="openEditModal(<%= t.id %>, `<%- (t.judul||'').replace(/`/g,'\\`') %>`, `<%- (t.deskripsi||'').replace(/`/g,'\\`') %>`, '<%= new Date(t.tanggal).toISOString().slice(0,10) %>', '<%= t.prioritas %>', '<%= t.status %>', '<%= t.fotoTugasUrl || '' %>')" class="btn btn-sm fw-bold" style="background:#0d3d6e;border:1px solid #1a5a9e;color:#7eb8f7;font-size:0.7rem;">Edit</button>
         <form method="POST" action="/tugas/hapus/<%= t.id %>" style="margin:0;" onsubmit="return confirm('Hapus tugas ini?')">
           <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
           <button type="submit" class="btn btn-sm fw-bold" style="background:#2a0d0d;border:1px solid #5c1a1a;color:#f87171;font-size:0.7rem;">Hapus</button>
@@ -314,7 +327,7 @@
         <h5 class="modal-title" style="color:var(--body-text);">✏️ Edit Tugas</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <form id="formEdit" action="" method="POST">
+      <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
         <div class="modal-body">
           <span class="label-text">Judul</span>
           <input type="text" name="judul" id="edit_judul" class="input-custom" required>
@@ -333,6 +346,17 @@
             <option value="Proses">Proses</option>
             <option value="Selesai">Selesai</option>
           </select>
+          <span class="label-text" style="color:#fb923c;">📍 Ganti Foto Petunjuk Lokasi (opsional)</span>
+          <div id="editFotoTugasPreview" style="display:none;margin-bottom:8px;">
+            <img id="editFotoTugasImg" src="" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;border:1px solid #f97316;">
+          </div>
+          <div class="upload-area">
+            <input type="file" name="foto" accept="image/*" capture="environment" onchange="previewEditFotoTugas(this)">
+            <div class="upload-area-inner">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <div><span id="editLblFotoTugas">Biarkan kosong = tidak berubah</span><small>Pilih untuk ganti</small></div>
+            </div>
+          </div>
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
@@ -383,19 +407,44 @@ function setStatusModal(s) {
 }
 
 // EDIT MODAL
-function openEditModal(id, judul, deskripsi, tanggal, prioritas, status) {
+function openEditModal(id, judul, deskripsi, tanggal, prioritas, status, fotoTugasUrl) {
     document.getElementById('formEdit').action = '/tugas/edit/' + id;
     document.getElementById('edit_judul').value     = judul;
     document.getElementById('edit_deskripsi').value = deskripsi;
     document.getElementById('edit_tanggal').value   = tanggal;
     document.getElementById('edit_prioritas').value = prioritas;
     document.getElementById('edit_status').value    = status;
+    // Preview foto existing
+    const prevEl = document.getElementById('editFotoTugasPreview');
+    const imgEl  = document.getElementById('editFotoTugasImg');
+    const lblEl  = document.getElementById('editLblFotoTugas');
+    if (fotoTugasUrl) {
+        imgEl.src = fotoTugasUrl;
+        prevEl.style.display = 'block';
+        lblEl.textContent = '✓ Ada foto — pilih untuk ganti';
+    } else {
+        prevEl.style.display = 'none';
+        lblEl.textContent = 'Biarkan kosong = tidak berubah';
+    }
     new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
+function previewEditFotoTugas(input) {
+    if (input.files && input.files[0]) {
+        document.getElementById('editLblFotoTugas').textContent = input.files[0].name;
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('editFotoTugasImg').src = e.target.result;
+            document.getElementById('editFotoTugasPreview').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 // FOTO
-function showFoto(url) {
+function showFoto(url, title) {
     document.getElementById('fotoImg').src = url;
+    document.querySelector('#fotoModal .modal-title').textContent = title || '📷 Foto';
     new bootstrap.Modal(document.getElementById('fotoModal')).show();
 }
 

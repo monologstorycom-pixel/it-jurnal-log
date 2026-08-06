@@ -4,7 +4,7 @@ const router  = express.Router();
 const prisma           = require('../services/prisma');
 const { requireLogin } = require('../middleware/auth');
 const { hasPerm }      = require('../helpers/permissions');
-const { uploadSingle, saveCompressedPhoto } = require('../helpers/photo');
+const { uploadSingle, uploadFields, saveCompressedPhoto } = require('../helpers/photo');
 
 // ==========================================
 // HELPER
@@ -66,13 +66,19 @@ router.get('/tugas', requireLogin, async (req, res) => {
 // ==========================================
 // BUAT TUGAS BARU
 // ==========================================
-router.post('/tugas/buat', requireLogin, async (req, res) => {
+router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
     const user = req.session.user;
     if (!canManageTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
     try {
         const { judul, deskripsi, tanggal, prioritas } = req.body;
         if (!judul || !judul.trim()) return res.status(400).send('Judul wajib diisi.');
         if (!tanggal) return res.status(400).send('Tanggal wajib diisi.');
+
+        let fotoTugasUrl = null;
+        if (req.file) {
+            fotoTugasUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
+        }
+
         await prisma.tugas.create({
             data: {
                 judul: judul.trim(),
@@ -80,7 +86,8 @@ router.post('/tugas/buat', requireLogin, async (req, res) => {
                 buatOleh: user.nama,
                 tanggal: new Date(tanggal + 'T00:00:00'),
                 prioritas: prioritas || 'Normal',
-                status: 'Belum'
+                status: 'Belum',
+                fotoTugasUrl
             }
         });
         res.redirect('/tugas?saved=1&tanggal=' + tanggal);
@@ -90,17 +97,24 @@ router.post('/tugas/buat', requireLogin, async (req, res) => {
 // ==========================================
 // EDIT TUGAS
 // ==========================================
-router.post('/tugas/edit/:id', requireLogin, async (req, res) => {
+router.post('/tugas/edit/:id', requireLogin, uploadSingle, async (req, res) => {
     const user = req.session.user;
     if (!canManageTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
     try {
         const id = parseInt(req.params.id);
         const { judul, deskripsi, tanggal, prioritas, status } = req.body;
         if (!judul || !judul.trim()) return res.status(400).send('Judul wajib diisi.');
-        await prisma.tugas.update({
-            where: { id },
-            data: { judul: judul.trim(), deskripsi: deskripsi || '', tanggal: new Date(tanggal + 'T00:00:00'), prioritas: prioritas || 'Normal', status: status || 'Belum' }
-        });
+
+        const updateData = {
+            judul: judul.trim(), deskripsi: deskripsi || '',
+            tanggal: new Date(tanggal + 'T00:00:00'),
+            prioritas: prioritas || 'Normal', status: status || 'Belum'
+        };
+        if (req.file) {
+            updateData.fotoTugasUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
+        }
+
+        await prisma.tugas.update({ where: { id }, data: updateData });
         res.redirect('/tugas?tanggal=' + tanggal);
     } catch (err) { console.error(err); res.status(500).send('Gagal edit tugas: ' + err.message); }
 });
@@ -170,15 +184,16 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
         const ws = workbook.addWorksheet('Tugas Maintenance');
 
         ws.columns = [
-            { header: 'NO',         key: 'no',        width: 5  },
-            { header: 'TANGGAL',    key: 'tanggal',   width: 18 },
-            { header: 'JUDUL TUGAS',key: 'judul',     width: 35 },
-            { header: 'DESKRIPSI',  key: 'deskripsi', width: 40 },
-            { header: 'PRIORITAS',  key: 'prioritas', width: 12 },
-            { header: 'STATUS',     key: 'status',    width: 12 },
-            { header: 'CATATAN',    key: 'catatan',   width: 30 },
-            { header: 'DIBUAT OLEH',key: 'buatOleh',  width: 20 },
-            { header: 'FOTO BUKTI', key: 'foto',      width: 15 },
+            { header: 'NO',           key: 'no',           width: 5  },
+            { header: 'TANGGAL',      key: 'tanggal',      width: 18 },
+            { header: 'JUDUL TUGAS',  key: 'judul',        width: 35 },
+            { header: 'DESKRIPSI',    key: 'deskripsi',    width: 40 },
+            { header: 'PRIORITAS',    key: 'prioritas',    width: 12 },
+            { header: 'STATUS',       key: 'status',       width: 12 },
+            { header: 'CATATAN',      key: 'catatan',      width: 30 },
+            { header: 'DIBUAT OLEH',  key: 'buatOleh',     width: 20 },
+            { header: 'FOTO PETUNJUK',key: 'fotoTugas',    width: 16 },
+            { header: 'FOTO BUKTI',   key: 'foto',         width: 14 },
         ];
 
         // Header style
@@ -208,7 +223,8 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
             // Warna prioritas
             if (t.prioritas === 'Urgent') row.getCell('prioritas').font = { color: { argb: 'dc2626' }, bold: true };
             // Foto link
-            if (t.fotoUrl) { row.getCell('foto').value = { text: 'LIHAT FOTO', hyperlink: base + t.fotoUrl }; row.getCell('foto').font = { color: { argb: '0000FF' }, underline: true }; }
+            if (t.fotoTugasUrl) { row.getCell('fotoTugas').value = { text: 'LIHAT PETUNJUK', hyperlink: base + t.fotoTugasUrl }; row.getCell('fotoTugas').font = { color: { argb: 'ea580c' }, underline: true }; }
+            if (t.fotoUrl)     { row.getCell('foto').value = { text: 'LIHAT FOTO', hyperlink: base + t.fotoUrl }; row.getCell('foto').font = { color: { argb: '0000FF' }, underline: true }; }
             // Zebra
             if (i % 2 !== 0) row.eachCell(c => { if (!c.font?.color) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9FFF9' } }; });
         });
