@@ -142,4 +142,92 @@ router.post('/tugas/status/:id', requireLogin, uploadSingle, async (req, res) =>
     } catch (err) { console.error(err); res.status(500).send('Gagal update status: ' + err.message); }
 });
 
+// ==========================================
+// EXPORT EXCEL TUGAS
+// ==========================================
+router.get('/tugas/export', requireLogin, async (req, res) => {
+    const user = req.session.user;
+    if (!canManageTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    try {
+        const ExcelJS = require('exceljs');
+        const { dateFrom, dateTo, tanggal } = req.query;
+        let where = {}, fileName = 'Laporan-Tugas-Maintenance.xlsx';
+
+        if (dateFrom || dateTo) {
+            const from = dateFrom ? new Date(dateFrom + 'T00:00:00') : new Date('2000-01-01');
+            const to   = dateTo   ? new Date(dateTo   + 'T23:59:59') : new Date('2099-12-31');
+            where = { tanggal: { gte: from, lte: to } };
+            fileName = 'Tugas-MTC-' + (dateFrom || '') + (dateTo && dateTo !== dateFrom ? '_sd_' + dateTo : '') + '.xlsx';
+        } else if (tanggal) {
+            const [y, m, d] = tanggal.split('-').map(Number);
+            where = { tanggal: { gte: new Date(y, m-1, d, 0,0,0), lte: new Date(y, m-1, d, 23,59,59) } };
+            fileName = 'Tugas-MTC-' + tanggal + '.xlsx';
+        }
+
+        const data = await prisma.tugas.findMany({ where, orderBy: [{ tanggal: 'asc' }, { prioritas: 'desc' }] });
+
+        const workbook  = new ExcelJS.Workbook();
+        const ws = workbook.addWorksheet('Tugas Maintenance');
+
+        ws.columns = [
+            { header: 'NO',         key: 'no',        width: 5  },
+            { header: 'TANGGAL',    key: 'tanggal',   width: 18 },
+            { header: 'JUDUL TUGAS',key: 'judul',     width: 35 },
+            { header: 'DESKRIPSI',  key: 'deskripsi', width: 40 },
+            { header: 'PRIORITAS',  key: 'prioritas', width: 12 },
+            { header: 'STATUS',     key: 'status',    width: 12 },
+            { header: 'CATATAN',    key: 'catatan',   width: 30 },
+            { header: 'DIBUAT OLEH',key: 'buatOleh',  width: 20 },
+            { header: 'FOTO BUKTI', key: 'foto',      width: 15 },
+        ];
+
+        // Header style
+        ws.getRow(1).eachCell(cell => {
+            cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1a3a2a' } };
+            cell.font      = { color: { argb: 'FFFFFF' }, bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        const base = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
+        data.forEach((t, i) => {
+            const row = ws.addRow({
+                no:        i + 1,
+                tanggal:   new Date(t.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+                judul:     t.judul,
+                deskripsi: t.deskripsi || '-',
+                prioritas: t.prioritas,
+                status:    t.status,
+                catatan:   t.catatan || '-',
+                buatOleh:  t.buatOleh,
+            });
+            // Warna status
+            const statusCell = row.getCell('status');
+            if (t.status === 'Selesai')     { statusCell.font = { color: { argb: '16a34a' }, bold: true }; }
+            else if (t.status === 'Proses') { statusCell.font = { color: { argb: '2563eb' }, bold: true }; }
+            else                            { statusCell.font = { color: { argb: 'ea580c' }, bold: true }; }
+            // Warna prioritas
+            if (t.prioritas === 'Urgent') row.getCell('prioritas').font = { color: { argb: 'dc2626' }, bold: true };
+            // Foto link
+            if (t.fotoUrl) { row.getCell('foto').value = { text: 'LIHAT FOTO', hyperlink: base + t.fotoUrl }; row.getCell('foto').font = { color: { argb: '0000FF' }, underline: true }; }
+            // Zebra
+            if (i % 2 !== 0) row.eachCell(c => { if (!c.font?.color) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9FFF9' } }; });
+        });
+
+        // Border semua
+        ws.eachRow(row => row.eachCell(cell => {
+            cell.border = { top:{style:'thin'}, left:{style:'thin'}, bottom:{style:'thin'}, right:{style:'thin'} };
+        }));
+
+        // Summary row
+        ws.addRow([]);
+        const summaryRow = ws.addRow(['', '', '', '', '', `Total: ${data.length}`, `Selesai: ${data.filter(t=>t.status==='Selesai').length}`, `Belum/Proses: ${data.filter(t=>t.status!=='Selesai').length}`]);
+        summaryRow.font = { bold: true };
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=' + fileName);
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (err) { console.error(err); res.status(500).send('Gagal export: ' + err.message); }
+});
+
 module.exports = router;
