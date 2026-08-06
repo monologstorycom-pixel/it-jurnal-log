@@ -47,6 +47,7 @@ router.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
             canViewLog: req.body.canViewLog === 'on',
             canAudit:   req.body.canAudit   === 'on',
             canVendor:  req.body.canVendor  === 'on',
+            canTugas:   req.body.canTugas   === 'on',
         };
 
         const role   = req.body.role || 'user';
@@ -97,6 +98,7 @@ router.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             canViewLog: req.body.canViewLog === 'on',
             canAudit:   req.body.canAudit   === 'on',
             canVendor:  req.body.canVendor  === 'on',
+            canTugas:   req.body.canTugas   === 'on',
         };
 
         const role   = req.body.role || 'user';

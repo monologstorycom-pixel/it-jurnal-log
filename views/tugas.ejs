@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tugas Maintenance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', sans-serif; margin: 0; }
+        .input-custom { background: var(--body-bg3, #1e1e2e) !important; border: 1.5px solid var(--body-border) !important; border-radius: 10px; color: var(--body-text) !important; padding: 10px 13px; width: 100%; margin-bottom: 0.65rem; font-size: 0.875rem; }
+        .input-custom:focus { outline: none; border-color: #f97316 !important; box-shadow: 0 0 0 3px rgba(249,115,22,0.13) !important; }
+        .label-text { color: var(--body-text2); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        /* STAT CARDS */
+        .stat-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+        .stat-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 10px; padding: 14px 16px; }
+        .stat-card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--body-text2); margin-bottom: 4px; }
+        .stat-card-value { font-size: 1.7rem; font-weight: 800; line-height: 1; }
+        .stat-card.orange { border-color: #7c3300; } .stat-card.orange .stat-card-value { color: #fb923c; }
+        .stat-card.green  { border-color: #1a5c1a; } .stat-card.green .stat-card-value  { color: #4caf50; }
+        .stat-card.blue   { border-color: #0d3d6e; } .stat-card.blue .stat-card-value   { color: #4da6ff; }
+        .stat-card.red    { border-color: #5c1a1a; } .stat-card.red .stat-card-value    { color: #ff6b6b; }
+        @media(max-width:768px){ .stat-cards { grid-template-columns: repeat(2,1fr); } }
+        /* TUGAS CARDS */
+        .tugas-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.15s; }
+        .tugas-card.urgent { border-left: 4px solid #ef4444; }
+        .tugas-card.normal { border-left: 4px solid #f97316; }
+        .tugas-card.selesai { border-left: 4px solid #22c55e; opacity: 0.7; }
+        .tugas-judul { font-size: 0.95rem; font-weight: 700; color: var(--body-text); margin-bottom: 4px; }
+        .tugas-desc { font-size: 0.8rem; color: var(--body-text2); margin-bottom: 8px; }
+        .tugas-meta { font-size: 0.68rem; color: var(--body-text3); display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+        .badge-status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; }
+        .badge-belum   { background: #2a1a0d; color: #fb923c; border: 1px solid #7c3300; }
+        .badge-proses  { background: #0d1a38; color: #4da6ff; border: 1px solid #0d3d6e; }
+        .badge-selesai { background: #0d2a18; color: #4ade80; border: 1px solid #1a5c30; }
+        .badge-urgent  { background: #3d0000; color: #ff6b6b; border: 1px solid #7c0000; }
+        .badge-normal  { background: #1a1a0d; color: #fde68a; border: 1px solid #5c4a00; }
+        /* DRAWER */
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1040; opacity: 0; pointer-events: none; transition: opacity 0.25s; backdrop-filter: blur(2px); }
+        .drawer-overlay.open { opacity: 1; pointer-events: all; }
+        .drawer-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 390px; max-width: 96vw; background: var(--body-card); border-left: 1px solid var(--body-border); z-index: 1041; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; overflow: hidden; }
+        .drawer-panel.open { transform: translateX(0); }
+        .drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--body-border); background: linear-gradient(135deg, rgba(249,115,22,0.08), transparent); }
+        .drawer-title { font-size: 0.9rem; font-weight: 800; color: var(--body-text); display: flex; align-items: center; gap: 9px; }
+        .drawer-close { background: var(--body-bg3); border: 1px solid var(--body-border); color: var(--body-text2); cursor: pointer; padding: 6px; border-radius: 8px; display: flex; }
+        .drawer-close:hover { background: rgba(239,68,68,0.12); color: #f87171; }
+        .drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px 24px; }
+        .field-group { background: rgba(255,255,255,0.02); border: 1px solid var(--body-border); border-radius: 12px; padding: 14px 14px 6px; margin-bottom: 10px; }
+        .field-group-title { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--body-text2); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .field-group-title::before { content: ''; width: 3px; height: 12px; background: #f97316; border-radius: 2px; }
+        .btn-simpan { width: 100%; padding: 13px; background: linear-gradient(135deg,#c2410c,#f97316); color: #fff; border: none; border-radius: 12px; font-size: 0.85rem; font-weight: 800; cursor: pointer; margin-top: 14px; box-shadow: 0 4px 18px rgba(249,115,22,0.3); }
+        .btn-simpan:hover { opacity: 0.9; }
+        .upload-area { border: 1.5px dashed var(--body-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 0.65rem; cursor: pointer; position: relative; overflow: hidden; }
+        .upload-area:hover { border-color: #f97316; }
+        .upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .upload-area-inner { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--body-text2); pointer-events: none; }
+        .prioritas-toggle { display: flex; gap: 8px; margin-bottom: 0.75rem; }
+        .prio-btn { flex: 1; padding: 10px 8px; border-radius: 10px; border: 1.5px solid var(--body-border); background: var(--body-bg3); color: var(--body-text2); font-size: 0.72rem; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .prio-btn.active-normal { background: linear-gradient(135deg,#1a1a0d,#3d3a00); border-color: #f59e0b; color: #fbbf24; }
+        .prio-btn.active-urgent { background: linear-gradient(135deg,#3d0000,#7c0000); border-color: #ef4444; color: #fca5a5; }
+        /* STATUS UPDATE MODAL */
+        .m-content { background: var(--body-card) !important; border: 1px solid var(--body-border) !important; }
+        .m-header  { border-bottom: 1px solid var(--body-border) !important; }
+        .m-footer  { border-top:    1px solid var(--body-border) !important; }
+        .status-btns { display: flex; gap: 8px; margin-bottom: 0.75rem; }
+        .status-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid var(--body-border); background: var(--body-bg3); color: var(--body-text2); font-size: 0.75rem; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.18s; }
+        .status-btn.active-proses  { background: linear-gradient(135deg,#0d1a38,#1a2d5c); border-color: #4da6ff; color: #7eb8f7; }
+        .status-btn.active-selesai { background: linear-gradient(135deg,#0d2a18,#1a5c30); border-color: #22c55e; color: #4ade80; }
+        .fab-tugas { position: fixed; bottom: 88px; right: 24px; z-index: 1039; background: linear-gradient(135deg,#c2410c,#f97316); color: #fff; border: none; border-radius: 50px; padding: 13px 22px; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(249,115,22,0.4); display: flex; align-items: center; gap: 8px; }
+        .fab-tugas:hover { transform: translateY(-2px); }
+        @media(min-width:768px){ .drawer-overlay.open { display:flex; align-items:center; justify-content:center; } .drawer-panel { position:static; transform:none !important; width:520px; max-width:90vw; max-height:88vh; border-left:none; border:1px solid var(--body-border); border-radius:16px; box-shadow:0 24px 80px rgba(0,0,0,0.5); display:none; flex-direction:column; } .drawer-panel.open { display:flex; animation:modalFadeIn 0.22s ease; } @keyframes modalFadeIn { from{opacity:0;transform:scale(0.95) translateY(-12px);} to{opacity:1;transform:scale(1) translateY(0);} } }
+    </style>
+</head>
+<body>
+<%- include('navbar', {activePage: 'tugas'}) %>
+
+<!-- DRAWER TAMBAH TUGAS -->
+<% if (canManage) { %>
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer-panel" id="drawerPanel" onclick="event.stopPropagation()">
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Buat Tugas Baru
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <form action="/tugas/buat" method="POST" id="formBuat">
+      <input type="hidden" name="prioritas" id="prioritasVal" value="Normal">
+      <div class="field-group">
+        <div class="field-group-title">Detail Tugas</div>
+        <span class="label-text">Judul Tugas</span>
+        <input type="text" name="judul" class="input-custom" placeholder="cth: Cek mesin produksi lantai 2" required>
+        <span class="label-text">Deskripsi</span>
+        <textarea name="deskripsi" class="input-custom" rows="3" placeholder="Detail pekerjaan yang harus dilakukan..."></textarea>
+        <span class="label-text">Tanggal</span>
+        <input type="date" name="tanggal" id="tglBuat" class="input-custom" required>
+      </div>
+      <div class="field-group">
+        <div class="field-group-title">Prioritas</div>
+        <div class="prioritas-toggle">
+          <div class="prio-btn active-normal" id="btnNormal" onclick="setPrioritas('Normal')">⚡ NORMAL</div>
+          <div class="prio-btn" id="btnUrgent" onclick="setPrioritas('Urgent')">🔴 URGENT</div>
+        </div>
+      </div>
+      <button type="submit" class="btn-simpan">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        BUAT TUGAS
+      </button>
+    </form>
+  </div>
+</div>
+<button class="fab-tugas" onclick="openDrawer()">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Buat Tugas
+</button>
+<% } %>
+
+<div class="container-fluid p-4">
+
+  <% if (saved) { %>
+  <div class="alert" style="background:#0d2a18;border:1px solid #1a5c30;color:#4ade80;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-weight:600;">
+    ✓ Tugas berhasil dibuat!
+  </div>
+  <% } %>
+
+  <!-- PAGE HEADER -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+    <div>
+      <h5 style="margin:0;font-weight:800;color:var(--body-text);">
+        📋 Tugas Maintenance
+        <span style="display:inline-block;background:#3d1a00;color:#fb923c;border:1px solid #7c3300;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:800;margin-left:6px;">MAINTENANCE</span>
+      </h5>
+      <div style="font-size:0.72rem;color:var(--body-text3);margin-top:3px;">Daftar tugas harian tim maintenance</div>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stat-cards">
+    <div class="stat-card orange">
+      <div class="stat-card-label">Total Tugas</div>
+      <div class="stat-card-value"><%= stats.total %></div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-card-label">Belum Mulai</div>
+      <div class="stat-card-value"><%= stats.belum %></div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-card-label">Sedang Proses</div>
+      <div class="stat-card-value"><%= stats.proses %></div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-card-label">Selesai</div>
+      <div class="stat-card-value"><%= stats.selesai %></div>
+    </div>
+  </div>
+
+  <!-- FILTER -->
+  <div style="background:var(--body-card);border:1px solid var(--body-border);border-radius:8px;padding:12px 16px;margin-bottom:14px;">
+    <form action="/tugas" method="GET" style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:0.7rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;">FILTER:</span>
+      <input type="date" name="tanggal" value="<%= filterTanggal %>" class="form-control form-control-sm" style="width:160px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+      <select name="status" class="form-select form-select-sm" style="width:auto;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
+        <option value="">Semua Status</option>
+        <option value="Belum"   <%= filterStatus==='Belum'   ? 'selected' : '' %>>Belum</option>
+        <option value="Proses"  <%= filterStatus==='Proses'  ? 'selected' : '' %>>Proses</option>
+        <option value="Selesai" <%= filterStatus==='Selesai' ? 'selected' : '' %>>Selesai</option>
+      </select>
+      <button type="submit" class="btn btn-sm fw-bold" style="background:#ea580c;border-color:#ea580c;color:#fff;">Cari</button>
+      <button type="button" onclick="setToday()" class="btn btn-sm fw-bold" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);">Hari Ini</button>
+    </form>
+  </div>
+
+  <!-- LIST TUGAS -->
+  <% if (tugas.length === 0) { %>
+  <div style="text-align:center;padding:3rem 1rem;color:var(--body-text3);">
+    <div style="font-size:2rem;margin-bottom:8px;">📋</div>
+    <div style="font-size:0.85rem;font-weight:600;">Tidak ada tugas untuk tanggal ini</div>
+    <% if (canManage) { %>
+    <div style="font-size:0.75rem;margin-top:4px;">Klik <strong>Buat Tugas</strong> untuk menambah</div>
+    <% } %>
+  </div>
+  <% } else { %>
+  <% tugas.forEach(function(t) { %>
+  <div class="tugas-card <%= t.status === 'Selesai' ? 'selesai' : (t.prioritas === 'Urgent' ? 'urgent' : 'normal') %>">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:0;">
+        <div class="tugas-judul">
+          <% if (t.prioritas === 'Urgent') { %><span class="badge-status badge-urgent" style="margin-right:6px;">🔴 URGENT</span><% } %>
+          <%= t.judul %>
+        </div>
+        <% if (t.deskripsi) { %>
+        <div class="tugas-desc"><%= t.deskripsi %></div>
+        <% } %>
+        <div class="tugas-meta">
+          <span>📅 <%= new Date(t.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></span>
+          <span>👤 <%= t.buatOleh %></span>
+          <% if (t.catatan) { %><span>💬 <%= t.catatan %></span><% } %>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span class="badge-status <%= t.status === 'Selesai' ? 'badge-selesai' : (t.status === 'Proses' ? 'badge-proses' : 'badge-belum') %>">
+            <%= t.status === 'Selesai' ? '✓ Selesai' : (t.status === 'Proses' ? '⏳ Proses' : '○ Belum') %>
+          </span>
+          <% if (t.fotoUrl) { %>
+          <button onclick="showFoto('<%= t.fotoUrl %>')" style="background:#0d2a18;color:#4ade80;border:1px solid #1a5c30;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;">📷 Lihat Bukti</button>
+          <% } %>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <% if (t.status !== 'Selesai') { %>
+        <button onclick="openStatusModal(<%= t.id %>, '<%= t.status %>', `<%- (t.judul||'').replace(/`/g,'\\`') %>`)" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">Update Status</button>
+        <% } %>
+        <% if (canManage) { %>
+        <button onclick="openEditModal(<%= t.id %>, `<%- (t.judul||'').replace(/`/g,'\\`') %>`, `<%- (t.deskripsi||'').replace(/`/g,'\\`') %>`, '<%= new Date(t.tanggal).toISOString().slice(0,10) %>', '<%= t.prioritas %>', '<%= t.status %>')" class="btn btn-sm fw-bold" style="background:#0d3d6e;border:1px solid #1a5a9e;color:#7eb8f7;font-size:0.7rem;">Edit</button>
+        <form method="POST" action="/tugas/hapus/<%= t.id %>" style="margin:0;" onsubmit="return confirm('Hapus tugas ini?')">
+          <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
+          <button type="submit" class="btn btn-sm fw-bold" style="background:#2a0d0d;border:1px solid #5c1a1a;color:#f87171;font-size:0.7rem;">Hapus</button>
+        </form>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <% }) %>
+  <% } %>
+
+</div>
+
+<!-- MODAL FOTO BUKTI -->
+<div class="modal fade" id="fotoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content m-content">
+      <div class="modal-header m-header">
+        <h5 class="modal-title" style="color:var(--body-text);">📷 Bukti Foto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0" style="background:#000;">
+        <img id="fotoImg" src="" class="img-fluid d-block mx-auto" style="max-height:75vh;object-fit:contain;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UPDATE STATUS -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content m-content">
+      <div class="modal-header m-header">
+        <h5 class="modal-title" style="color:var(--body-text);">⚡ Update Status Tugas</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formStatus" action="" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="newStatus" id="newStatusVal" value="Proses">
+        <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
+        <div class="modal-body">
+          <div id="statusJudul" style="font-weight:700;color:var(--body-text);margin-bottom:12px;font-size:0.9rem;"></div>
+          <span class="label-text">Pilih Status Baru</span>
+          <div class="status-btns">
+            <div class="status-btn active-proses" id="btnProses" onclick="setStatusModal('Proses')">⏳ PROSES</div>
+            <div class="status-btn" id="btnSelesai" onclick="setStatusModal('Selesai')">✓ SELESAI</div>
+          </div>
+          <span class="label-text">Catatan (opsional)</span>
+          <textarea name="catatan" class="input-custom" rows="2" placeholder="Keterangan tambahan..."></textarea>
+          <span class="label-text" style="color:#fb923c;">📷 Upload Bukti Foto (opsional)</span>
+          <div class="upload-area">
+            <input type="file" name="foto" accept="image/*" capture="environment" onchange="document.getElementById('fotoLabel').textContent=this.files[0]?.name||'Pilih foto bukti'">
+            <div class="upload-area-inner">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <div><span id="fotoLabel">Pilih foto bukti</span><small>Tap untuk kamera</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer m-footer">
+          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+          <button type="submit" class="btn fw-bold" style="background:#ea580c;color:#fff;">SIMPAN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT TUGAS -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content m-content">
+      <div class="modal-header m-header">
+        <h5 class="modal-title" style="color:var(--body-text);">✏️ Edit Tugas</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="formEdit" action="" method="POST">
+        <div class="modal-body">
+          <span class="label-text">Judul</span>
+          <input type="text" name="judul" id="edit_judul" class="input-custom" required>
+          <span class="label-text">Deskripsi</span>
+          <textarea name="deskripsi" id="edit_deskripsi" class="input-custom" rows="3"></textarea>
+          <span class="label-text">Tanggal</span>
+          <input type="date" name="tanggal" id="edit_tanggal" class="input-custom" required>
+          <span class="label-text">Prioritas</span>
+          <select name="prioritas" id="edit_prioritas" class="input-custom">
+            <option value="Normal">Normal</option>
+            <option value="Urgent">Urgent</option>
+          </select>
+          <span class="label-text">Status</span>
+          <select name="status" id="edit_status" class="input-custom">
+            <option value="Belum">Belum</option>
+            <option value="Proses">Proses</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+        </div>
+        <div class="modal-footer m-footer">
+          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
+          <button type="submit" class="btn fw-bold" style="background:#ea580c;color:#fff;">SIMPAN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- FORM HAPUS -->
+<form id="formHapus" method="POST" action="" style="display:none;"></form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){ const t=localStorage.getItem('theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
+
+// DRAWER
+function openDrawer() {
+    document.getElementById('tglBuat').value = '<%= filterTanggal %>';
+    document.getElementById('drawerOverlay').classList.add('open');
+    document.getElementById('drawerPanel').classList.add('open');
+}
+function closeDrawer() {
+    document.getElementById('drawerOverlay').classList.remove('open');
+    document.getElementById('drawerPanel').classList.remove('open');
+}
+
+// PRIORITAS
+function setPrioritas(p) {
+    document.getElementById('prioritasVal').value = p;
+    document.getElementById('btnNormal').className = 'prio-btn' + (p==='Normal' ? ' active-normal' : '');
+    document.getElementById('btnUrgent').className = 'prio-btn' + (p==='Urgent' ? ' active-urgent' : '');
+}
+
+// STATUS MODAL
+function openStatusModal(id, currentStatus, judul) {
+    document.getElementById('formStatus').action = '/tugas/status/' + id;
+    document.getElementById('statusJudul').textContent = judul;
+    const s = currentStatus === 'Belum' ? 'Proses' : 'Selesai';
+    setStatusModal(s);
+    new bootstrap.Modal(document.getElementById('statusModal')).show();
+}
+function setStatusModal(s) {
+    document.getElementById('newStatusVal').value = s;
+    document.getElementById('btnProses').className  = 'status-btn' + (s==='Proses'  ? ' active-proses'  : '');
+    document.getElementById('btnSelesai').className = 'status-btn' + (s==='Selesai' ? ' active-selesai' : '');
+}
+
+// EDIT MODAL
+function openEditModal(id, judul, deskripsi, tanggal, prioritas, status) {
+    document.getElementById('formEdit').action = '/tugas/edit/' + id;
+    document.getElementById('edit_judul').value     = judul;
+    document.getElementById('edit_deskripsi').value = deskripsi;
+    document.getElementById('edit_tanggal').value   = tanggal;
+    document.getElementById('edit_prioritas').value = prioritas;
+    document.getElementById('edit_status').value    = status;
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+// FOTO
+function showFoto(url) {
+    document.getElementById('fotoImg').src = url;
+    new bootstrap.Modal(document.getElementById('fotoModal')).show();
+}
+
+// FILTER TODAY
+function setToday() {
+    const t = new Date().toISOString().split('T')[0];
+    window.location.href = '/tugas?tanggal=' + t;
+}
+
+// THEME
+function toggleTheme() { const c=document.documentElement.getAttribute('data-theme'); const n=c==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',n); localStorage.setItem('theme',n); updateThemeUI(n); }
+function updateThemeUI(t) { const l=document.getElementById('navThemeLabel'); const th=document.getElementById('navThumb'); if(l) l.textContent=t==='light'?'Light':'Dark'; document.documentElement.setAttribute('data-theme',t); if(th){ th.style.transform=t==='light'?'translateX(12px)':''; th.style.background=t==='light'?'#fff':''; } }
+(function(){ updateThemeUI(localStorage.getItem('theme')||'dark'); })();
+function toggleUserDropdown(e) { e.stopPropagation(); document.getElementById('userDropdown')?.classList.toggle('open'); }
+document.addEventListener('click', function(){ document.getElementById('userDropdown')?.classList.remove('open'); });
+function toggleMobileNav() { document.getElementById('mobileNav')?.classList.add('open'); document.getElementById('sidebarOverlay')?.classList.add('open'); }
+function closeSidebar() { document.getElementById('mobileNav')?.classList.remove('open'); document.getElementById('sidebarOverlay')?.classList.remove('open'); }
+</script>
+</body>
+</html>

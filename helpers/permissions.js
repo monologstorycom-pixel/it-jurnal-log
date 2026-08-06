@@ -18,13 +18,14 @@ function getUserPerms(user) {
                 canViewLog: p.canViewLog === true,
                 canAudit:   p.canAudit   === true,
                 canVendor:  p.canVendor  === true,
+                canTugas:   p.canTugas   === true,
             };
         } catch(e) {
             console.warn('[getUserPerms] Gagal parse permissions:', e.message);
-            return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false };
+            return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false };
         }
     }
-    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false };
+    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false };
 }
 
 function hasPerm(user, perm) {

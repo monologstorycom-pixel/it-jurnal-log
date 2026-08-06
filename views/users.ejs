@@ -241,6 +241,11 @@
                 <div class="perm-box" id="box_add_canVendor"></div>
                 <span class="perm-label-text">Akses Vendor</span>
               </div>
+              <div class="perm-check" id="lbl_add_canTugas" data-form="add" data-perm="canTugas" style="border:1px solid #7c330033;background:rgba(124,51,0,0.06);">
+                <input type="checkbox" name="canTugas" id="add_canTugas">
+                <div class="perm-box" id="box_add_canTugas"></div>
+                <span class="perm-label-text">Kelola Tugas MTC</span>
+              </div>
             </div>
           </div>
 
@@ -432,6 +437,11 @@
                     <div class="perm-box" id="box_edit_canVendor"></div>
                     <span class="perm-label-text">Akses Vendor</span>
                   </div>
+                  <div class="perm-check" id="lbl_edit_canTugas" data-form="edit" data-perm="canTugas" style="border:1px solid #7c330033;background:rgba(124,51,0,0.06);">
+                    <input type="checkbox" name="canTugas" id="edit_canTugas">
+                    <div class="perm-box" id="box_edit_canTugas"></div>
+                    <span class="perm-label-text">Kelola Tugas MTC</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -487,7 +497,7 @@ var PRESETS = {
   clear:       { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false }
 };
 
-var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor'];
+var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor','canTugas'];
 
 // Toggle satu permission
 function togglePerm(form, perm) {
