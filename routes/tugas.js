@@ -5,6 +5,7 @@ const prisma           = require('../services/prisma');
 const { requireLogin } = require('../middleware/auth');
 const { hasPerm }      = require('../helpers/permissions');
 const { uploadSingle, uploadFields, saveCompressedPhoto } = require('../helpers/photo');
+const { notifTugasBaru, notifStatusUpdate } = require('../helpers/telegram');
 
 // ==========================================
 // HELPER
@@ -79,7 +80,7 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
             fotoTugasUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
         }
 
-        await prisma.tugas.create({
+        const tugasBaru = await prisma.tugas.create({
             data: {
                 judul: judul.trim(),
                 deskripsi: deskripsi || '',
@@ -90,6 +91,10 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
                 fotoTugasUrl
             }
         });
+
+        // Kirim notif Telegram
+        notifTugasBaru(tugasBaru, process.env.APP_URL);
+
         res.redirect('/tugas?saved=1&tanggal=' + tanggal);
     } catch (err) { console.error(err); res.status(500).send('Gagal buat tugas: ' + err.message); }
 });
@@ -151,7 +156,11 @@ router.post('/tugas/status/:id', requireLogin, uploadSingle, async (req, res) =>
         if (req.file) {
             updateData.fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
         }
-        await prisma.tugas.update({ where: { id }, data: updateData });
+        const tugasUpdated = await prisma.tugas.update({ where: { id }, data: updateData });
+
+        // Kirim notif Telegram status update
+        notifStatusUpdate(tugasUpdated, newStatus, user.nama);
+
         res.redirect('/maintenance?tugasDone=1');
     } catch (err) { console.error(err); res.status(500).send('Gagal update status: ' + err.message); }
 });
