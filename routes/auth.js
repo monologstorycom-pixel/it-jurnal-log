@@ -9,7 +9,7 @@ const { getUserPerms, hasPerm } = require('../helpers/permissions');
 // LOGIN
 // ==========================================
 router.get('/login', (req, res) => {
-    if (req.session && req.session.user) return res.redirect('/kerja');
+    if (req.session && req.session.user) return res.redirect('/');
     res.render('login', { error: null, username: '' });
 });
 

@@ -12,73 +12,18 @@ const {
 } = require('../helpers/dateTime');
 
 // ==========================================
-// VIEWER PUBLIC (/)
+// ROOT (/) — redirect ke login atau dashboard
 // ==========================================
-router.get('/', async (req, res) => {
-    if (req.session && req.session.user) {
-        const u = req.session.user;
-        if (!hasPerm(u, 'canViewLog')) {
-            if (hasPerm(u, 'canAsset')) return res.redirect('/aset');
-            return res.redirect('/login');
-        }
-    }
-    try {
-        const { date, q } = req.query;
-        const now = new Date();
-        let selectedDate, journals, isSearch = false;
-
-        if (q && q.trim()) {
-            isSearch = true;
-            const keyword = q.trim();
-            journals = await prisma.journal.findMany({
-                where: {
-                    jenisJurnal: 'IT',
-                    OR: [
-                        { aktivitas: { contains: keyword } },
-                        { pemesan:   { contains: keyword } },
-                        { divisi:    { contains: keyword } },
-                        { deskripsi: { contains: keyword } },
-                    ]
-                },
-                orderBy: { tanggalManual: 'desc' },
-                take: 100
-            });
-            selectedDate = now;
-        } else {
-            if (date) {
-                const [year, month, day] = date.split('-');
-                selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-            } else {
-                selectedDate = now;
-            }
-            const startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0,  0,  0);
-            const endDate   = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
-            journals = await prisma.journal.findMany({
-                where: {
-                    jenisJurnal: 'IT',
-                    OR: [
-                        { tipeInput: { not: 'multihari' }, tanggalManual: { gte: startDate, lte: endDate } },
-                        { tipeInput: 'multihari', tanggalMulai: { lte: endDate }, tanggalSelesai: { gte: startDate } }
-                    ]
-                },
-                orderBy: { tanggalManual: 'desc' }
-            });
-        }
-
-        res.render('index', {
-            journals,
-            searchQuery: q || '',
-            isSearch,
-            filterInfo: {
-                date:        selectedDate.toISOString().split('T')[0],
-                dateDisplay: selectedDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-                month:       now.getMonth() + 1,
-                year:        now.getFullYear()
-            },
-            yearOptions: getYearOptions(),
-            formatDurasi
-        });
-    } catch (error) { console.error(error); res.status(500).send('Database Error!'); }
+router.get('/', (req, res) => {
+    if (!req.session || !req.session.user) return res.redirect('/login');
+    const u = req.session.user;
+    const perms = require('../helpers/permissions').getUserPerms(u);
+    if (perms.canAudit && !perms.canViewLog)   return res.redirect('/audit');
+    if (perms.canViewMaintenance && !perms.canViewLog) return res.redirect('/maintenance');
+    if (!perms.canViewLog && perms.canAsset)   return res.redirect('/aset');
+    const divisi = (u.divisi || '').toUpperCase();
+    if (divisi === 'MAINTENANCE' && perms.canViewLog) return res.redirect('/maintenance');
+    return res.redirect('/kerja');
 });
 
 // ==========================================

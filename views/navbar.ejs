@@ -589,10 +589,6 @@
 
     <% } else { %>
       <!-- JIKA YANG LOGIN ADMIN / IT / PUBLIC -->
-      <a href="/" class="it-nav-link <%= activePage === 'view' ? 'active' : '' %>">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-        Home
-      </a>
       
       <% if (currentUser && userPerms && userPerms.canViewLog) { %>
       <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
@@ -762,12 +758,6 @@
         Tugas Maintenance
       </a>
     <% } else { %>
-      <% if (!currentUser || (userPerms && userPerms.canViewLog)) { %>
-      <a href="/" class="<%= activePage === 'view' ? 'active' : '' %>" onclick="closeSidebar()">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
-        Home
-      </a>
-      <% } %>
       <% if (currentUser && userPerms && userPerms.canViewLog) { %>
       <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>" onclick="closeSidebar()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
