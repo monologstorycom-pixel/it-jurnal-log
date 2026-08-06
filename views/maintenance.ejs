@@ -105,10 +105,33 @@
         .status-pill.active-solved  { background: linear-gradient(135deg,#3d1a00,#7c3300); border-color: #f97316; color: #fb923c; }
         .status-pill.active-pending { background: linear-gradient(135deg,#2d1a00,#451e00); border-color: #f59e0b; color: #fbbf24; }
         @media (min-width: 768px) {
-            .drawer-overlay.open { display: flex; align-items: center; justify-content: center; }
-            .drawer-panel { position: static; transform: none !important; width: 520px; max-width: 90vw; max-height: 88vh; border-left: none; border: 1px solid var(--body-border); border-radius: 16px; box-shadow: 0 24px 80px rgba(0,0,0,0.5); display: none; flex-direction: column; transition: none; }
-            .drawer-panel.open { display: flex; animation: modalFadeIn 0.22s cubic-bezier(0.4,0,0.2,1); }
-            @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95) translateY(-12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+            .drawer-overlay { display: flex; align-items: center; justify-content: center; }
+            .drawer-overlay.open { opacity: 1; pointer-events: all; }
+            .drawer-panel {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0.95);
+                right: auto;
+                bottom: auto;
+                width: 520px;
+                max-width: 90vw;
+                max-height: 88vh;
+                border-left: none;
+                border: 1px solid var(--body-border);
+                border-radius: 16px;
+                box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease;
+                display: flex;
+                flex-direction: column;
+            }
+            .drawer-panel.open {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+                pointer-events: all;
+            }
         }
         .fab-tambah { position: fixed; bottom: 88px; right: 24px; z-index: 1039; background: linear-gradient(135deg, #ea580c, #f97316); color: #fff; border: none; border-radius: 50px; padding: 13px 22px; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(249,115,22,0.4); display: flex; align-items: center; gap: 8px; transition: transform 0.15s, box-shadow 0.15s; }
         .fab-tambah:hover { transform: translateY(-2px); box-shadow: 0 6px 26px rgba(249,115,22,0.5); }
