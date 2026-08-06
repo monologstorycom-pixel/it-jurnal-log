@@ -156,6 +156,9 @@
           <input type="password" name="password" id="newPass" class="f-input" placeholder="Min 6 karakter" required minlength="6" oninput="checkStrength(this.value, 'passStrengthBar')">
           <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBar"></div></div>
 
+          <label class="f-label">No. HP / WhatsApp <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(untuk notif WA, format: 628xxx)</span></label>
+          <input type="text" name="noHp" class="f-input" placeholder="cth: 6281234567890">
+
           <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
           <input type="text" name="role" class="f-input" placeholder="cth: IT Support, Supervisor, Operator..." value="user">
 
@@ -334,7 +337,8 @@
                       `<%= u.username %>`,
                       `<%= u.role %>`,
                       `<%= u.divisi || 'IT' %>`,
-                      <%= JSON.stringify(perms) %>
+                      <%= JSON.stringify(perms) %>,
+                      `<%= u.noHp || '' %>`
                     )">Edit</button>
                     <% if (!currentUser || u.id !== currentUser.id) { %>
                     <button class="act-btn red" onclick="confirmHapus(<%= u.id %>, `<%= u.nama.replace(/`/g,'\\`') %>`)">Hapus</button>
@@ -388,6 +392,8 @@
               <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
               <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrength(this.value, 'passStrengthBarEdit')">
               <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
+              <label class="f-label">No. HP / WhatsApp <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(format: 628xxx)</span></label>
+              <input type="text" name="noHp" id="edit_noHp" class="f-input" placeholder="cth: 6281234567890">
             </div>
             <div class="col-md-6">
               <!-- PERMISSION BUILDER EDIT -->
@@ -605,12 +611,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===========================
 // MODALS
 // ===========================
-function openEditModal(id, nama, username, role, divisi, perms) {
+function openEditModal(id, nama, username, role, divisi, perms, noHp) {
   document.getElementById('formEdit').action     = '/users/edit/' + id;
   document.getElementById('edit_nama').value     = nama;
   document.getElementById('edit_username').value = username;
   document.getElementById('edit_role').value     = role;
   document.getElementById('edit_divisi').value   = divisi || 'IT';
+  document.getElementById('edit_noHp').value     = noHp || '';
   document.getElementById('edit_pass').value     = '';
   document.getElementById('passStrengthBarEdit').style.width = '0%';
   setPermState('edit', perms || {});

@@ -108,6 +108,7 @@ model User {
   permissions String?  @db.Text
   isAudit     Boolean  @default(false)
   fotoUrl     String?
+  noHp        String?                    // Nomor HP untuk notif WhatsApp (format: 628xxx)
   createdAt   DateTime @default(now())
 }
 

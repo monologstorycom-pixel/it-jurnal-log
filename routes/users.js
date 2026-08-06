@@ -61,7 +61,8 @@ router.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
                 username: username.trim().toLowerCase(),
                 password: hashed,
                 role, divisi,
-                permissions: JSON.stringify(permissions)
+                permissions: JSON.stringify(permissions),
+                noHp: req.body.noHp ? req.body.noHp.trim().replace(/\D/g,'').replace(/^0/,'62') : null
             }
         });
         res.redirect('/users?msg=User+berhasil+ditambahkan&msgType=success');
@@ -110,7 +111,8 @@ router.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
             nama:     nama.trim(),
             username: username.trim().toLowerCase(),
             role, divisi,
-            permissions: JSON.stringify(permissions)
+            permissions: JSON.stringify(permissions),
+            noHp: req.body.noHp ? req.body.noHp.trim().replace(/\D/g,'').replace(/^0/,'62') : null
         };
 
         if (password && password.trim().length > 0) {
@@ -127,7 +129,8 @@ router.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
                 username:    updateData.username,
                 role:        updateData.role,
                 divisi:      updateData.divisi,
-                permissions: updateData.permissions
+                permissions: updateData.permissions,
+                noHp:        updateData.noHp
             });
         }
         res.redirect('/users?msg=User+berhasil+diperbarui&msgType=success');

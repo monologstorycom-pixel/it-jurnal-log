@@ -6,6 +6,7 @@ const { requireLogin } = require('../middleware/auth');
 const { hasPerm }      = require('../helpers/permissions');
 const { uploadSingle, uploadFields, saveCompressedPhoto } = require('../helpers/photo');
 const { notifTugasBaru, notifStatusUpdate } = require('../helpers/telegram');
+const { notifWATugasBaru, notifWAUpdateTugas } = require('../helpers/kirimdev');
 
 // ==========================================
 // HELPER
@@ -95,6 +96,15 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
         // Kirim notif Telegram
         notifTugasBaru(tugasBaru, process.env.APP_URL);
 
+        // Kirim notif WA ke semua user MAINTENANCE yang punya noHp
+        const maintenanceUsers = await prisma.user.findMany({
+            where: { divisi: 'MAINTENANCE', noHp: { not: null } },
+            select: { noHp: true, nama: true }
+        });
+        maintenanceUsers.forEach(u => {
+            if (u.noHp) notifWATugasBaru(u.noHp, tugasBaru);
+        });
+
         res.redirect('/tugas?saved=1&tanggal=' + tanggal);
     } catch (err) { console.error(err); res.status(500).send('Gagal buat tugas: ' + err.message); }
 });
@@ -160,6 +170,18 @@ router.post('/tugas/status/:id', requireLogin, uploadSingle, async (req, res) =>
 
         // Kirim notif Telegram status update
         notifStatusUpdate(tugasUpdated, newStatus, user.nama);
+
+        // Kirim notif WA ke pembuat tugas (cari noHp berdasarkan nama buatOleh)
+        if (tugasUpdated.buatOleh) {
+            const pembuat = await prisma.user.findFirst({
+                where: { nama: tugasUpdated.buatOleh, noHp: { not: null } },
+                select: { noHp: true, nama: true }
+            });
+            if (pembuat?.noHp) {
+                const fotoUrlBukti = updateData.fotoUrl || null;
+                notifWAUpdateTugas(pembuat.noHp, pembuat.nama, tugasUpdated, newStatus, user.nama, fotoUrlBukti);
+            }
+        }
 
         res.redirect('/maintenance?tugasDone=1');
     } catch (err) { console.error(err); res.status(500).send('Gagal update status: ' + err.message); }
