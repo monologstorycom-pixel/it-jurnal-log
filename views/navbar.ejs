@@ -514,23 +514,27 @@
   // 3. Cek apakah user Maintenance
   var isMaintenance = currentUser && !isAdmin && (currentUser.divisi || '').toUpperCase() === 'MAINTENANCE';
 
+  // 3b. Cek apakah user Viewer Maintenance (misal HRGA)
+  var isViewerMaintenance = currentUser && !isAdmin && !isMaintenance && userPerms && userPerms.canViewMaintenance && !userPerms.canViewLog;
+
   // 4. Logika untuk user IT atau Admin
-  var isItOrAdmin = currentUser && !isAuditOnly && !isMaintenance && (
+  var isItOrAdmin = currentUser && !isAuditOnly && !isMaintenance && !isViewerMaintenance && (
     isAdmin ||
     (currentUser.divisi && currentUser.divisi.toLowerCase() === 'it')
   );
   
-  // 5. Logika untuk user divisi biasa (non-IT, non-Audit, non-Maintenance)
-  var isNonItUser = currentUser && !isItOrAdmin && !isAuditOnly && !isMaintenance && userPerms && userPerms.canAsset && !userPerms.canViewLog;
+  // 5. Logika untuk user divisi biasa (non-IT, non-Audit, non-Maintenance, non-ViewerMTC)
+  var isNonItUser = currentUser && !isItOrAdmin && !isAuditOnly && !isMaintenance && !isViewerMaintenance && userPerms && userPerms.canAsset && !userPerms.canViewLog;
   
   var asetPublicHref = currentUser ? '/aset-public/' + encodeURIComponent(currentUser.divisi || 'IT') : '/aset-public';
 
   /* LOGIKA KLIK LOGO BRAND */
   var brandHref = '/kerja';
-  if (isAuditOnly)     brandHref = '/audit';
-  else if (isMaintenance) brandHref = '/maintenance';
-  else if (isNonItUser)   brandHref = '/aset';
-  else if (!currentUser)  brandHref = '/';
+  if (isAuditOnly)            brandHref = '/audit';
+  else if (isMaintenance)     brandHref = '/maintenance';
+  else if (isViewerMaintenance) brandHref = '/maintenance';
+  else if (isNonItUser)       brandHref = '/aset';
+  else if (!currentUser)      brandHref = '/';
 %>
 
 <nav class="it-nav" id="mainNav">
@@ -570,6 +574,17 @@
       <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas Hari Ini
+      </a>
+
+    <% } else if (isViewerMaintenance) { %>
+      <!-- JIKA YANG LOGIN VIEWER MAINTENANCE (HRGA, dll) -->
+      <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#67e8f9;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+        Jurnal Maintenance
+      </a>
+      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
+        Tugas Maintenance
       </a>
 
     <% } else { %>
@@ -735,6 +750,16 @@
       <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;" onclick="closeSidebar()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/><line x1="6" y1="12" x2="8" y2="12"/></svg>
         Tugas Hari Ini
+      </a>
+    <% } else if (isViewerMaintenance) { %>
+      <!-- VIEWER MAINTENANCE SIDEBAR (HRGA, dll) -->
+      <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#67e8f9;" onclick="closeSidebar()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
+        Jurnal Maintenance
+      </a>
+      <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;" onclick="closeSidebar()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
+        Tugas Maintenance
       </a>
     <% } else { %>
       <% if (!currentUser || (userPerms && userPerms.canViewLog)) { %>

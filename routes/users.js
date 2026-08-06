@@ -37,17 +37,18 @@ router.post('/users/tambah', requireLogin, requireAdmin, async (req, res) => {
         }
 
         const permissions = {
-            canView:    req.body.canView    === 'on',
-            canAdd:     req.body.canAdd     === 'on',
-            canEdit:    req.body.canEdit    === 'on',
-            canDelete:  req.body.canDelete  === 'on',
-            canAsset:   req.body.canAsset   === 'on',
-            canExport:  req.body.canExport  === 'on',
-            canUsers:   req.body.canUsers   === 'on',
-            canViewLog: req.body.canViewLog === 'on',
-            canAudit:   req.body.canAudit   === 'on',
-            canVendor:  req.body.canVendor  === 'on',
-            canTugas:   req.body.canTugas   === 'on',
+            canView:             req.body.canView             === 'on',
+            canAdd:              req.body.canAdd              === 'on',
+            canEdit:             req.body.canEdit             === 'on',
+            canDelete:           req.body.canDelete           === 'on',
+            canAsset:            req.body.canAsset            === 'on',
+            canExport:           req.body.canExport           === 'on',
+            canUsers:            req.body.canUsers            === 'on',
+            canViewLog:          req.body.canViewLog          === 'on',
+            canAudit:            req.body.canAudit            === 'on',
+            canVendor:           req.body.canVendor           === 'on',
+            canTugas:            req.body.canTugas            === 'on',
+            canViewMaintenance:  req.body.canViewMaintenance  === 'on',
         };
 
         const role   = req.body.role || 'user';
@@ -88,17 +89,18 @@ router.post('/users/edit/:id', requireLogin, requireAdmin, async (req, res) => {
         }
 
         const permissions = {
-            canView:    req.body.canView    === 'on',
-            canAdd:     req.body.canAdd     === 'on',
-            canEdit:    req.body.canEdit    === 'on',
-            canDelete:  req.body.canDelete  === 'on',
-            canAsset:   req.body.canAsset   === 'on',
-            canExport:  req.body.canExport  === 'on',
-            canUsers:   req.body.canUsers   === 'on',
-            canViewLog: req.body.canViewLog === 'on',
-            canAudit:   req.body.canAudit   === 'on',
-            canVendor:  req.body.canVendor  === 'on',
-            canTugas:   req.body.canTugas   === 'on',
+            canView:             req.body.canView             === 'on',
+            canAdd:              req.body.canAdd              === 'on',
+            canEdit:             req.body.canEdit             === 'on',
+            canDelete:           req.body.canDelete           === 'on',
+            canAsset:            req.body.canAsset            === 'on',
+            canExport:           req.body.canExport           === 'on',
+            canUsers:            req.body.canUsers            === 'on',
+            canViewLog:          req.body.canViewLog          === 'on',
+            canAudit:            req.body.canAudit            === 'on',
+            canVendor:           req.body.canVendor           === 'on',
+            canTugas:            req.body.canTugas            === 'on',
+            canViewMaintenance:  req.body.canViewMaintenance  === 'on',
         };
 
         const role   = req.body.role || 'user';

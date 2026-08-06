@@ -17,7 +17,7 @@ function canManageTugas(user) {
     return hasPerm(user, 'canUsers') || hasPerm(user, 'canTugas');
 }
 function canSeeTugas(user) {
-    return canManageTugas(user) || isMaintenance(user);
+    return canManageTugas(user) || isMaintenance(user) || hasPerm(user, 'canViewMaintenance');
 }
 
 // ==========================================

@@ -251,6 +251,11 @@
   Tambah Log
 </button>
 <% } %>
+<% if (typeof isReadOnly !== 'undefined' && isReadOnly) { %>
+<div style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:999;background:#1a2a0d;border:1px solid #2d5c1a;color:#4ade80;border-radius:8px;padding:6px 18px;font-size:0.75rem;font-weight:700;pointer-events:none;">
+  👁 Mode Lihat Saja — Jurnal Maintenance
+</div>
+<% } %>
 
 <div class="container-fluid p-4">
   <div class="row">

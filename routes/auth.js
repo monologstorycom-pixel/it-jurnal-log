@@ -42,6 +42,8 @@ router.post('/login', async (req, res) => {
         // User maintenance (divisi MAINTENANCE) redirect ke dashboard maintenance
         const divisi = (user.divisi || '').toUpperCase();
         if (divisi === 'MAINTENANCE' && perms.canViewLog) return res.redirect('/maintenance');
+        // User dengan canViewMaintenance saja (misal HRGA) redirect ke view maintenance
+        if (perms.canViewMaintenance && !perms.canViewLog) return res.redirect('/maintenance');
         res.redirect('/kerja');
     } catch (error) {
         console.error('[LOGIN ERROR]', error.message);

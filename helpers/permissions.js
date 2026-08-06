@@ -8,24 +8,25 @@ function getUserPerms(user) {
         try {
             const p = typeof user.permissions === 'string' ? JSON.parse(user.permissions) : user.permissions;
             return {
-                canView:    p.canView    === true,
-                canAdd:     p.canAdd     === true,
-                canEdit:    p.canEdit    === true,
-                canDelete:  p.canDelete  === true,
-                canAsset:   p.canAsset   === true,
-                canExport:  p.canExport  === true,
-                canUsers:   p.canUsers   === true,
-                canViewLog: p.canViewLog === true,
-                canAudit:   p.canAudit   === true,
-                canVendor:  p.canVendor  === true,
-                canTugas:   p.canTugas   === true,
+                canView:              p.canView              === true,
+                canAdd:               p.canAdd               === true,
+                canEdit:              p.canEdit              === true,
+                canDelete:            p.canDelete            === true,
+                canAsset:             p.canAsset             === true,
+                canExport:            p.canExport            === true,
+                canUsers:             p.canUsers             === true,
+                canViewLog:           p.canViewLog           === true,
+                canAudit:             p.canAudit             === true,
+                canVendor:            p.canVendor            === true,
+                canTugas:             p.canTugas             === true,
+                canViewMaintenance:   p.canViewMaintenance   === true,
             };
         } catch(e) {
             console.warn('[getUserPerms] Gagal parse permissions:', e.message);
-            return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false };
+            return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false };
         }
     }
-    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false };
+    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false };
 }
 
 function hasPerm(user, perm) {

@@ -19,12 +19,18 @@ function isMaintenance(user) {
     return (user.divisi || '').toUpperCase() === 'MAINTENANCE';
 }
 
+function canViewMaintenancePage(user) {
+    if (!user) return false;
+    // Admin, maintenance, atau user dengan canViewMaintenance
+    return hasPerm(user, 'canUsers') ||
+           hasPerm(user, 'canViewLog') ||
+           hasPerm(user, 'canViewMaintenance');
+}
+
 function requireMaintenance(req, res, next) {
     if (!req.session || !req.session.user) return res.redirect('/login');
     const user = req.session.user;
-    // Admin bisa akses juga
-    if (hasPerm(user, 'canUsers')) return next();
-    if (isMaintenance(user) && hasPerm(user, 'canViewLog')) return next();
+    if (canViewMaintenancePage(user)) return next();
     return res.status(403).render('403', { message: 'Halaman ini hanya untuk tim Maintenance.' });
 }
 
@@ -116,6 +122,7 @@ router.get('/maintenance', requireLogin, requireMaintenance, async (req, res) =>
             filterDateFrom: dateFrom || '',
             filterDateTo:   dateTo   || '',
             filterStatus:   status   || '',
+            isReadOnly: !hasPerm(req.session.user, 'canAdd') && !hasPerm(req.session.user, 'canUsers'),
             stats: { totalHariIni, solvedHariIni, pendingHariIni, totalAllTime, pendingAllTime, pendingItems: pendingWithAge }
         });
     } catch (error) { console.error(error); res.status(500).send('Database Error!'); }

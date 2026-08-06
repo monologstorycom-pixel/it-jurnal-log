@@ -186,6 +186,7 @@
               <button type="button" class="preset-btn preset-user"   onclick="setPreset('add', 'user')">User IT</button>
               <button type="button" class="preset-btn preset-viewer" onclick="setPreset('add', 'viewer')">Viewer</button>
               <button type="button" class="preset-btn" style="background:#3d1a00;color:#fb923c;border-color:#7c3300;" onclick="setPreset('add', 'maintenance')">🔧 MTC</button>
+              <button type="button" class="preset-btn" style="background:#0d2234;color:#67e8f9;border-color:#0e4d6a;" onclick="setPreset('add', 'viewerMaintenance')">👁 View MTC</button>
               <button type="button" class="preset-btn preset-clear"  onclick="setPreset('add', 'clear')">Clear</button>
             </div>
 
@@ -245,6 +246,11 @@
                 <input type="checkbox" name="canTugas" id="add_canTugas">
                 <div class="perm-box" id="box_add_canTugas"></div>
                 <span class="perm-label-text">Kelola Tugas MTC</span>
+              </div>
+              <div class="perm-check" id="lbl_add_canViewMaintenance" data-form="add" data-perm="canViewMaintenance" style="border:1px solid #0e4d6a33;background:rgba(14,77,106,0.06);">
+                <input type="checkbox" name="canViewMaintenance" id="add_canViewMaintenance">
+                <div class="perm-box" id="box_add_canViewMaintenance"></div>
+                <span class="perm-label-text">Lihat Jurnal MTC</span>
               </div>
             </div>
           </div>
@@ -392,6 +398,7 @@
                   <button type="button" class="preset-btn preset-user"   onclick="setPreset('edit', 'user')">User IT</button>
                   <button type="button" class="preset-btn preset-viewer" onclick="setPreset('edit', 'viewer')">Viewer</button>
                   <button type="button" class="preset-btn" style="background:#3d1a00;color:#fb923c;border-color:#7c3300;" onclick="setPreset('edit', 'maintenance')">🔧 MTC</button>
+                  <button type="button" class="preset-btn" style="background:#0d2234;color:#67e8f9;border-color:#0e4d6a;" onclick="setPreset('edit', 'viewerMaintenance')">👁 View MTC</button>
                   <button type="button" class="preset-btn preset-clear"  onclick="setPreset('edit', 'clear')">Clear</button>
                 </div>
                 <div class="perm-grid" id="permGrid_edit">
@@ -442,6 +449,11 @@
                     <div class="perm-box" id="box_edit_canTugas"></div>
                     <span class="perm-label-text">Kelola Tugas MTC</span>
                   </div>
+                  <div class="perm-check" id="lbl_edit_canViewMaintenance" data-form="edit" data-perm="canViewMaintenance" style="border:1px solid #0e4d6a33;background:rgba(14,77,106,0.06);">
+                    <input type="checkbox" name="canViewMaintenance" id="edit_canViewMaintenance">
+                    <div class="perm-box" id="box_edit_canViewMaintenance"></div>
+                    <span class="perm-label-text">Lihat Jurnal MTC</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -490,14 +502,15 @@ var permState = {
 };
 
 var PRESETS = {
-  admin:       { canView:true, canAdd:true, canEdit:true, canDelete:true, canAsset:true, canExport:true, canUsers:true, canViewLog:true, canAudit:false, canVendor:true },
-  user:        { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:true, canExport:true, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
-  viewer:      { canView:true, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
-  maintenance: { canView:true, canAdd:true, canEdit:true, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true, canAudit:false, canVendor:false },
-  clear:       { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false }
+  admin:             { canView:true,  canAdd:true,  canEdit:true,  canDelete:true,  canAsset:true,  canExport:true,  canUsers:true,  canViewLog:true,  canAudit:false, canVendor:true,  canTugas:false, canViewMaintenance:false },
+  user:              { canView:true,  canAdd:true,  canEdit:true,  canDelete:false, canAsset:true,  canExport:true,  canUsers:false, canViewLog:true,  canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
+  viewer:            { canView:true,  canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true,  canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
+  maintenance:       { canView:true,  canAdd:true,  canEdit:true,  canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true,  canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
+  viewerMaintenance: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:true  },
+  clear:             { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
 };
 
-var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor','canTugas'];
+var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor','canTugas','canViewMaintenance'];
 
 // Toggle satu permission
 function togglePerm(form, perm) {
@@ -513,9 +526,12 @@ function setPreset(form, preset) {
   if (preset === 'maintenance') {
     var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
     if (divisiEl) divisiEl.value = 'MAINTENANCE';
+  } else if (preset === 'viewerMaintenance') {
+    var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
+    if (divisiEl) divisiEl.value = 'HRGA';
   } else if (preset === 'user' || preset === 'admin') {
     var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
-    if (divisiEl && divisiEl.value === 'MAINTENANCE') divisiEl.value = 'IT';
+    if (divisiEl && (divisiEl.value === 'MAINTENANCE' || divisiEl.value === 'HRGA')) divisiEl.value = 'IT';
   }
   renderPerms(form);
   syncCheckboxes(form);
