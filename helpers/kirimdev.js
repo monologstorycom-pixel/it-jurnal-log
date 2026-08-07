@@ -112,35 +112,48 @@ function notifWATugasBaru(noHpPenerima, tugas) {
 
 // ==========================================
 // NOTIF UPDATE TUGAS → ke pembuat tugas (HRGA)
-// Template: notif_update_tugas
-// Header: IMAGE (foto bukti dari maintenance, opsional)
-// Body: {{1}}=nama penerima, {{2}}=judul, {{3}}=status, {{4}}=teknisi, {{5}}=catatan
+// Template: notif_tugas_proses (status Proses)
+//           notif_update_tugas (status Selesai)
 // ==========================================
 function notifWAUpdateTugas(noHpPembuat, namaPembuat, tugas, newStatus, namaTeknisi, fotoUrl) {
     if (!noHpPembuat) return;
 
-    const bodyParams = [
-        { type: 'text', text: namaPembuat },
-        { type: 'text', text: tugas.judul },
-        { type: 'text', text: newStatus },
-        { type: 'text', text: namaTeknisi },
-        { type: 'text', text: tugas.catatan || '-' },
-    ];
-
     const components = [];
 
-    // Kalau ada foto bukti, kirim sebagai image header
-    if (fotoUrl) {
-        const fullFotoUrl = APP_URL + fotoUrl;
-        components.push({
-            type: 'header',
-            parameters: [{ type: 'image', image: { link: fullFotoUrl } }]
-        });
+    if (newStatus === 'Proses') {
+        // Template notif_tugas_proses
+        // Header: Text (tidak ada foto)
+        // Body: {{1}}=nama, {{2}}=judul, {{3}}=teknisi, {{4}}=catatan
+        const bodyParams = [
+            { type: 'text', text: namaPembuat },
+            { type: 'text', text: tugas.judul },
+            { type: 'text', text: namaTeknisi },
+            { type: 'text', text: tugas.catatan || 'Segera dikerjakan' },
+        ];
+        components.push({ type: 'body', parameters: bodyParams });
+        sendWATemplate(noHpPembuat, 'notif_tugas_proses', components);
+
+    } else {
+        // Template notif_update_tugas (Selesai)
+        // Header: IMAGE (foto bukti, opsional)
+        // Body: {{1}}=nama, {{2}}=judul, {{3}}=status, {{4}}=teknisi, {{5}}=catatan
+        const bodyParams = [
+            { type: 'text', text: namaPembuat },
+            { type: 'text', text: tugas.judul },
+            { type: 'text', text: newStatus },
+            { type: 'text', text: namaTeknisi },
+            { type: 'text', text: tugas.catatan || '-' },
+        ];
+        if (fotoUrl) {
+            const APP_URL = process.env.APP_URL || 'https://jurnal.rsby.cloud';
+            components.push({
+                type: 'header',
+                parameters: [{ type: 'image', image: { link: APP_URL + fotoUrl } }]
+            });
+        }
+        components.push({ type: 'body', parameters: bodyParams });
+        sendWATemplate(noHpPembuat, 'notif_update_tugas', components);
     }
-
-    components.push({ type: 'body', parameters: bodyParams });
-
-    sendWATemplate(noHpPembuat, 'notif_update_tugas', components);
 }
 
 module.exports = { sendWATemplate, notifWATugasBaru, notifWAUpdateTugas };
