@@ -131,7 +131,7 @@ function notifWAUpdateTugas(noHpPembuat, namaPembuat, tugas, newStatus, namaTekn
             { type: 'text', text: tugas.catatan || 'Segera dikerjakan' },
         ];
         components.push({ type: 'body', parameters: bodyParams });
-        sendWATemplate(noHpPembuat, 'notif_tugas_proses', components);
+        sendWATemplate(noHpPembuat, 'notif_tugas_prosess', components);
 
     } else {
         // Template notif_update_tugas (Selesai)
