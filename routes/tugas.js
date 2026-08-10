@@ -45,6 +45,17 @@ router.get('/tugas', requireLogin, async (req, res) => {
 
         const tugas = await prisma.tugas.findMany({ where, orderBy: [{ prioritas: 'desc' }, { createdAt: 'asc' }] });
 
+        // Ambil noHp pembuat untuk tombol "Hubungi Pelapor"
+        const namaPembuat = [...new Set(tugas.map(t => t.buatOleh).filter(Boolean))];
+        const userList = namaPembuat.length > 0
+            ? await prisma.user.findMany({ where: { nama: { in: namaPembuat } }, select: { nama: true, noHp: true } })
+            : [];
+        const noHpMap = {};
+        userList.forEach(u => { if (u.noHp) noHpMap[u.nama] = u.noHp; });
+
+        // Gabungkan noHp ke setiap tugas
+        const tugasWithHp = tugas.map(t => ({ ...t, noHpPembuat: noHpMap[t.buatOleh] || null }));
+
         // Stats hari ini
         const [total, selesai, proses, belum] = await Promise.all([
             prisma.tugas.count({ where: { tanggal: { gte: tglStart, lte: tglEnd } } }),
@@ -54,7 +65,7 @@ router.get('/tugas', requireLogin, async (req, res) => {
         ]);
 
         res.render('tugas', {
-            tugas, filterTanggal,
+            tugas: tugasWithHp, filterTanggal,
             filterStatus: status || '',
             canManage: canManageTugas(user),
             isMtc: isMaintenance(user),
