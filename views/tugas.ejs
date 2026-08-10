@@ -290,8 +290,16 @@
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
-        <% if (t.status !== 'Selesai') { %>
-        <button onclick="openStatusModal(<%= t.id %>, '<%= t.status %>', `<%- (t.judul||'').replace(/`/g,'\\`') %>`)" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">Update Status</button>
+        <% if (t.status === 'Belum') { %>
+        <!-- 1x klik langsung Proses -->
+        <form method="POST" action="/tugas/status/<%= t.id %>" style="margin:0;">
+          <input type="hidden" name="newStatus" value="Proses">
+          <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
+          <button type="submit" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">⏳ Proses</button>
+        </form>
+        <% } else if (t.status === 'Proses') { %>
+        <!-- Buka modal Selesai -->
+        <button onclick="openSelesaiModal(<%= t.id %>, `<%- (t.judul||'').replace(/`/g,'\\`') %>`)" class="btn btn-sm fw-bold" style="background:#0d2a18;border:1px solid #1a5c30;color:#4ade80;font-size:0.7rem;">✓ Selesai</button>
         <% } %>
         <% if (canManage) { %>
         <button onclick="openEditModal(<%= t.id %>, `<%- (t.judul||'').replace(/`/g,'\\`') %>`, `<%- (t.deskripsi||'').replace(/`/g,'\\`') %>`, '<%= new Date(t.tanggal).toISOString().slice(0,10) %>', '<%= t.prioritas %>', '<%= t.status %>', '<%= t.fotoTugasUrl || '' %>')" class="btn btn-sm fw-bold" style="background:#0d3d6e;border:1px solid #1a5a9e;color:#7eb8f7;font-size:0.7rem;">Edit</button>
@@ -323,29 +331,24 @@
   </div>
 </div>
 
-<!-- MODAL UPDATE STATUS -->
+<!-- MODAL SELESAI -->
 <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
-        <h5 class="modal-title" style="color:var(--body-text);">⚡ Update Status Tugas</h5>
+        <h5 class="modal-title" style="color:var(--body-text);">✅ Tandai Selesai</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formStatus" action="" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="newStatus" id="newStatusVal" value="Proses">
+        <input type="hidden" name="newStatus" value="Selesai">
         <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
         <div class="modal-body">
           <div id="statusJudul" style="font-weight:700;color:var(--body-text);margin-bottom:12px;font-size:0.9rem;"></div>
-          <span class="label-text">Pilih Status Baru</span>
-          <div class="status-btns">
-            <div class="status-btn active-proses" id="btnProses" onclick="setStatusModal('Proses')">⏳ PROSES</div>
-            <div class="status-btn" id="btnSelesai" onclick="setStatusModal('Selesai')">✓ SELESAI</div>
-          </div>
-          <span class="label-text">Catatan (opsional)</span>
-          <textarea name="catatan" class="input-custom" rows="2" placeholder="Keterangan tambahan..."></textarea>
-          <span class="label-text" style="color:#fb923c;">📷 Upload Bukti Foto (opsional)</span>
+          <span class="label-text">Catatan / Hasil Pekerjaan <span style="color:#ef4444;">*</span></span>
+          <textarea name="catatan" id="statusCatatan" class="input-custom" rows="2" placeholder="Jelaskan apa yang sudah dikerjakan..." required></textarea>
+          <span class="label-text" style="color:#fb923c;">📷 Foto Bukti <span style="color:#ef4444;">*</span></span>
           <div class="upload-area">
-            <input type="file" name="foto" accept="image/*" capture="environment" onchange="document.getElementById('fotoLabel').textContent=this.files[0]?.name||'Pilih foto bukti'">
+            <input type="file" name="foto" id="statusFoto" accept="image/*" capture="environment" onchange="document.getElementById('fotoLabel').textContent=this.files[0]?.name||'Pilih foto bukti'" required>
             <div class="upload-area-inner">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
               <div><span id="fotoLabel">Pilih foto bukti</span><small>Tap untuk kamera</small></div>
@@ -354,7 +357,7 @@
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
-          <button type="submit" class="btn fw-bold" style="background:#ea580c;color:#fff;">SIMPAN</button>
+          <button type="submit" id="btnSimpanSelesai" class="btn fw-bold" style="background:#16a34a;color:#fff;">✓ TANDAI SELESAI</button>
         </div>
       </form>
     </div>
@@ -434,18 +437,14 @@ function setPrioritas(p) {
     document.getElementById('btnUrgent').className = 'prio-btn' + (p==='Urgent' ? ' active-urgent' : '');
 }
 
-// STATUS MODAL
-function openStatusModal(id, currentStatus, judul) {
+// MODAL SELESAI
+function openSelesaiModal(id, judul) {
     document.getElementById('formStatus').action = '/tugas/status/' + id;
     document.getElementById('statusJudul').textContent = judul;
-    const s = currentStatus === 'Belum' ? 'Proses' : 'Selesai';
-    setStatusModal(s);
+    document.getElementById('statusCatatan').value = '';
+    document.getElementById('statusFoto').value = '';
+    document.getElementById('fotoLabel').textContent = 'Pilih foto bukti';
     new bootstrap.Modal(document.getElementById('statusModal')).show();
-}
-function setStatusModal(s) {
-    document.getElementById('newStatusVal').value = s;
-    document.getElementById('btnProses').className  = 'status-btn' + (s==='Proses'  ? ' active-proses'  : '');
-    document.getElementById('btnSelesai').className = 'status-btn' + (s==='Selesai' ? ' active-selesai' : '');
 }
 
 // EDIT MODAL
