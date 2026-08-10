@@ -8,6 +8,7 @@ const session    = require('express-session');
 
 const { injectLocals } = require('./middleware/auth');
 const { uploadDir }    = require('./helpers/photo');
+const { startScheduler } = require('./helpers/scheduler');
 
 // ==========================================
 // ROUTES
@@ -90,4 +91,6 @@ app.listen(PORT, '0.0.0.0', () => {
         console.warn('⚠️  Upload directory tidak ditemukan, membuat...');
         fs.mkdirSync(uploadDir, { recursive: true });
     }
+    // Start scheduler setelah server ready
+    startScheduler();
 });
