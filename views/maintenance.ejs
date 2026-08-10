@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -150,10 +150,13 @@
 <div class="drawer-panel" id="drawerPanel" onclick="event.stopPropagation()">
   <div class="drawer-header">
     <div class="drawer-title">
-      ➕ Tambah Log Maintenance
+      <svg class="lc" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Tambah Log Maintenance
       <span class="drawer-title-badge">NEW</span>
     </div>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
   <div class="drawer-body">
     <form action="/maintenance/save" method="POST" enctype="multipart/form-data" id="mainForm">
@@ -164,10 +167,12 @@
         <div class="field-group-title">Tipe Pekerjaan</div>
         <div class="tipe-toggle">
           <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')">
-            📅 HARIAN
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            HARIAN
           </div>
           <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')">
-            📅 MULTI-HARI
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            MULTI-HARI
           </div>
         </div>
         <div id="formHarian">
@@ -240,7 +245,7 @@
         <div class="upload-area">
           <input type="file" name="fotoAwal" accept="image/*" capture="environment" onchange="updateUploadLabel(this,'lblAwal')">
           <div class="upload-area-inner">
-            📷
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             <div><span id="lblAwal">Pilih atau ambil foto awal</span><small>JPG, PNG — tap untuk kamera</small></div>
           </div>
         </div>
@@ -248,14 +253,14 @@
         <div class="upload-area">
           <input type="file" name="foto" accept="image/*" capture="environment" onchange="updateUploadLabel(this,'lblSesudah')">
           <div class="upload-area-inner">
-            📷
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             <div><span id="lblSesudah">Pilih atau ambil foto sesudah</span><small>JPG, PNG — tap untuk kamera</small></div>
           </div>
         </div>
       </div>
 
       <button type="submit" class="btn-simpan">
-        💾
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         SIMPAN DATA
       </button>
     </form>
@@ -265,7 +270,7 @@
 <!-- FAB -->
 <% if (typeof userPerms !== 'undefined' && userPerms.canAdd) { %>
 <button class="fab-tambah" id="fabTambah" onclick="openDrawer()">
-  ➕
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   Tambah Log
 </button>
 <% } %>
@@ -304,25 +309,25 @@
       <!-- STAT CARDS -->
       <div class="stat-cards">
         <div class="stat-card orange">
-          <div class="stat-card-icon"></div>
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="stat-card-label">Solved Hari Ini</div>
           <div class="stat-card-value"><%= stats.solvedHariIni %></div>
           <div class="stat-card-sub">dari <%= stats.totalHariIni %> pekerjaan hari ini</div>
         </div>
         <div class="stat-card yellow">
-          <div class="stat-card-icon"></div>
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <div class="stat-card-label">Pending Hari Ini</div>
           <div class="stat-card-value"><%= stats.pendingHariIni %></div>
           <div class="stat-card-sub">belum diselesaikan</div>
         </div>
         <div class="stat-card blue">
-          <div class="stat-card-icon"></div>
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
           <div class="stat-card-label">Total Log</div>
           <div class="stat-card-value"><%= stats.totalAllTime %></div>
           <div class="stat-card-sub">semua waktu</div>
         </div>
         <div class="stat-card red">
-          <div class="stat-card-icon"></div>
+          <div class="stat-card-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg></div>
           <div class="stat-card-label">Total Pending</div>
           <div class="stat-card-value"><%= stats.pendingAllTime %></div>
           <div class="stat-card-sub">semua waktu</div>
@@ -422,7 +427,7 @@
       <div class="table-container table-responsive">
         <% if (journals.length === 0) { %>
         <div style="text-align:center;padding:3rem 1rem;color:var(--body-text3);">
-          📋
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;display:block;margin:0 auto 12px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           <div style="font-size:0.85rem;font-weight:600;">Tidak ada data untuk <strong><%= filterLabel %></strong></div>
           <div style="font-size:0.75rem;margin-top:4px;"><a href="/maintenance" style="color:#f97316;">Reset filter</a></div>
         </div>
@@ -636,7 +641,7 @@
               <div class="upload-area" style="margin-bottom:0.65rem;">
                 <input type="file" name="fotoAwal" accept="image/*" capture="environment" onchange="updateEditFotoLabel(this,'editLblAwal','editPreviewAwal')">
                 <div class="upload-area-inner">
-                  📷
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   <div><span id="editLblAwal">Biarkan kosong = tidak berubah</span><small>Pilih foto untuk ganti</small></div>
                 </div>
               </div>
@@ -647,7 +652,7 @@
               <div class="upload-area">
                 <input type="file" name="foto" accept="image/*" capture="environment" onchange="updateEditFotoLabel(this,'editLblSesudah','editPreviewSesudah')">
                 <div class="upload-area-inner">
-                  📷
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                   <div><span id="editLblSesudah">Biarkan kosong = tidak berubah</span><small>Pilih foto untuk ganti/tambah</small></div>
                 </div>
               </div>
