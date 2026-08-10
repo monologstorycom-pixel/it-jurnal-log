@@ -98,3 +98,71 @@
 - Hapus foto R2 saat tugas dihapus ✅
 - Proses 1x klik + Toast popup ✅
 - Procfile untuk Coolify ✅
+
+---
+
+## Session Lanjutan: 11 Agustus 2026 (malam)
+
+---
+
+## ✅ SELESAI & DEPLOYED
+
+### 8. Fix: Tombol "Hubungi Pelapor" tidak muncul karena nama user berubah
+**Root cause:** `buatOleh` di tabel `Tugas` masih menyimpan nama lama `"general affair"`, sedangkan nama user di DB sudah diubah ke `"Pak Deni (GA)"`. Query noHp lookup berdasarkan `nama` tidak ketemu.
+- **Fix data:** Buat script `scripts/fix-buatoleh.js` untuk update `buatOleh` lama ke nama baru
+- **Cara jalankan:** `sudo docker exec <container-id> node scripts/fix-buatoleh.js`
+- **Fix kode:** `isMtc` sekarang juga `true` untuk user dengan permission `canTugasMtc` (sebelumnya hanya untuk divisi MAINTENANCE)
+- **File:** `routes/tugas.js`, `scripts/fix-buatoleh.js`
+
+---
+
+### 9. Fix: Tombol "⏳ Proses" label ambigu
+**File:** `views/tugas.ejs`
+- Label diganti dari `"⏳ Proses"` → `"▶ Mulai Kerjakan"` agar jelas ini adalah action bukan status
+
+---
+
+### 10. Fix: Server disk penuh (100%) → MariaDB crash
+**Root cause:** Docker image lama dari setiap deploy menumpuk dan memenuhi disk 94GB hingga 100%.
+- **Fix:** Jalankan `sudo docker image prune -a` → disk turun dari 100% ke 67% (sisa 31GB)
+- **Preventif:** Set cron job mingguan di server:
+  ```
+  0 3 * * 0 docker image prune -a -f >> /var/log/docker-prune.log 2>&1
+  ```
+- **Cara set:** `sudo crontab -e` lalu tambahkan baris di atas
+
+---
+
+### 11. Fix: Filter "Hari Ini" deteksi tanggal salah (masih tanggal kemarin)
+**Root cause:** `new Date().toISOString()` selalu UTC. Jam 01:54 WIB = masih tanggal 10 di UTC, padahal WIB sudah tanggal 11.
+- **Fix route server:** `routes/tugas.js` — `todayStr` sekarang pakai offset WIB (+7 jam)
+  ```js
+  const wibOffset = 7 * 60 * 60 * 1000;
+  const todayWIB = new Date(today.getTime() + wibOffset);
+  const todayStr = todayWIB.toISOString().split('T')[0];
+  ```
+- **Fix browser JS:** `setToday()` di `views/tugas.ejs` sekarang pakai `getFullYear/getMonth/getDate` yang ikut timezone browser (WIB), bukan `toISOString()` yang UTC
+- **File:** `routes/tugas.js`, `views/tugas.ejs`
+- **Catatan:** Timezone server juga diubah ke `Asia/Jakarta` via `sudo timedatectl set-timezone Asia/Jakarta`
+
+---
+
+## State Akhir Repository (Update)
+
+| Commit | Keterangan |
+|--------|-----------|
+| `b5ead8e` | HEAD — fix timezone WIB untuk filter tanggal |
+| `7c3f2f7` | Label tombol "Mulai Kerjakan" |
+| `0e452a1` | Script fix buatOleh + isMtc fix |
+| `7470322` | Revert semua percobaan icon |
+
+**Yang sudah production & stabil:**
+- Fix R2 WhatsApp image ✅
+- Tombol Hubungi Pelapor ✅
+- Role canTugasMtc ✅
+- Hapus foto R2 saat tugas dihapus ✅
+- Proses 1x klik + Toast popup ✅
+- Procfile untuk Coolify ✅
+- Label tombol "Mulai Kerjakan" ✅
+- Fix timezone WIB filter tanggal ✅
+- Cron job Docker prune mingguan ✅
