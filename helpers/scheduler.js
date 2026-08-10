@@ -5,11 +5,11 @@ const { notifWATugasBaru }  = require('./kirimdev');
 
 // ==========================================
 // KIRIM NOTIF TUGAS TERJADWAL
-// Jalan setiap hari jam 09:00 WIB (02:00 UTC)
+// Jalan setiap hari jam 08:30 WIB (01:30 UTC)
 // ==========================================
 function startScheduler() {
-    // '0 2 * * *' = jam 02:00 UTC = jam 09:00 WIB
-    cron.schedule('0 2 * * *', async () => {
+    // '30 1 * * *' = jam 01:30 UTC = jam 08:30 WIB
+    cron.schedule('30 1 * * *', async () => {
         console.log('[Scheduler] ⏰ Cek tugas terjadwal hari ini...');
         try {
             const now   = new Date();
@@ -63,10 +63,10 @@ function startScheduler() {
             console.error('[Scheduler] ❌ Error:', err.message);
         }
     }, {
-        timezone: 'Asia/Jakarta'  // WIB — jalan jam 09:00
+        timezone: 'Asia/Jakarta'  // WIB — jalan jam 08:30
     });
 
-    console.log('⏰ Scheduler aktif — notif tugas dikirim setiap hari jam 09:00 WIB');
+    console.log('⏰ Scheduler aktif — notif tugas dikirim setiap hari jam 08:30 WIB');
 }
 
 module.exports = { startScheduler };
