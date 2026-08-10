@@ -136,10 +136,10 @@
       <div class="field-group">
         <div class="field-group-title">Foto Petunjuk Lokasi <span style="color:#ef4444;font-size:0.7rem;font-weight:800;">* WAJIB</span></div>
         <div class="upload-area" id="uploadAreaFotoTugas" style="border-color:#f97316;">
-          <input type="file" name="foto" accept="image/*" capture="environment" required onchange="document.getElementById('lblFotoTugas').textContent=this.files[0]?.name||'Pilih foto'; document.getElementById('uploadAreaFotoTugas').style.borderColor=this.files[0]?'#22c55e':'#ef4444';">
+          <input type="file" name="foto" accept="image/*" required onchange="document.getElementById('lblFotoTugas').textContent=this.files[0]?.name||'Pilih foto'; document.getElementById('uploadAreaFotoTugas').style.borderColor=this.files[0]?'#22c55e':'#ef4444';">
           <div class="upload-area-inner">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <div><span id="lblFotoTugas">Foto lokasi/kondisi untuk petunjuk</span><small style="color:#ef4444;">Wajib diisi — tap untuk kamera</small></div>
+            <div><span id="lblFotoTugas">Foto lokasi/kondisi untuk petunjuk</span><small style="color:#ef4444;">Wajib diisi — pilih dari galeri atau kamera</small></div>
           </div>
         </div>
       </div>
@@ -396,7 +396,7 @@
             <img id="editFotoTugasImg" src="" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;border:1px solid #f97316;">
           </div>
           <div class="upload-area">
-            <input type="file" name="foto" accept="image/*" capture="environment" onchange="previewEditFotoTugas(this)">
+            <input type="file" name="foto" accept="image/*" onchange="previewEditFotoTugas(this)">
             <div class="upload-area-inner">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
               <div><span id="editLblFotoTugas">Biarkan kosong = tidak berubah</span><small>Pilih untuk ganti</small></div>
