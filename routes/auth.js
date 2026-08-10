@@ -39,6 +39,8 @@ router.post('/login', async (req, res) => {
         const perms = getUserPerms(req.session.user);
         if (perms.canAudit && !perms.canViewLog) return res.redirect('/audit');
         if (!perms.canViewLog && perms.canAsset)  return res.redirect('/aset');
+        // User dengan role Tugas MTC — langsung ke halaman tugas
+        if (perms.canTugasMtc && !perms.canViewLog && !perms.canViewMaintenance) return res.redirect('/tugas');
         // User maintenance (divisi MAINTENANCE) redirect ke dashboard maintenance
         const divisi = (user.divisi || '').toUpperCase();
         if (divisi === 'MAINTENANCE' && perms.canViewLog) return res.redirect('/maintenance');

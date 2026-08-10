@@ -30,6 +30,7 @@
     .p-viewer{background:#f8fafc;color:#64748b;border-color:#cbd5e1;} .p-viewer:hover{background:#64748b;color:#fff;}
     .p-mtc   {background:#fff7ed;color:#d97706;border-color:#fcd34d;} .p-mtc:hover{background:#d97706;color:#fff;}
     .p-vmtc  {background:#f0f9ff;color:#0284c7;border-color:#7dd3fc;} .p-vmtc:hover{background:#0284c7;color:#fff;}
+    .p-tmtc  {background:#fdf4ff;color:#9333ea;border-color:#d8b4fe;} .p-tmtc:hover{background:#9333ea;color:#fff;}
     .p-clear {background:#f8fafc;color:#94a3b8;border-color:#e2e8f0;} .p-clear:hover{background:#e2e8f0;color:#374151;}
 
     /* PERMISSION TOGGLES */
@@ -46,6 +47,7 @@
     .perm-toggle.on-ven{border-color:#93c5fd;background:#eff6ff;}
     .perm-toggle.on-tgs{border-color:#fb923c;background:#fff7ed;}
     .perm-toggle.on-vmtc{border-color:#7dd3fc;background:#f0f9ff;}
+    .perm-toggle.on-tmtc{border-color:#d8b4fe;background:#fdf4ff;}
     .perm-name{font-size:12px;font-weight:600;color:#374151;}
     .perm-toggle.on .perm-name,.perm-toggle.on-log .perm-name,.perm-toggle.on-adm .perm-name{color:#16a34a;}
     .perm-toggle.on-del .perm-name{color:#dc2626;}
@@ -55,6 +57,7 @@
     .perm-toggle.on-ven .perm-name{color:#2563eb;}
     .perm-toggle.on-tgs .perm-name{color:#ea580c;}
     .perm-toggle.on-vmtc .perm-name{color:#0284c7;}
+    .perm-toggle.on-tmtc .perm-name{color:#9333ea;}
     .switch{width:32px;height:18px;background:#e2e8f0;border-radius:9px;position:relative;transition:background .2s;flex-shrink:0;}
     .switch::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
     .perm-toggle.on .switch,.perm-toggle.on-log .switch{background:#16a34a;}
@@ -65,7 +68,8 @@
     .perm-toggle.on-ven .switch{background:#2563eb;}
     .perm-toggle.on-tgs .switch{background:#ea580c;}
     .perm-toggle.on-vmtc .switch{background:#0284c7;}
-    .perm-toggle.on .switch::after,.perm-toggle.on-del .switch::after,.perm-toggle.on-adm .switch::after,.perm-toggle.on-log .switch::after,.perm-toggle.on-aud .switch::after,.perm-toggle.on-ven .switch::after,.perm-toggle.on-tgs .switch::after,.perm-toggle.on-vmtc .switch::after{transform:translateX(14px);}
+    .perm-toggle.on-tmtc .switch{background:#9333ea;}
+    .perm-toggle.on .switch::after,.perm-toggle.on-del .switch::after,.perm-toggle.on-adm .switch::after,.perm-toggle.on-log .switch::after,.perm-toggle.on-aud .switch::after,.perm-toggle.on-ven .switch::after,.perm-toggle.on-tgs .switch::after,.perm-toggle.on-vmtc .switch::after,.perm-toggle.on-tmtc .switch::after{transform:translateX(14px);}
     .btn-add{width:100%;padding:10px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
     .btn-add:hover{background:#15803d;}
 
@@ -92,7 +96,7 @@
     .pt-v{background:#dbeafe;color:#1d4ed8;} .pt-a{background:#dcfce7;color:#16a34a;} .pt-e{background:#d1fae5;color:#059669;}
     .pt-d{background:#fee2e2;color:#dc2626;} .pt-as{background:#fef9c3;color:#ca8a04;} .pt-ex{background:#ede9fe;color:#7c3aed;}
     .pt-u{background:#e0e7ff;color:#4338ca;} .pt-l{background:#cffafe;color:#0891b2;} .pt-au{background:#fef3c7;color:#d97706;}
-    .pt-vn{background:#dbeafe;color:#2563eb;} .pt-tg{background:#ffedd5;color:#ea580c;} .pt-vm{background:#e0f2fe;color:#0284c7;}
+    .pt-vn{background:#dbeafe;color:#2563eb;} .pt-tg{background:#ffedd5;color:#ea580c;} .pt-vm{background:#e0f2fe;color:#0284c7;} .pt-tmtc{background:#faf5ff;color:#9333ea;}
     .btn-edit-sm{padding:4px 10px;background:#eff6ff;color:#2563eb;border:1px solid #93c5fd;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;}
     .btn-edit-sm:hover{background:#2563eb;color:#fff;}
     .btn-del-sm{padding:4px 10px;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;}
@@ -158,6 +162,7 @@
           <input type="checkbox" name="canVendor"          id="add_canVendor"          style="display:none;">
           <input type="checkbox" name="canTugas"           id="add_canTugas"           style="display:none;">
           <input type="checkbox" name="canViewMaintenance" id="add_canViewMaintenance" style="display:none;">
+          <input type="checkbox" name="canTugasMtc"        id="add_canTugasMtc"        style="display:none;">
 
           <div class="perm-section">
             <div class="perm-section-title">Hak Akses</div>
@@ -167,6 +172,7 @@
               <button type="button" class="preset p-viewer" onclick="setPreset('add','viewer')">Viewer</button>
               <button type="button" class="preset p-mtc"    onclick="setPreset('add','maintenance')">🔧 MTC</button>
               <button type="button" class="preset p-vmtc"   onclick="setPreset('add','viewerMaintenance')">👁 View MTC</button>
+              <button type="button" class="preset p-tmtc"   onclick="setPreset('add','tugasMtc')">📋 Tugas MTC</button>
               <button type="button" class="preset p-clear"  onclick="setPreset('add','clear')">Clear</button>
             </div>
             <div class="perm-grid" id="permGrid_add">
@@ -182,6 +188,7 @@
               <div class="perm-toggle" id="pt_add_canVendor" onclick="togglePerm('add','canVendor')"><span class="perm-name">Vendor</span><div class="switch"></div></div>
               <div class="perm-toggle" id="pt_add_canTugas"  onclick="togglePerm('add','canTugas')"><span class="perm-name">Kelola Tugas MTC</span><div class="switch"></div></div>
               <div class="perm-toggle" id="pt_add_canViewMaintenance" onclick="togglePerm('add','canViewMaintenance')"><span class="perm-name">Lihat Jurnal MTC</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canTugasMtc" onclick="togglePerm('add','canTugasMtc')"><span class="perm-name">Tugas MTC</span><div class="switch"></div></div>
             </div>
           </div>
 
@@ -233,6 +240,7 @@
                     <% if(perms.canVendor)  { %><span class="pt pt-vn">Vendor</span><% } %>
                     <% if(perms.canTugas)   { %><span class="pt pt-tg">Tugas MTC</span><% } %>
                     <% if(perms.canViewMaintenance){ %><span class="pt pt-vm">View MTC</span><% } %>
+                    <% if(perms.canTugasMtc){ %><span class="pt pt-tmtc">Tugas MTC Only</span><% } %>
                   </div>
                 </td>
                 <td style="font-size:12px;color:#64748b;white-space:nowrap;"><%= new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
@@ -294,6 +302,7 @@
                   <button type="button" class="preset p-viewer" onclick="setPreset('edit','viewer')">Viewer</button>
                   <button type="button" class="preset p-mtc"    onclick="setPreset('edit','maintenance')">🔧 MTC</button>
                   <button type="button" class="preset p-vmtc"   onclick="setPreset('edit','viewerMaintenance')">👁 View MTC</button>
+                  <button type="button" class="preset p-tmtc"   onclick="setPreset('edit','tugasMtc')">📋 Tugas MTC</button>
                   <button type="button" class="preset p-clear"  onclick="setPreset('edit','clear')">Clear</button>
                 </div>
                 <!-- HIDDEN CHECKBOXES EDIT -->
@@ -309,6 +318,7 @@
                 <input type="checkbox" name="canVendor"          id="edit_canVendor"          style="display:none;">
                 <input type="checkbox" name="canTugas"           id="edit_canTugas"           style="display:none;">
                 <input type="checkbox" name="canViewMaintenance" id="edit_canViewMaintenance" style="display:none;">
+                <input type="checkbox" name="canTugasMtc"        id="edit_canTugasMtc"        style="display:none;">
                 <div class="perm-grid" id="permGrid_edit">
                   <div class="perm-toggle" id="pt_edit_canView"             onclick="togglePerm('edit','canView')"><span class="perm-name">Lihat</span><div class="switch"></div></div>
                   <div class="perm-toggle" id="pt_edit_canAdd"              onclick="togglePerm('edit','canAdd')"><span class="perm-name">Tambah</span><div class="switch"></div></div>
@@ -322,6 +332,7 @@
                   <div class="perm-toggle" id="pt_edit_canVendor"           onclick="togglePerm('edit','canVendor')"><span class="perm-name">Vendor</span><div class="switch"></div></div>
                   <div class="perm-toggle" id="pt_edit_canTugas"            onclick="togglePerm('edit','canTugas')"><span class="perm-name">Kelola Tugas MTC</span><div class="switch"></div></div>
                   <div class="perm-toggle" id="pt_edit_canViewMaintenance"  onclick="togglePerm('edit','canViewMaintenance')"><span class="perm-name">Lihat Jurnal MTC</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canTugasMtc"         onclick="togglePerm('edit','canTugasMtc')"><span class="perm-name">Tugas MTC</span><div class="switch"></div></div>
                 </div>
               </div>
             </div>
@@ -350,20 +361,21 @@
 <script>
 (function(){ var t=localStorage.getItem('theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
 
-var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor','canTugas','canViewMaintenance'];
+var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor','canTugas','canViewMaintenance','canTugasMtc'];
 var permState = { add:{}, edit:{} };
 PERM_KEYS.forEach(function(k){ permState.add[k]=false; permState.edit[k]=false; });
 
 var PRESETS = {
-  admin:             {canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true,canViewLog:true,canAudit:false,canVendor:true,canTugas:false,canViewMaintenance:false},
-  user:              {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false},
-  viewer:            {canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false},
-  maintenance:       {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false},
-  viewerMaintenance: {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:true},
-  clear:             {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false}
+  admin:             {canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true,canViewLog:true,canAudit:false,canVendor:true,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
+  user:              {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
+  viewer:            {canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
+  maintenance:       {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
+  viewerMaintenance: {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:true,canTugasMtc:false},
+  tugasMtc:          {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:true},
+  clear:             {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false}
 };
 
-var ON_CLASS = {canView:'on',canAdd:'on',canEdit:'on',canDelete:'on-del',canAsset:'on',canExport:'on',canUsers:'on-adm',canViewLog:'on-log',canAudit:'on-aud',canVendor:'on-ven',canTugas:'on-tgs',canViewMaintenance:'on-vmtc'};
+var ON_CLASS = {canView:'on',canAdd:'on',canEdit:'on',canDelete:'on-del',canAsset:'on',canExport:'on',canUsers:'on-adm',canViewLog:'on-log',canAudit:'on-aud',canVendor:'on-ven',canTugas:'on-tgs',canViewMaintenance:'on-vmtc',canTugasMtc:'on-tmtc'};
 
 function renderPerms(form) {
   PERM_KEYS.forEach(function(k){

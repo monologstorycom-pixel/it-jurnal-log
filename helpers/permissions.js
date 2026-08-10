@@ -20,13 +20,14 @@ function getUserPerms(user) {
                 canVendor:            p.canVendor            === true,
                 canTugas:             p.canTugas             === true,
                 canViewMaintenance:   p.canViewMaintenance   === true,
+                canTugasMtc:          p.canTugasMtc          === true,
             };
         } catch(e) {
             console.warn('[getUserPerms] Gagal parse permissions:', e.message);
-            return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false };
+            return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false, canTugasMtc:false };
         }
     }
-    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false };
+    return { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false, canTugasMtc:false };
 }
 
 function hasPerm(user, perm) {
