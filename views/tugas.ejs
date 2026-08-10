@@ -262,6 +262,14 @@
           <span>📅 <%= new Date(t.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></span>
           <span>👤 <%= t.buatOleh %></span>
           <% if (t.catatan) { %><span>💬 <%= t.catatan %></span><% } %>
+          <%
+            var tglTugas = new Date(t.tanggal);
+            var tglHariIni = new Date(); tglHariIni.setHours(0,0,0,0); tglTugas.setHours(0,0,0,0);
+            var isFuture = tglTugas > tglHariIni;
+          %>
+          <% if (isFuture) { %>
+          <span style="background:#1a1a38;color:#818cf8;border:1px solid #3730a3;border-radius:4px;padding:1px 7px;font-size:0.62rem;font-weight:700;">🕐 Terjadwal — notif dikirim jam 09:00 WIB</span>
+          <% } %>
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span class="badge-status <%= t.status === 'Selesai' ? 'badge-selesai' : (t.status === 'Proses' ? 'badge-proses' : 'badge-belum') %>">

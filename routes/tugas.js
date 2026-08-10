@@ -93,17 +93,26 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
             }
         });
 
-        // Kirim notif Telegram
-        notifTugasBaru(tugasBaru, process.env.APP_URL);
+        // Cek apakah tanggal tugas = hari ini
+        const today     = new Date();
+        const todayStr  = today.toISOString().split('T')[0];
+        const isToday   = tanggal === todayStr;
 
-        // Kirim notif WA ke semua user MAINTENANCE yang punya noHp
-        const maintenanceUsers = await prisma.user.findMany({
-            where: { divisi: 'MAINTENANCE', noHp: { not: null } },
-            select: { noHp: true, nama: true }
-        });
-        maintenanceUsers.forEach(u => {
-            if (u.noHp) notifWATugasBaru(u.noHp, tugasBaru);
-        });
+        if (isToday) {
+            // Hari ini → kirim langsung sekarang
+            notifTugasBaru(tugasBaru, process.env.APP_URL);
+
+            const maintenanceUsers = await prisma.user.findMany({
+                where: { divisi: 'MAINTENANCE', noHp: { not: null } },
+                select: { noHp: true }
+            });
+            maintenanceUsers.forEach(u => { if (u.noHp) notifWATugasBaru(u.noHp, tugasBaru); });
+
+            console.log('[Tugas] Notif langsung dikirim - tugas untuk hari ini');
+        } else {
+            // Masa depan → scheduler yang akan kirim jam 09:00 WIB di hari H
+            console.log('[Tugas] Tugas dijadwalkan untuk', tanggal, '- notif akan dikirim jam 09:00 WIB');
+        }
 
         res.redirect('/tugas?saved=1&tanggal=' + tanggal);
     } catch (err) { console.error(err); res.status(500).send('Gagal buat tugas: ' + err.message); }
