@@ -1,43 +1,93 @@
 const https = require('https');
+const http  = require('http');
 const fs    = require('fs');
 const path  = require('path');
 
 // ==========================================
+// DOWNLOAD FILE DARI URL (R2 / HTTP) → Buffer
+// ==========================================
+function downloadToBuffer(url) {
+    return new Promise((resolve) => {
+        try {
+            const lib = url.startsWith('https') ? https : http;
+            lib.get(url, (res) => {
+                // Handle redirect (301/302)
+                if (res.statusCode === 301 || res.statusCode === 302) {
+                    return downloadToBuffer(res.headers.location).then(resolve);
+                }
+                if (res.statusCode !== 200) {
+                    console.warn('[KirimDev] Download gagal, status:', res.statusCode, url);
+                    return resolve(null);
+                }
+                const chunks = [];
+                res.on('data', c => chunks.push(c));
+                res.on('end', () => resolve(Buffer.concat(chunks)));
+            }).on('error', e => {
+                console.warn('[KirimDev] Download error:', e.message);
+                resolve(null);
+            });
+        } catch(e) {
+            console.warn('[KirimDev] Download exception:', e.message);
+            resolve(null);
+        }
+    });
+}
+
+// ==========================================
 // UPLOAD MEDIA KE META (dapat media_id)
+// Mendukung: path lokal (disk) dan URL R2/http
 // ==========================================
 function uploadMediaToMeta(filePath) {
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
         const API_KEY  = process.env.KIRIMDEV_API_KEY;
         const PHONE_ID = process.env.KIRIMDEV_PHONE_ID;
         if (!API_KEY || !PHONE_ID || !filePath) return resolve(null);
 
-        // Cek apakah file ada di disk (foto lokal dari uploads/)
-        let diskPath = filePath;
-        if (filePath.startsWith('/uploads/') || filePath.startsWith('uploads/')) {
-            diskPath = path.join(__dirname, '..', 'public', filePath);
-        } else if (filePath.startsWith('http')) {
-            // URL R2 — tidak bisa upload langsung, fallback ke link
-            return resolve(null);
+        let fileBuffer = null;
+        let filename   = 'photo.jpg';
+
+        if (filePath.startsWith('http')) {
+            // URL R2 atau eksternal — download dulu ke buffer
+            console.log('[KirimDev] Download dari R2/URL:', filePath);
+            fileBuffer = await downloadToBuffer(filePath);
+            filename   = path.basename(filePath.split('?')[0]) || 'photo.jpg';
+        } else {
+            // Path lokal
+            let diskPath = filePath;
+            if (filePath.startsWith('/uploads/') || filePath.startsWith('uploads/')) {
+                diskPath = path.join(__dirname, '..', 'public', filePath);
+            }
+            if (!fs.existsSync(diskPath)) {
+                console.warn('[KirimDev] File tidak ditemukan di disk:', diskPath);
+                return resolve(null);
+            }
+            try {
+                fileBuffer = fs.readFileSync(diskPath);
+                filename   = path.basename(diskPath);
+            } catch(e) {
+                console.warn('[KirimDev] File read error:', e.message);
+                return resolve(null);
+            }
         }
 
-        if (!fs.existsSync(diskPath)) {
-            console.warn('[KirimDev] File tidak ditemukan di disk:', diskPath);
+        if (!fileBuffer || fileBuffer.length === 0) {
+            console.warn('[KirimDev] Buffer kosong, batal upload media');
             return resolve(null);
         }
 
         try {
-            const fileBuffer  = fs.readFileSync(diskPath);
-            const filename    = path.basename(diskPath);
-            const boundary    = '----WAboundary' + Date.now();
+            const boundary = '----WAboundary' + Date.now();
+            const ext      = filename.toLowerCase().split('.').pop();
+            const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
 
             const part1 = Buffer.from(
                 '--' + boundary + '\r\n' +
                 'Content-Disposition: form-data; name="messaging_product"\r\n\r\nwhatsapp\r\n' +
                 '--' + boundary + '\r\n' +
-                'Content-Disposition: form-data; name="type"\r\n\r\nimage/jpeg\r\n' +
+                'Content-Disposition: form-data; name="type"\r\n\r\n' + mimeType + '\r\n' +
                 '--' + boundary + '\r\n' +
                 'Content-Disposition: form-data; name="file"; filename="' + filename + '"\r\n' +
-                'Content-Type: image/jpeg\r\n\r\n'
+                'Content-Type: ' + mimeType + '\r\n\r\n'
             );
             const part2 = Buffer.from('\r\n--' + boundary + '--\r\n');
             const body  = Buffer.concat([part1, fileBuffer, part2]);
@@ -47,8 +97,8 @@ function uploadMediaToMeta(filePath) {
                 path:     '/v1/' + PHONE_ID + '/media',
                 method:   'POST',
                 headers:  {
-                    'Authorization': 'Bearer ' + API_KEY,
-                    'Content-Type':  'multipart/form-data; boundary=' + boundary,
+                    'Authorization':  'Bearer ' + API_KEY,
+                    'Content-Type':   'multipart/form-data; boundary=' + boundary,
                     'Content-Length': body.length
                 }
             };
@@ -73,7 +123,7 @@ function uploadMediaToMeta(filePath) {
             req.write(body);
             req.end();
         } catch(e) {
-            console.warn('[KirimDev] File read error:', e.message);
+            console.warn('[KirimDev] Upload exception:', e.message);
             resolve(null);
         }
     });
