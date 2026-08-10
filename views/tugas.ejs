@@ -290,15 +290,15 @@
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
-        <% if (t.status === 'Belum') { %>
-        <!-- 1x klik langsung Proses -->
+        <% if (isMtc && t.status === 'Belum') { %>
+        <!-- 1x klik langsung Proses — hanya untuk maintenance -->
         <form method="POST" action="/tugas/status/<%= t.id %>" style="margin:0;">
           <input type="hidden" name="newStatus" value="Proses">
           <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
           <button type="submit" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">▶ Mulai Kerjakan</button>
         </form>
-        <% } else if (t.status === 'Proses') { %>
-        <!-- Buka modal Selesai -->
+        <% } else if (isMtc && t.status === 'Proses') { %>
+        <!-- Buka modal Selesai — hanya untuk maintenance -->
         <button onclick="openSelesaiModal(<%= t.id %>, `<%- (t.judul||'').replace(/`/g,'\\`') %>`)" class="btn btn-sm fw-bold" style="background:#0d2a18;border:1px solid #1a5c30;color:#4ade80;font-size:0.7rem;">✓ Selesai</button>
         <% } %>
         <% if (canManage) { %>
