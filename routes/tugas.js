@@ -68,7 +68,7 @@ router.get('/tugas', requireLogin, async (req, res) => {
             tugas: tugasWithHp, filterTanggal,
             filterStatus: status || '',
             canManage: canManageTugas(user),
-            isMtc: isMaintenance(user),
+            isMtc: isMaintenance(user) || hasPerm(user, 'canTugasMtc'),
             saved: req.query.saved === '1',
             stats: { total, selesai, proses, belum },
             todayStr
