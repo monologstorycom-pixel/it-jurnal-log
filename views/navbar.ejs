@@ -1,7 +1,4 @@
 <style>
-  /* ===== BOOTSTRAP ICONS ===== */
-  @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
-
   /* ===== LUCIDE ICON STYLE ===== */
   .lc { display:inline-block; vertical-align:-0.15em; width:1em; height:1em; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
   .lc-sm { width:0.75em !important; height:0.75em !important; }
@@ -547,53 +544,59 @@
     <% if (isAuditOnly) { %>
       <!-- JIKA YANG LOGIN TIM AUDIT, KUNCI HANYA DI MENU INI -->
       <a href="/audit" class="it-nav-link <%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
-        <i class="bi bi-search"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/><line x1="4" y1="6" x2="8" y2="6"/><line x1="6" y1="4" x2="6" y2="8"/></svg>
         Dashboard Audit
       </a>
 
     <% } else if (isNonItUser) { %>
+      <!-- JIKA YANG LOGIN USER DIVISI LAIN (NON IT/AUDIT) -->
       <a href="<%= asetPublicHref %>" class="it-nav-link <%= activePage === 'aset-public' ? 'active' : '' %>">
-        <i class="bi bi-house"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
         Home
       </a>
       <a href="/aset" class="it-nav-link <%= activePage === 'aset' ? 'active' : '' %>">
-        <i class="bi bi-grid"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
         Dashboard Aset
       </a>
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canVendor) { %>
       <a href="/vendor" class="it-nav-link <%= activePage === 'vendor' ? 'active' : '' %>" style="color:#4da6ff;">
-        <i class="bi bi-shop"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V7z"/><path d="M1 7h14M4 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
         Vendor
       </a>
       <% } %>
 
     <% } else if (isMaintenance) { %>
+      <!-- JIKA YANG LOGIN TIM MAINTENANCE -->
       <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#fb923c;">
-        <i class="bi bi-tools"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 2.5L11 5l-2-2 2.5-2.5a3 3 0 0 0-4 4L2 11a1 1 0 0 0 1.4 1.4l5.5-5.5a3 3 0 0 0 4-4z"/></svg>
         Dashboard Maintenance
       </a>
       <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
-        <i class="bi bi-clipboard-check"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas Hari Ini
       </a>
 
     <% } else if (isViewerMaintenance) { %>
+      <!-- JIKA YANG LOGIN VIEWER MAINTENANCE (HRGA, dll) -->
       <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#67e8f9;">
-        <i class="bi bi-eye"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
         Jurnal Maintenance
       </a>
       <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
-        <i class="bi bi-clipboard-check"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas Maintenance
       </a>
 
     <% } else { %>
+      <!-- JIKA YANG LOGIN ADMIN / IT / PUBLIC -->
+      
       <% if (currentUser && userPerms && userPerms.canViewLog) { %>
       <a href="/kerja" class="it-nav-link <%= activePage === 'dashboard' ? 'active' : '' %>">
-        <i class="bi bi-grid-1x2"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
         Dashboard IT
       </a>
       <% } %>
+      
       <% if (!currentUser || (userPerms && userPerms.canAsset)) { %>
       <%
         var isAdminRole   = currentUser && userPerms && (userPerms.canUsers || userPerms.canAudit);
@@ -601,34 +604,40 @@
         var asetLabel = (!currentUser || isAdminRole) ? 'Aset IT' : 'Aset ' + (currentUser.divisi || '');
       %>
       <a href="<%= asetHref %>" class="it-nav-link <%= activePage === 'aset' || activePage === 'aset-public' ? 'active' : '' %>">
-        <i class="bi bi-pc-display"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><line x1="8" y1="7" x2="8" y2="10"/><line x1="6.5" y1="8.5" x2="9.5" y2="8.5"/></svg>
         <%= asetLabel %>
       </a>
       <% } %>
+      
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canVendor) { %>
       <a href="/vendor" class="it-nav-link <%= activePage === 'vendor' ? 'active' : '' %>" style="color:#4da6ff;">
-        <i class="bi bi-shop"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V7z"/><path d="M1 7h14M4 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
         Vendor
       </a>
       <% } %>
+
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
       <a href="/users" class="it-nav-link <%= activePage === 'users' ? 'active' : '' %>">
-        <i class="bi bi-people"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/><circle cx="11.5" cy="9.5" r="2"/><line x1="11.5" y1="7.5" x2="11.5" y2="11.5"/><line x1="9.5" y1="9.5" x2="13.5" y2="9.5"/></svg>
         Users
       </a>
       <% } %>
+      
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canAudit) { %>
       <a href="/audit" class="it-nav-link <%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
-        <i class="bi bi-search"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/><line x1="4" y1="6" x2="8" y2="6"/><line x1="6" y1="4" x2="6" y2="8"/></svg>
         Audit
       </a>
       <% } %>
+      
       <% if (typeof currentUser !== 'undefined' && currentUser && (userPerms.canUsers || userPerms.canTugas)) { %>
       <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
-        <i class="bi bi-clipboard-check"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas
       </a>
       <% } %>
+      
+    <% } %>
   </div>
 
   <div class="it-nav-right">
@@ -660,7 +669,7 @@
         </div>
         <span class="it-nav-name"><%= currentUser.nama %></span>
         <span class="it-nav-role <%= roleClass %>"><%= currentUser.role.toUpperCase() %></span>
-        <i class="bi bi-chevron-down" style="opacity:0.5;font-size:10px;flex-shrink:0;"></i>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:0.5;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="it-user-dropdown" id="userDropdown">
         <div class="it-dd-header">
@@ -668,12 +677,12 @@
           <div class="it-dd-username">@<%= currentUser.username %></div>
         </div>
         <a href="/settings" class="it-dd-item">
-          <i class="bi bi-gear"></i>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
           Pengaturan Akun
         </a>
         <div class="it-dd-divider"></div>
         <a href="/logout" class="it-dd-item danger">
-          <i class="bi bi-box-arrow-right"></i>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Keluar
         </a>
       </div>
@@ -684,8 +693,11 @@
     <% } %>
   </div>
 
+  <!-- HAMBURGER -->
   <button class="it-nav-hamburger" onclick="toggleMobileNav()">
-    <i class="bi bi-list" style="font-size:18px;"></i>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>
+    </svg>
   </button>
 </nav>
 
@@ -699,7 +711,7 @@
   <div class="it-sidebar-header">
     <a href="<%= brandHref %>" class="it-sidebar-brand">&gt;_ IT <span>SUPPORT</span> LOG</a>
     <button class="it-sidebar-close" onclick="closeSidebar()" aria-label="Tutup menu">
-      <i class="bi bi-x-lg"></i>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
 
@@ -707,72 +719,72 @@
   <nav class="it-sidebar-nav">
     <% if (isAuditOnly) { %>
       <a href="/audit" class="<%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;" onclick="closeSidebar()">
-        <i class="bi bi-search"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/></svg>
         Dashboard Audit
       </a>
     <% } else if (isNonItUser) { %>
       <a href="<%= asetPublicHref %>" class="<%= activePage === 'aset-public' ? 'active' : '' %>" onclick="closeSidebar()">
-        <i class="bi bi-house"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
         Home
       </a>
       <a href="/aset" class="<%= activePage === 'aset' ? 'active' : '' %>" onclick="closeSidebar()">
-        <i class="bi bi-grid"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
         Dashboard Aset
       </a>
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canVendor) { %>
       <a href="/vendor" class="<%= activePage === 'vendor' ? 'active' : '' %>" style="color:#4da6ff;" onclick="closeSidebar()">
-        <i class="bi bi-shop"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V7z"/><path d="M1 7h14M4 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
         Vendor
       </a>
       <% } %>
     <% } else if (isMaintenance) { %>
       <!-- MAINTENANCE USER SIDEBAR -->
       <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#fb923c;" onclick="closeSidebar()">
-        <i class="bi bi-tools"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 2.5L11 5l-2-2 2.5-2.5a3 3 0 0 0-4 4L2 11a1 1 0 0 0 1.4 1.4l5.5-5.5a3 3 0 0 0 4-4z"/></svg>
         Dashboard Maintenance
       </a>
       <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;" onclick="closeSidebar()">
-        <i class="bi bi-clipboard-check"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/><line x1="6" y1="12" x2="8" y2="12"/></svg>
         Tugas Hari Ini
       </a>
     <% } else if (isViewerMaintenance) { %>
       <!-- VIEWER MAINTENANCE SIDEBAR (HRGA, dll) -->
       <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#67e8f9;" onclick="closeSidebar()">
-        <i class="bi bi-eye"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
         Jurnal Maintenance
       </a>
       <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;" onclick="closeSidebar()">
-        <i class="bi bi-clipboard-check"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas Maintenance
       </a>
     <% } else { %>
       <% if (currentUser && userPerms && userPerms.canViewLog) { %>
       <a href="/kerja" class="<%= activePage === 'dashboard' ? 'active' : '' %>" onclick="closeSidebar()">
-        <i class="bi bi-grid-1x2"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
         Dashboard IT
       </a>
       <% } %>
       <% if (!currentUser || (userPerms && userPerms.canAsset)) { %>
       <a href="<%= asetHref %>" class="<%= activePage === 'aset' || activePage === 'aset-public' ? 'active' : '' %>" onclick="closeSidebar()">
-        <i class="bi bi-pc-display"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/></svg>
         <%= asetLabel %>
       </a>
       <% } %>
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canVendor) { %>
       <a href="/vendor" class="<%= activePage === 'vendor' ? 'active' : '' %>" style="color:#4da6ff;" onclick="closeSidebar()">
-        <i class="bi bi-shop"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7h12v7a1 1 0 01-1 1H3a1 1 0 01-1-1V7z"/><path d="M1 7h14M4 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
         Vendor
       </a>
       <% } %>
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canUsers) { %>
       <a href="/users" class="<%= activePage === 'users' ? 'active' : '' %>" onclick="closeSidebar()">
-        <i class="bi bi-people"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 13c0-2.5 2-4 5-4"/><circle cx="11.5" cy="9.5" r="2"/><line x1="11.5" y1="7.5" x2="11.5" y2="11.5"/><line x1="9.5" y1="9.5" x2="13.5" y2="9.5"/></svg>
         Users
       </a>
       <% } %>
       <% if (typeof currentUser !== 'undefined' && currentUser && userPerms && userPerms.canAudit) { %>
       <a href="/audit" class="<%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;" onclick="closeSidebar()">
-        <i class="bi bi-search"></i>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/></svg>
         Audit
       </a>
       <% } %>
@@ -781,14 +793,15 @@
 
   <!-- Footer -->
   <div class="it-sidebar-footer">
+    <!-- Theme toggle -->
     <button class="it-sidebar-theme" onclick="toggleTheme()">
-      <i class="bi bi-circle-half"></i>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <span id="sidebarThemeLabel">Light Mode</span>
     </button>
 
     <% if (typeof currentUser === 'undefined' || !currentUser) { %>
     <a href="/login" onclick="closeSidebar()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 12px;border-radius:9px;background:var(--body-accent);color:var(--body-bg);font-size:13px;font-weight:700;text-decoration:none;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-      <i class="bi bi-box-arrow-in-right"></i>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       Login
     </a>
     <% } else { %>
@@ -806,11 +819,11 @@
       </div>
     </div>
     <a href="/settings" onclick="closeSidebar()" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:var(--nav-text2);font-size:13px;font-weight:600;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='var(--nav-hover-bg)'" onmouseout="this.style.background='none'">
-      <i class="bi bi-gear"></i>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
       Pengaturan Akun
     </a>
     <a href="/logout" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;color:#dc2626;font-size:13px;font-weight:600;text-decoration:none;transition:background 0.12s;" onmouseover="this.style.background='rgba(220,38,38,0.08)'" onmouseout="this.style.background='none'">
-      <i class="bi bi-box-arrow-right"></i>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Keluar
     </a>
     <% } %>
@@ -1027,7 +1040,12 @@ document.addEventListener('click', function() {
 
 <!-- FAB Button -->
 <button id="ai-fab" onclick="toggleAiPanel()" title="AI Assistant">
-  <i class="bi bi-robot" style="font-size:20px;"></i>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/>
+    <circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="7" r="1" fill="currentColor" stroke="none"/>
+    <circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/>
+  </svg>
   <span class="ai-notif" id="aiNotif"></span>
 </button>
 
@@ -1035,13 +1053,13 @@ document.addEventListener('click', function() {
 <div id="ai-panel">
   <div class="ai-header">
     <div class="ai-header-icon">
-      <i class="bi bi-robot" style="font-size:18px;"></i>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
     </div>
     <div>
       <div class="ai-header-title">RSBY-AI Assistant</div>
       <div class="ai-header-sub"><%- aiSub %></div>
     </div>
-    <button class="ai-header-close" onclick="toggleAiPanel()"><i class="bi bi-x-lg"></i></button>
+    <button class="ai-header-close" onclick="toggleAiPanel()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
   </div>
 
   <div id="ai-messages">
@@ -1060,7 +1078,7 @@ document.addEventListener('click', function() {
   <div class="ai-input-area">
     <textarea id="ai-input" placeholder="Tanya sesuatu..." rows="1" onkeydown="aiKeydown(event)" oninput="autoResize(this)"></textarea>
     <button id="ai-send" onclick="sendAiMessage()">
-      <i class="bi bi-send-fill"></i>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
     </button>
   </div>
 </div>
