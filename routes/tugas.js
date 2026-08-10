@@ -151,6 +151,18 @@ router.post('/tugas/edit/:id', requireLogin, uploadSingle, async (req, res) => {
             prioritas: prioritas || 'Normal', status: status || 'Belum'
         };
         if (req.file) {
+            // Hapus foto lama dari R2 / lokal dulu
+            const existing = await prisma.tugas.findUnique({ where: { id }, select: { fotoTugasUrl: true } });
+            if (existing?.fotoTugasUrl) {
+                const { deleteFromR2 } = require('../helpers/r2');
+                const fs = require('fs'), path = require('path');
+                if (existing.fotoTugasUrl.startsWith('http')) {
+                    await deleteFromR2(existing.fotoTugasUrl);
+                } else {
+                    const p = path.join(__dirname, '..', 'public', existing.fotoTugasUrl);
+                    if (fs.existsSync(p)) fs.unlinkSync(p);
+                }
+            }
             updateData.fotoTugasUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
         }
 
@@ -168,11 +180,21 @@ router.post('/tugas/hapus/:id', requireLogin, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const item = await prisma.tugas.findUnique({ where: { id } });
-        if (item?.fotoUrl) {
-            const fs = require('fs'), path = require('path');
-            const p = path.join(__dirname, '..', 'public', item.fotoUrl);
-            if (fs.existsSync(p)) fs.unlinkSync(p);
+
+        // Hapus foto dari R2 (URL http) atau lokal (path /uploads/)
+        const { deleteFromR2 } = require('../helpers/r2');
+        const fs = require('fs'), path = require('path');
+        for (const field of ['fotoUrl', 'fotoTugasUrl']) {
+            const fileVal = item?.[field];
+            if (!fileVal) continue;
+            if (fileVal.startsWith('http')) {
+                await deleteFromR2(fileVal);
+            } else {
+                const p = path.join(__dirname, '..', 'public', fileVal);
+                if (fs.existsSync(p)) fs.unlinkSync(p);
+            }
         }
+
         await prisma.tugas.delete({ where: { id } });
         res.redirect('/tugas?tanggal=' + (req.body.tanggal || ''));
     } catch (err) { console.error(err); res.status(500).send('Gagal hapus: ' + err.message); }
