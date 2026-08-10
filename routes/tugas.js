@@ -263,8 +263,8 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
             // Warna prioritas
             if (t.prioritas === 'Urgent') row.getCell('prioritas').font = { color: { argb: 'dc2626' }, bold: true };
             // Foto link
-            if (t.fotoTugasUrl) { row.getCell('fotoTugas').value = { text: 'LIHAT PETUNJUK', hyperlink: base + t.fotoTugasUrl }; row.getCell('fotoTugas').font = { color: { argb: 'ea580c' }, underline: true }; }
-            if (t.fotoUrl)     { row.getCell('foto').value = { text: 'LIHAT FOTO', hyperlink: base + t.fotoUrl }; row.getCell('foto').font = { color: { argb: '0000FF' }, underline: true }; }
+            if (t.fotoTugasUrl) { const u = t.fotoTugasUrl.startsWith('http') ? t.fotoTugasUrl : base + t.fotoTugasUrl; row.getCell('fotoTugas').value = { text: 'LIHAT PETUNJUK', hyperlink: u }; row.getCell('fotoTugas').font = { color: { argb: 'ea580c' }, underline: true }; }
+            if (t.fotoUrl)      { const u = t.fotoUrl.startsWith('http')      ? t.fotoUrl      : base + t.fotoUrl;      row.getCell('foto').value      = { text: 'LIHAT FOTO',     hyperlink: u }; row.getCell('foto').font      = { color: { argb: '0000FF' }, underline: true }; }
             // Zebra
             if (i % 2 !== 0) row.eachCell(c => { if (!c.font?.color) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9FFF9' } }; });
         });

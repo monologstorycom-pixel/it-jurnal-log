@@ -387,6 +387,7 @@ router.get('/maintenance/export', requireLogin, requireMaintenance, async (req, 
         };
 
         const base = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
+        const buildUrl = (url) => (!url ? null : (url.startsWith('http') ? url : base + url));
         journals.forEach((item, i) => {
             const isMulti = item.tipeInput === 'multihari';
             const row = worksheet.addRow({
@@ -401,8 +402,8 @@ router.get('/maintenance/export', requireLogin, requireMaintenance, async (req, 
                 status:     item.status
             });
             if (i % 2 !== 0) row.eachCell(c => c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F9FFF9' } });
-            if (item.fotoAwalUrl) { row.getCell('fotoAwal').value = { text: 'LIHAT FOTO AWAL',    hyperlink: base + item.fotoAwalUrl }; row.getCell('fotoAwal').font = { color: { argb: '0000FF' }, underline: true }; }
-            if (item.fotoUrl)     { row.getCell('foto').value     = { text: 'LIHAT FOTO SESUDAH', hyperlink: base + item.fotoUrl };    row.getCell('foto').font     = { color: { argb: '0000FF' }, underline: true }; }
+            if (item.fotoAwalUrl) { row.getCell('fotoAwal').value = { text: 'LIHAT FOTO AWAL',    hyperlink: buildUrl(item.fotoAwalUrl) }; row.getCell('fotoAwal').font = { color: { argb: '0000FF' }, underline: true }; }
+            if (item.fotoUrl)     { row.getCell('foto').value     = { text: 'LIHAT FOTO SESUDAH', hyperlink: buildUrl(item.fotoUrl) };    row.getCell('foto').font     = { color: { argb: '0000FF' }, underline: true }; }
         });
 
         worksheet.eachRow(row => row.eachCell(cell => {
