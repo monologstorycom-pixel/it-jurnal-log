@@ -1,755 +1,396 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#1a3a1a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="IT Log">
-    <link rel="icon" type="image/x-icon"   href="/favicon.ico">
-    <link rel="icon" type="image/svg+xml"  href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT JURNAL LOG by RSBY</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; transition: background-color 0.25s, color 0.25s; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>Dashboard IT — Jurnal Log</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: #f1f5f9; color: #0f172a; font-family: 'Inter', system-ui, sans-serif; margin: 0; font-size: 14px; }
 
-        /* FORM SIDEBAR - MODERN REDESIGN */
-        .input-custom {
-            background: var(--body-bg3, #1e1e2e) !important;
-            border: 1.5px solid var(--body-border) !important;
-            border-radius: 10px;
-            color: var(--body-text) !important;
-            padding: 10px 13px;
-            width: 100%;
-            margin-bottom: 0.65rem;
-            font-size: 0.875rem;
-            transition: border-color 0.18s, box-shadow 0.18s;
-            box-shadow: none;
-        }
-        .input-custom:focus {
-            outline: none;
-            border-color: #22c55e !important;
-            box-shadow: 0 0 0 3px rgba(34,197,94,0.13) !important;
-        }
-        .label-text {
-            color: var(--body-text2);
-            font-size: 0.68rem;
-            font-weight: 700;
-            letter-spacing: 0.07em;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+    /* ── LAYOUT ── */
+    .page { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
 
-        /* TABLE */
-        .table-container { background: var(--body-card) !important; border-radius: 10px; border: 1px solid var(--body-border); }
-        .table { min-width: 1000px; margin: 0; }
-        .table thead tr { background: var(--body-table-head) !important; }
-        .table thead th { color: var(--body-table-head-text) !important; }
-        .table tbody tr { background: var(--body-table-row) !important; border-bottom: 1px solid var(--body-table-border); }
-        .table td { padding: 0.9rem 0.8rem; vertical-align: middle; color: #111827 !important; font-size: 0.82rem; line-height: 1.4; }
-        .txt-bold { color: #111827 !important; font-weight: 700; }
-        [data-theme="dark"] .table td { color: #e2e8f0 !important; }
-        [data-theme="dark"] .txt-bold { color: #e2e8f0 !important; }
-        .status-solved { color: #008000 !important; font-weight: 800; font-size: 0.7rem; }
-        .status-pending { color: #8b6508 !important; font-weight: 800; font-size: 0.7rem; }
+    /* ── STAT CARDS ── */
+    .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+    .stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; }
+    .stat-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+    .stat-val { font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-sub { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .stat-green .stat-val  { color: #16a34a; }
+    .stat-yellow .stat-val { color: #d97706; }
+    .stat-blue .stat-val   { color: #2563eb; }
+    .stat-red .stat-val    { color: #dc2626; }
+    @media(max-width:768px){ .stats { grid-template-columns: repeat(2,1fr); } }
 
-        /* DURASI */
-        .durasi-badge { display: inline-block; background: #e8f4fd; color: #0066aa; border: 1px solid #b3d7f0; border-radius: 4px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-top: 3px; }
-        .durasi-badge-multi { background: #f0e8fd; color: #6600aa; border-color: #d0b0f0; }
-        .jam-info { font-size: 0.72rem; color: var(--body-text2); margin-top: 2px; }
-        .durasi-preview { background: #0d2a0d; border: 1px solid #1a5c1a; border-radius: 6px; padding: 8px 12px; margin-bottom: 0.75rem; font-size: 0.82rem; color: #4caf50; font-weight: 700; text-align: center; display: none; }
+    /* ── PENDING STRIP ── */
+    .pending-strip { background: #fff; border: 1px solid #fca5a5; border-left: 4px solid #dc2626; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
+    .pending-strip-title { font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 12px; }
+    .pending-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #fef2f2; border-radius: 8px; margin-bottom: 8px; }
+    .pending-item:last-child { margin-bottom: 0; }
+    .pending-info { flex: 1; min-width: 0; }
+    .pending-title { font-size: 13px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pending-meta  { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .age-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+    .age-urgent  { background: #fee2e2; color: #dc2626; }
+    .age-warning { background: #fef3c7; color: #d97706; }
+    .age-normal  { background: #f1f5f9; color: #64748b; }
+    .pending-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-solve { padding: 5px 12px; border-radius: 6px; border: 1px solid #16a34a; background: #f0fdf4; color: #16a34a; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-solve:hover { background: #16a34a; color: #fff; }
+    .btn-edit-sm { padding: 5px 12px; border-radius: 6px; border: 1px solid #3b82f6; background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-edit-sm:hover { background: #2563eb; color: #fff; }
 
-        /* ACTIONS */
-        .btn-action { border: none; padding: 3px 8px; font-size: 0.65rem; border-radius: 4px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 4px; }
-        .btn-foto { display: block; width: 100%; padding: 4px 7px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; cursor: pointer; margin-bottom: 3px; white-space: nowrap; }
-        .btn-foto-sesudah  { background: #111; color: #fff; border: none; }
-        .btn-foto-awal     { background: #5a3e00; color: #ffc107; border: 1px solid #ffc107; }
-        .btn-tambah-sesudah { background: transparent; color: #198754; border: 1px solid #198754; }
-        .btn-tambah-awal    { background: transparent; color: #ffc107; border: 1px solid #ffc107; }
+    /* ── TOOLBAR ── */
+    .toolbar { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .toolbar-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+    .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .12s; white-space: nowrap; }
+    .chip:hover, .chip.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .form-control-sm, .form-select-sm { border: 1px solid #e2e8f0 !important; border-radius: 8px !important; font-size: 13px !important; background: #f8fafc !important; color: #0f172a !important; }
+    .form-control-sm:focus, .form-select-sm:focus { border-color: #93c5fd !important; box-shadow: 0 0 0 3px rgba(59,130,246,.1) !important; }
+    .btn-search { padding: 5px 16px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-export { padding: 5px 14px; background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .btn-reset  { padding: 5px 12px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; }
+    .divider-v { width: 1px; height: 20px; background: #e2e8f0; }
 
-        /* TIPE TOGGLE */
-        .tipe-toggle { display: flex; gap: 8px; margin-bottom: 1rem; }
-        .tipe-btn {
-            flex: 1; padding: 10px 8px; border-radius: 10px;
-            border: 1.5px solid var(--body-border);
-            background: var(--body-bg3, #1e1e2e);
-            color: var(--body-text2);
-            font-size: 0.72rem; font-weight: 700;
-            cursor: pointer; text-align: center;
-            transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .tipe-btn.active-harian  {
-            background: linear-gradient(135deg,#052e16,#14532d);
-            border-color: #22c55e; color: #4ade80;
-            box-shadow: 0 2px 12px rgba(34,197,94,0.2);
-        }
-        .tipe-btn.active-multi   {
-            background: linear-gradient(135deg,#1e0a47,#2d1560);
-            border-color: #7c3aed; color: #a78bfa;
-            box-shadow: 0 2px 12px rgba(124,58,237,0.2);
-        }
-        .separator-line { border: none; border-top: 1px solid var(--body-border); margin: 0.75rem 0; opacity: 0.5; }
-        .multi-badge { display: inline-block; background: #1a0d3d; color: #9b6dff; border: 1px solid #6b3dbf; border-radius: 3px; padding: 1px 5px; font-size: 0.6rem; font-weight: 700; margin-left: 4px; vertical-align: middle; }
+    /* ── TABLE ── */
+    .table-wrap { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+    .table-head { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .table-title { font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+    .count-badge { background: #f1f5f9; color: #475569; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    .data-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    .data-table thead th { padding: 10px 14px; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; background: #f8fafc; border-bottom: 1px solid #e2e8f0; white-space: nowrap; text-align: left; }
+    .data-table tbody td { padding: 12px 14px; font-size: 13px; color: #0f172a; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: #fafafa; }
+    .cell-date { font-size: 13px; font-weight: 600; color: #0f172a; }
+    .cell-time { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .dur-badge { display: inline-block; background: #eff6ff; color: #2563eb; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 600; margin-top: 3px; }
+    .dur-badge-multi { background: #faf5ff; color: #7c3aed; }
+    .multi-tag { display: inline-block; background: #faf5ff; color: #7c3aed; border-radius: 4px; padding: 1px 6px; font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+    .cell-title { font-weight: 600; color: #0f172a; margin-bottom: 2px; }
+    .cell-desc  { font-size: 12px; color: #64748b; }
+    .badge-solved  { display: inline-block; background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+    .badge-pending { display: inline-block; background: #fffbeb; color: #d97706; border: 1px solid #fcd34d; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+    .btn-foto-awal   { display: block; width: 100%; padding: 4px 8px; background: #fffbeb; color: #d97706; border: 1px solid #fcd34d; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 4px; text-align: center; }
+    .btn-foto-sesudah{ display: block; width: 100%; padding: 4px 8px; background: #f8fafc; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-bottom: 4px; text-align: center; }
+    .btn-foto-add    { display: block; width: 100%; padding: 4px 8px; background: transparent; color: #94a3b8; border: 1px dashed #cbd5e1; border-radius: 6px; font-size: 11px; cursor: pointer; margin-bottom: 4px; text-align: center; }
+    .btn-row-solve { padding: 4px 10px; background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: block; width: 100%; margin-bottom: 4px; }
+    .btn-row-edit  { padding: 4px 10px; background: #eff6ff; color: #2563eb; border: 1px solid #93c5fd; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: block; width: 100%; margin-bottom: 4px; }
+    .btn-row-del   { padding: 4px 10px; background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: block; width: 100%; }
+    .empty-state { text-align: center; padding: 48px 20px; color: #94a3b8; }
+    .empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+    .empty-state p { font-size: 14px; font-weight: 600; margin: 0 0 4px; color: #64748b; }
+    .empty-state small { font-size: 13px; }
 
-        /* NOTES */
-        .notes-box { background: var(--body-card); border-radius: 8px; border: 1px solid var(--body-border); }
-        .note-item { background: var(--body-bg); padding: 10px; border-radius: 4px; margin-bottom: 6px; border-left: 2px solid #0d6efd; display: flex; justify-content: space-between; align-items: start; }
-        .note-item-title { color: var(--body-text); font-size: 0.9rem; font-weight: 700; }
-        .note-item-content { color: var(--body-text2); margin: 2px 0 0 0; font-size: 0.8rem; }
-        .note-item-date { color: var(--body-text3); font-size: 0.72rem; }
+    /* ── DRAWER / MODAL ── */
+    .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); z-index: 1040; opacity: 0; pointer-events: none; transition: opacity .2s; backdrop-filter: blur(2px); }
+    .overlay.open { opacity: 1; pointer-events: all; }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 400px; max-width: 96vw; background: #fff; border-left: 1px solid #e2e8f0; z-index: 1041; transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); display: flex; flex-direction: column; box-shadow: -8px 0 40px rgba(0,0,0,.08); }
+    .drawer.open { transform: translateX(0); }
+    .drawer-hd { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #f1f5f9; }
+    .drawer-hd-title { font-size: 15px; font-weight: 700; color: #0f172a; }
+    .drawer-close { background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 16px; line-height: 1; }
+    .drawer-close:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+    .drawer-bd { flex: 1; overflow-y: auto; padding: 20px; }
+    .drawer-bd::-webkit-scrollbar { width: 4px; }
+    .drawer-bd::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
 
-        /* SECTION PANELS */
-        .section-panel { background: var(--body-card); border-radius: 8px; border: 1px solid var(--body-border); padding: 1rem; margin-bottom: 0.75rem; }
-        .section-panel .form-control, .section-panel .form-select { background: var(--body-input) !important; color: var(--body-text) !important; border-color: var(--body-border) !important; }
-        .section-panel .form-control:focus, .section-panel .form-select:focus { border-color: var(--body-input-focus) !important; box-shadow: none; }
+    /* ── FORM ELEMENTS ── */
+    .f-group { margin-bottom: 16px; }
+    .f-label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+    .f-input { width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 13px; color: #0f172a; background: #fff; outline: none; transition: border-color .15s, box-shadow .15s; }
+    .f-input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+    textarea.f-input { resize: vertical; min-height: 80px; }
+    .f-section { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .f-section-title { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .tipe-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tipe-opt { flex: 1; padding: 9px 6px; border-radius: 8px; border: 1.5px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; transition: all .15s; }
+    .tipe-opt.active-harian { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+    .tipe-opt.active-multi  { background: #faf5ff; border-color: #d8b4fe; color: #7c3aed; }
+    .status-row { display: flex; gap: 8px; }
+    .status-opt { flex: 1; padding: 9px 6px; border-radius: 8px; border: 1.5px solid #e2e8f0; background: #f8fafc; color: #64748b; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; transition: all .15s; }
+    .status-opt.active-solved  { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+    .status-opt.active-pending { background: #fffbeb; border-color: #fcd34d; color: #d97706; }
+    .dur-preview { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #16a34a; font-weight: 600; text-align: center; display: none; margin-top: 8px; }
+    .file-drop { border: 1.5px dashed #d1d5db; border-radius: 8px; padding: 12px; cursor: pointer; position: relative; overflow: hidden; margin-bottom: 10px; }
+    .file-drop:hover { border-color: #93c5fd; background: #f0f9ff; }
+    .file-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .file-drop-inner { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #64748b; pointer-events: none; }
+    .file-drop-inner .icon { font-size: 18px; }
+    .btn-submit { width: 100%; padding: 11px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px; transition: background .15s; }
+    .btn-submit:hover { background: #1d4ed8; }
+    .btn-submit-green { background: #16a34a; } .btn-submit-green:hover { background: #15803d; }
 
-        /* QUICK FILTER BUTTONS */
-        .fq-btn { background: var(--body-bg3); border: 1px solid var(--body-border); color: var(--body-text2); border-radius: 6px; padding: 4px 10px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
-        .fq-btn:hover, .fq-btn.fq-active { background: #6366f1; border-color: #6366f1; color: #fff; }
+    /* ── FAB ── */
+    .fab { position: fixed; bottom: 28px; right: 24px; z-index: 1039; background: #2563eb; color: #fff; border: none; border-radius: 50px; padding: 12px 20px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(37,99,235,.35); display: flex; align-items: center; gap: 8px; }
+    .fab:hover { background: #1d4ed8; transform: translateY(-1px); }
 
-        
-        /* STATS CARDS */
-        .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
-        .stat-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 10px; padding: 14px 16px; position: relative; overflow: hidden; }
-        .stat-card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--body-text2); margin-bottom: 4px; }
-        .stat-card-value { font-size: 1.7rem; font-weight: 800; line-height: 1; margin-bottom: 2px; }
-        .stat-card-sub { font-size: 0.7rem; color: var(--body-text3); }
-        .stat-card.green  { border-color: #1a5c1a; }
-        .stat-card.green .stat-card-value { color: #4caf50; }
-        .stat-card.yellow { border-color: #7a5c00; }
-        .stat-card.yellow .stat-card-value { color: #ffc107; }
-        .stat-card.blue   { border-color: #0d3d6e; }
-        .stat-card.blue   .stat-card-value { color: #4da6ff; }
-        .stat-card.red    { border-color: #5c1a1a; }
-        .stat-card.red    .stat-card-value { color: #ff6b6b; }
-        .stat-card-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); opacity: 0.15; display:flex; align-items:center; justify-content:center; }
-        .stat-card-icon .lc { width:28px; height:28px; }
-        @media (max-width: 768px) { .stat-cards { grid-template-columns: repeat(2, 1fr); } }
+    /* ── TOAST ── */
+    .toast-success { background: #f0fdf4; border: 1px solid #86efac; color: #16a34a; border-radius: 10px; padding: 12px 16px; font-size: 13px; font-weight: 600; }
 
-        /* PENDING NOTIF */
-        .pending-notif { background: var(--body-card); border: 1px solid #5c1a1a; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
-        .pending-notif-title { font-size: 0.78rem; font-weight: 700; color: #ff6b6b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
-        .pending-notif-title span { background: #ff6b6b; color: #fff; border-radius: 20px; padding: 1px 7px; font-size: 0.65rem; }
-        .pending-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--body-bg); border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #ff6b6b; }
-        .pending-row:last-child { margin-bottom: 0; }
-        .pending-row-info { flex: 1; min-width: 0; }
-        .pending-row-title { font-size: 0.8rem; font-weight: 600; color: var(--body-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pending-row-meta  { font-size: 0.68rem; color: var(--body-text2); margin-top: 2px; }
-        .pending-age { font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
-        .pending-age.urgent  { background: #5c0000; color: #ff6b6b; }
-        .pending-age.warning { background: #5c3d00; color: #ffc107; }
-        .pending-age.normal  { background: var(--body-bg3); color: var(--body-text3); }
-        .pending-actions { display: flex; gap: 5px; flex-shrink: 0; margin-left: 4px; }
-        .btn-pending-solve { padding: 4px 10px; border-radius: 6px; border: none; background: #1a4731; color: #4caf50; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-        .btn-pending-solve:hover { background: #198754; color: #fff; }
-        .btn-pending-edit  { padding: 4px 10px; border-radius: 6px; border: none; background: #0d2d6e; color: #4da6ff; font-size: 0.68rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
-        .btn-pending-edit:hover  { background: #0d6efd; color: #fff; }
-        @media (max-width: 576px) { .pending-actions { flex-direction: column; gap: 3px; } }
-        @media (max-width: 768px) { .container-fluid { padding: 1rem !important; } }
-
-        /* ===== DRAWER FORM ===== */
-        .drawer-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-            z-index: 1040; opacity: 0; pointer-events: none;
-            transition: opacity 0.25s ease;
-            backdrop-filter: blur(2px);
-        }
-        .drawer-overlay.open { opacity: 1; pointer-events: all; }
-
-        .drawer-panel {
-            position: fixed; top: 0; right: 0; bottom: 0;
-            width: 390px; max-width: 96vw;
-            background: var(--body-card);
-            border-left: 1px solid var(--body-border);
-            z-index: 1041;
-            transform: translateX(100%);
-            transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
-            display: flex; flex-direction: column;
-            overflow: hidden;
-        }
-        .drawer-panel.open { transform: translateX(0); }
-
-        .drawer-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--body-border);
-            flex-shrink: 0;
-            background: linear-gradient(135deg, rgba(34,197,94,0.08), transparent);
-        }
-        .drawer-title {
-            font-size: 0.9rem; font-weight: 800; color: var(--body-text);
-            display: flex; align-items: center; gap: 9px;
-            letter-spacing: -0.01em;
-        }
-        .drawer-title svg { color: #22c55e; }
-        .drawer-title-badge {
-            background: rgba(34,197,94,0.12);
-            border: 1px solid rgba(34,197,94,0.25);
-            color: #4ade80;
-            font-size: 0.6rem; font-weight: 700;
-            padding: 2px 7px; border-radius: 20px;
-            letter-spacing: 0.05em;
-        }
-        .drawer-close {
-            background: var(--body-bg3, rgba(255,255,255,0.06));
-            border: 1px solid var(--body-border);
-            color: var(--body-text2);
-            cursor: pointer; padding: 6px; border-radius: 8px;
-            display: flex; align-items: center;
-            transition: background 0.15s, color 0.15s, border-color 0.15s;
-        }
-        .drawer-close:hover {
-            background: rgba(239,68,68,0.12);
-            border-color: rgba(239,68,68,0.3);
-            color: #f87171;
-        }
-
-        .drawer-body {
-            flex: 1; overflow-y: auto; padding: 18px 20px 24px;
-        }
-        .drawer-body::-webkit-scrollbar { width: 3px; }
-        .drawer-body::-webkit-scrollbar-thumb { background: var(--body-border); border-radius: 4px; }
-
-        /* Form field groups */
-        .field-group {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--body-border);
-            border-radius: 12px;
-            padding: 14px 14px 6px;
-            margin-bottom: 10px;
-        }
-        .field-group-title {
-            font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
-            text-transform: uppercase; color: var(--body-text2);
-            margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
-        }
-        .field-group-title::before {
-            content: ''; width: 3px; height: 12px;
-            background: #22c55e; border-radius: 2px; display: inline-block;
-        }
-
-        /* Submit button */
-        .btn-simpan {
-            width: 100%; padding: 13px;
-            background: linear-gradient(135deg, #16a34a, #22c55e);
-            color: #fff; border: none; border-radius: 12px;
-            font-size: 0.85rem; font-weight: 800;
-            letter-spacing: 0.04em; cursor: pointer;
-            margin-top: 14px;
-            box-shadow: 0 4px 18px rgba(34,197,94,0.3);
-            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-simpan:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 24px rgba(34,197,94,0.4);
-        }
-        .btn-simpan:active { transform: scale(0.98); opacity: 0.9; }
-
-        /* Upload file area */
-        .upload-area {
-            border: 1.5px dashed var(--body-border);
-            border-radius: 10px; padding: 12px 14px;
-            margin-bottom: 0.65rem; cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-            position: relative; overflow: hidden;
-        }
-        .upload-area:hover { border-color: #22c55e; background: rgba(34,197,94,0.04); }
-        .upload-area input[type=file] {
-            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-        }
-        .upload-area-inner {
-            display: flex; align-items: center; gap: 10px;
-            font-size: 0.8rem; color: var(--body-text2);
-            pointer-events: none;
-        }
-        .upload-area-inner svg { flex-shrink: 0; }
-        .upload-area-inner span { font-weight: 600; }
-        .upload-area-inner small { font-size: 0.7rem; opacity: 0.6; display: block; }
-
-        /* Status badge select */
-        .status-pills { display: flex; gap: 8px; margin-bottom: 0.65rem; }
-        .status-pill {
-            flex: 1; padding: 9px 6px; border-radius: 10px; text-align: center;
-            font-size: 0.72rem; font-weight: 700; cursor: pointer;
-            border: 1.5px solid var(--body-border);
-            background: var(--body-bg3, #1e1e2e);
-            color: var(--body-text2); transition: all 0.18s;
-        }
-        .status-pill.active-solved {
-            background: linear-gradient(135deg,#052e16,#14532d);
-            border-color: #22c55e; color: #4ade80;
-        }
-        .status-pill.active-pending {
-            background: linear-gradient(135deg,#2d1a00,#451e00);
-            border-color: #f59e0b; color: #fbbf24;
-        }
-
-        /* ===== DESKTOP MODAL CENTER ===== */
-        @media (min-width: 768px) {
-            .drawer-overlay.open { display: flex; align-items: center; justify-content: center; }
-            .drawer-panel {
-                position: static;
-                transform: none !important;
-                width: 520px; max-width: 90vw;
-                max-height: 88vh;
-                border-left: none;
-                border: 1px solid var(--body-border);
-                border-radius: 16px;
-                box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-                display: none;
-                flex-direction: column;
-                transition: none;
-            }
-            .drawer-panel.open {
-                display: flex;
-                animation: modalFadeIn 0.22s cubic-bezier(0.4,0,0.2,1);
-            }
-            @keyframes modalFadeIn {
-                from { opacity: 0; transform: scale(0.95) translateY(-12px); }
-                to   { opacity: 1; transform: scale(1) translateY(0); }
-            }
-        }
-
-        /* ===== FAB BUTTON ===== */
-        .fab-tambah {
-            position: fixed; bottom: 88px; right: 24px;
-            z-index: 1039;
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            color: #fff; border: none;
-            border-radius: 50px;
-            padding: 13px 22px;
-            font-size: 0.85rem; font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(34,197,94,0.4);
-            display: flex; align-items: center; gap: 8px;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        .fab-tambah:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 26px rgba(34,197,94,0.5);
-        }
-        .fab-tambah.hidden { opacity: 0; pointer-events: none; transform: scale(0.85); }
-        .fab-tambah svg { width: 18px; height: 18px; }
-    </style>
+    /* ── DESKTOP MODAL ── */
+    @media(min-width:768px){
+      .overlay.open { display: flex; align-items: center; justify-content: center; }
+      .drawer { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(.95); right: auto; bottom: auto; width: 520px; max-width: 92vw; max-height: 90vh; border-left: none; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.12); opacity: 0; pointer-events: none; transition: transform .2s, opacity .2s; }
+      .drawer.open { transform: translate(-50%,-50%) scale(1); opacity: 1; pointer-events: all; }
+    }
+    @media(max-width:768px){ .page { padding: 16px 12px 80px; } }
+  </style>
 </head>
 <body>
 <%- include('navbar', {activePage: 'dashboard'}) %>
-<span id="btnInstallPwa" style="display:none;"></span>
 
-<!-- ===== DRAWER OVERLAY ===== -->
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-
-<!-- ===== DRAWER PANEL ===== -->
-<div class="drawer-panel" id="drawerPanel" onclick="event.stopPropagation()">
-  <div class="drawer-header">
-    <div class="drawer-title">
-      <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Tambah Log Baru
-      <span class="drawer-title-badge">NEW</span>
-    </div>
-    <button class="drawer-close" onclick="closeDrawer()">
-      <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
+<!-- DRAWER TAMBAH LOG -->
+<div class="overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawerPanel" onclick="event.stopPropagation()">
+  <div class="drawer-hd">
+    <span class="drawer-hd-title">+ Tambah Log Baru</span>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
   </div>
-  <div class="drawer-body">
-    <form action="/save" method="POST" enctype="multipart/form-data" id="mainForm">
+  <div class="drawer-bd">
+    <form action="/save" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="tipeInput" id="tipeInputVal" value="harian">
       <input type="hidden" name="status" id="statusVal" value="Solved">
 
-      <!-- Tipe & Waktu -->
-      <div class="field-group">
-        <div class="field-group-title">Tipe Pekerjaan</div>
-        <div class="tipe-toggle">
-          <div class="tipe-btn active-harian" id="btnHarian" onclick="setTipe('harian')">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            HARIAN
-          </div>
-          <div class="tipe-btn" id="btnMulti" onclick="setTipe('multihari')">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            MULTI-HARI
-          </div>
+      <div class="f-section">
+        <div class="f-section-title">Tipe Pekerjaan</div>
+        <div class="tipe-row">
+          <div class="tipe-opt active-harian" id="btnHarian" onclick="setTipe('harian')">Harian</div>
+          <div class="tipe-opt" id="btnMulti" onclick="setTipe('multihari')">Multi-hari</div>
         </div>
         <div id="formHarian">
-          <span class="label-text">Tanggal</span>
-          <input type="date" name="tanggalManual" id="tanggalInput" class="input-custom" required>
-          <div class="row g-2">
-            <div class="col-6"><span class="label-text">Jam Mulai</span><input type="time" name="jamMulai" id="jamMulaiInput" class="input-custom" style="margin-bottom:0;"></div>
-            <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="jamSelesaiInput" class="input-custom" style="margin-bottom:0;"></div>
+          <div class="f-group"><label class="f-label">Tanggal</label><input type="date" name="tanggalManual" id="tanggalInput" class="f-input" required></div>
+          <div class="row g-2 mb-2">
+            <div class="col-6"><label class="f-label">Jam Mulai</label><input type="time" name="jamMulai" id="jamMulaiInput" class="f-input"></div>
+            <div class="col-6"><label class="f-label">Jam Selesai</label><input type="time" name="jamSelesai" id="jamSelesaiInput" class="f-input"></div>
           </div>
-          <div style="margin-bottom:0.6rem;"></div>
-          <div class="durasi-preview" id="durasiPreview"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiText">-</strong></div>
+          <div class="dur-preview" id="durasiPreview">Durasi: <strong id="durasiText">-</strong></div>
         </div>
         <div id="formMultihari" style="display:none;">
-          <div style="background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.25);border-radius:8px;padding:10px;margin-bottom:0.75rem;font-size:0.75rem;color:#a78bfa;">
-            Untuk pekerjaan yang berlangsung lebih dari 1 hari
+          <div class="f-group"><label class="f-label" style="color:#7c3aed;">Tanggal & Jam Mulai</label>
+            <div class="row g-2"><div class="col-7"><input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="f-input"></div><div class="col-5"><input type="time" name="jamMulaiMulti" id="jamMulaiMulti" class="f-input"></div></div>
           </div>
-          <span class="label-text" style="color:#a78bfa;">Tanggal &amp; Jam MULAI</span>
-          <div class="row g-2">
-            <div class="col-7"><input type="date" name="tanggalMulaiDate" id="tanggalMulaiDate" class="input-custom" style="margin-bottom:0;"></div>
-            <div class="col-5"><input type="time" name="jamMulaiMulti" id="jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
+          <div class="f-group"><label class="f-label" style="color:#7c3aed;">Tanggal & Jam Selesai</label>
+            <div class="row g-2"><div class="col-7"><input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="f-input"></div><div class="col-5"><input type="time" name="jamSelesaiMulti" id="jamSelesaiMulti" class="f-input"></div></div>
           </div>
-          <div style="margin-bottom:0.5rem;"></div>
-          <span class="label-text" style="color:#a78bfa;">Tanggal &amp; Jam SELESAI</span>
-          <div class="row g-2">
-            <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="tanggalSelesaiDate" class="input-custom" style="margin-bottom:0;"></div>
-            <div class="col-5"><input type="time" name="jamSelesaiMulti" id="jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
-          </div>
-          <div style="margin-bottom:0.5rem;"></div>
-          <div class="durasi-preview" id="durasiPreviewMulti" style="background:rgba(124,58,237,0.08);border-color:rgba(124,58,237,0.3);color:#a78bfa;"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="durasiTextMulti">-</strong></div>
+          <div class="dur-preview" id="durasiPreviewMulti" style="background:#faf5ff;border-color:#d8b4fe;color:#7c3aed;">Durasi: <strong id="durasiTextMulti">-</strong></div>
         </div>
       </div>
 
-      <!-- Detail Pekerjaan -->
-      <div class="field-group">
-        <div class="field-group-title">Detail Pekerjaan</div>
-        <span class="label-text">Pemesan (User)</span>
-        <input type="text" name="pemesan" class="input-custom" placeholder="Nama user / peminta" required>
-        <span class="label-text">Aktivitas</span>
-        <input type="text" name="aktivitas" class="input-custom" placeholder="Jenis pekerjaan" required>
-        <span class="label-text">Divisi</span>
-        <select name="divisi" class="input-custom">
-          <option value="IT & IC">IT &amp; IC</option>
-          <option value="HRGA">HRGA</option>
-          <option value="Accounting">Accounting</option>
-          <option value="Exim & Pembelian">Exim &amp; Pembelian</option>
-          <option value="Operasional">Operasional</option>
-          <option value="Finance">Finance</option>
-          <option value="Produksi">Produksi</option>
-          <option value="Bahanbaku">Bahanbaku</option>
-          <option value="MAINTENANCE">MAINTENANCE</option>
-          <option value="Admin Sales">Admin Sales</option>
-        </select>
-        <span class="label-text">Deskripsi</span>
-        <div style="position:relative;">
-          <textarea name="deskripsi" id="add_deskripsi" class="input-custom" rows="3" placeholder="Jelaskan pekerjaan yang dilakukan..." required></textarea>
-          <button type="button" id="btn_ai_desc" onclick="aiGenerateDesc()" title="Generate deskripsi pakai AI"
-            style="position:absolute;bottom:16px;right:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(99,102,241,0.35);">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg>
-            AI
-          </button>
+      <div class="f-section">
+        <div class="f-section-title">Detail Pekerjaan</div>
+        <div class="f-group"><label class="f-label">Pelapor / User</label><input type="text" name="pemesan" class="f-input" placeholder="Nama user / peminta" required></div>
+        <div class="f-group"><label class="f-label">Aktivitas</label><input type="text" name="aktivitas" class="f-input" placeholder="Jenis pekerjaan" required></div>
+        <div class="f-group"><label class="f-label">Divisi</label>
+          <select name="divisi" class="f-input">
+            <option>IT & IC</option><option>HRGA</option><option>Accounting</option><option>Exim & Pembelian</option>
+            <option>Operasional</option><option>Finance</option><option>Produksi</option><option>Bahanbaku</option>
+            <option>MAINTENANCE</option><option>Admin Sales</option>
+          </select>
         </div>
-      </div>
-
-      <!-- Status -->
-      <div class="field-group">
-        <div class="field-group-title">Status</div>
-        <div class="status-pills">
-          <div class="status-pill active-solved" id="pillSolved" onclick="setStatusPill('Solved')">✓ SOLVED</div>
-          <div class="status-pill" id="pillPending" onclick="setStatusPill('Pending')">⏳ PENDING</div>
-        </div>
-      </div>
-
-      <!-- Foto -->
-      <div class="field-group">
-        <div class="field-group-title">Dokumentasi Foto</div>
-        <span class="label-text" style="color:#fbbf24;">📷 Foto AWAL (Sebelum)</span>
-        <div class="upload-area" id="uploadAreaAwal">
-          <input type="file" name="fotoAwal" class="file-compress" accept="image/*" capture="environment" onchange="updateUploadLabel(this,'lblAwal')">
-          <div class="upload-area-inner">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <div><span id="lblAwal">Pilih atau ambil foto awal</span><small>JPG, PNG — tap untuk kamera</small></div>
+        <div class="f-group"><label class="f-label">Deskripsi</label>
+          <div style="position:relative;">
+            <textarea name="deskripsi" id="add_deskripsi" class="f-input" rows="3" placeholder="Detail pekerjaan..." required></textarea>
+            <button type="button" onclick="aiGenerateDesc()" style="position:absolute;bottom:8px;right:8px;background:#6366f1;color:#fff;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">AI</button>
           </div>
         </div>
-        <small class="text-success fw-bold d-none compress-msg">✓ Foto dikompres!</small>
-        <span class="label-text" style="color:#4ade80; margin-top:4px;">📷 Foto SESUDAH (Solved)</span>
-        <div class="upload-area" id="uploadAreaSesudah">
-          <input type="file" name="foto" class="file-compress" accept="image/*" capture="environment" onchange="updateUploadLabel(this,'lblSesudah')">
-          <div class="upload-area-inner">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <div><span id="lblSesudah">Pilih atau ambil foto sesudah</span><small>JPG, PNG — tap untuk kamera</small></div>
-          </div>
-        </div>
-        <small class="text-success fw-bold d-none compress-msg">✓ Foto dikompres!</small>
       </div>
 
-      <button type="submit" class="btn-simpan">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        SIMPAN DATA
-      </button>
+      <div class="f-section">
+        <div class="f-section-title">Status</div>
+        <div class="status-row">
+          <div class="status-opt active-solved" id="pillSolved" onclick="setStatusPill('Solved')">✓ Solved</div>
+          <div class="status-opt" id="pillPending" onclick="setStatusPill('Pending')">⏳ Pending</div>
+        </div>
+      </div>
+
+      <div class="f-section">
+        <div class="f-section-title">Dokumentasi Foto</div>
+        <label class="f-label" style="color:#d97706;">Foto Awal (Sebelum)</label>
+        <div class="file-drop"><input type="file" name="fotoAwal" accept="image/*" capture="environment" onchange="updateFileLabel(this,'lblAwal')">
+          <div class="file-drop-inner"><span class="icon">📷</span><div><span id="lblAwal">Pilih atau ambil foto</span><br><small style="opacity:.6;">JPG, PNG</small></div></div>
+        </div>
+        <label class="f-label" style="color:#2563eb;">Foto Sesudah (Selesai)</label>
+        <div class="file-drop"><input type="file" name="foto" accept="image/*" capture="environment" onchange="updateFileLabel(this,'lblSesudah')">
+          <div class="file-drop-inner"><span class="icon">📷</span><div><span id="lblSesudah">Pilih atau ambil foto</span><br><small style="opacity:.6;">JPG, PNG</small></div></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit btn-submit-green">Simpan Data</button>
     </form>
   </div>
 </div>
 
-<!-- ===== FAB BUTTON ===== -->
-<button class="fab-tambah" id="fabTambah" onclick="openDrawer()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  Tambah Log
-</button>
+<% if (typeof userPerms !== 'undefined' && userPerms.canAdd) { %>
+<button class="fab" onclick="openDrawer()">+ Tambah Log</button>
+<% } %>
 
-<div class="container-fluid p-4">
-  <div class="row">
+<div class="page">
 
-    <!-- ===== TABEL FULL WIDTH ===== -->
-    <div class="col-12">
-
-      <% if (saved) { %>
-      <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index:1055;">
-        <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert">
-          <div class="d-flex">
-            <div class="toast-body"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Data berhasil disimpan.</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-          </div>
-        </div>
+  <% if (saved) { %>
+  <div class="position-fixed top-0 end-0 p-3" style="z-index:1055;">
+    <div id="saveToast" class="toast toast-success align-items-center border-0" role="alert">
+      <div class="d-flex"><div class="toast-body">✓ Data berhasil disimpan.</div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
       </div>
-      <% } %>
+    </div>
+  </div>
+  <% } %>
 
-      <!-- ===== STAT CARDS ===== -->
-      <div class="stat-cards">
-        <div class="stat-card green">
-          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="stat-card-label">Solved Hari Ini</div>
-          <div class="stat-card-value"><%= stats.solvedHariIni %></div>
-          <div class="stat-card-sub">dari <%= stats.totalHariIni %> tiket hari ini</div>
-        </div>
-        <div class="stat-card yellow">
-          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M17 2v4.172a2 2 0 0 1-.586 1.414L12 12 7.586 7.586A2 2 0 0 1 7 6.172V2"/></svg></div>
-          <div class="stat-card-label">Pending Hari Ini</div>
-          <div class="stat-card-value"><%= stats.pendingHariIni %></div>
-          <div class="stat-card-sub">belum diselesaikan</div>
-        </div>
-        <div class="stat-card blue">
-          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
-          <div class="stat-card-label">Total Log</div>
-          <div class="stat-card-value"><%= stats.totalAllTime %></div>
-          <div class="stat-card-sub">semua waktu</div>
-        </div>
-        <div class="stat-card red">
-          <div class="stat-card-icon"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/></svg></div>
-          <div class="stat-card-label">Total Pending</div>
-          <div class="stat-card-value"><%= stats.pendingAllTime %></div>
-          <div class="stat-card-sub">semua waktu</div>
-        </div>
+  <!-- STAT CARDS -->
+  <div class="stats">
+    <div class="stat stat-green">
+      <div class="stat-label">Solved Hari Ini</div>
+      <div class="stat-val"><%= stats.solvedHariIni %></div>
+      <div class="stat-sub">dari <%= stats.totalHariIni %> tiket</div>
+    </div>
+    <div class="stat stat-yellow">
+      <div class="stat-label">Pending Hari Ini</div>
+      <div class="stat-val"><%= stats.pendingHariIni %></div>
+      <div class="stat-sub">belum selesai</div>
+    </div>
+    <div class="stat stat-blue">
+      <div class="stat-label">Total Log</div>
+      <div class="stat-val"><%= stats.totalAllTime %></div>
+      <div class="stat-sub">semua waktu</div>
+    </div>
+    <div class="stat stat-red">
+      <div class="stat-label">Total Pending</div>
+      <div class="stat-val"><%= stats.pendingAllTime %></div>
+      <div class="stat-sub">semua waktu</div>
+    </div>
+  </div>
+
+  <!-- PENDING STRIP -->
+  <% if (stats.pendingItems.length > 0) { %>
+  <div class="pending-strip">
+    <div class="pending-strip-title">⚠ Tiket Pending Perlu Perhatian &nbsp;<span style="background:#dc2626;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;"><%= stats.pendingAllTime %></span></div>
+    <% stats.pendingItems.forEach(function(p) { %>
+    <div class="pending-item">
+      <div class="pending-info">
+        <div class="pending-title"><%= p.aktivitas %></div>
+        <div class="pending-meta"><%= p.pemesan %> · <%= p.divisi %> · <%= new Date(p.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
       </div>
-
-      <!-- ===== PENDING NOTIFIKASI ===== -->
-      <% if (stats.pendingItems.length > 0) { %>
-      <div class="pending-notif">
-        <div class="pending-notif-title">
-          <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="currentColor" stroke="none"/></svg> TIKET PENDING PERLU PERHATIAN
-          <span><%= stats.pendingAllTime %></span>
-        </div>
-        <% stats.pendingItems.forEach(function(p) { %>
-        <div class="pending-row">
-          <div class="pending-row-info">
-            <div class="pending-row-title"><%= p.aktivitas %></div>
-            <div class="pending-row-meta"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <%= p.pemesan %> &nbsp;·&nbsp; <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"/></svg> <%= p.divisi %> &nbsp;·&nbsp; <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <%= new Date(p.tanggalManual).toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) %></div>
-          </div>
-          <% if (p.hariPending >= 3) { %>
-            <span class="pending-age urgent"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3z"/></svg> <%= p.hariPending %> hari</span>
-          <% } else if (p.hariPending >= 1) { %>
-            <span class="pending-age warning"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <%= p.hariPending %> hari</span>
-          <% } else { %>
-            <span class="pending-age normal">Baru</span>
-          <% } %>
-          <div class="pending-actions">
-            <form method="POST" action="/update-status/<%= p.id %>" style="margin:0;">
-              <input type="hidden" name="newStatus" value="Solved">
-              <button type="submit" class="btn-pending-solve" onclick="return confirm('Tandai tiket ini sebagai Solved?')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Selesai</button>
-            </form>
-            <button type="button" class="btn-pending-edit" onclick="openEditModal(
-              <%= p.id %>,
-              `<%- (p.aktivitas||'').replace(/`/g,'\\`') %>`,
-              `<%= p.divisi %>`,
-              `<%- (p.pemesan||'').replace(/`/g,'\\`') %>`,
-              `<%- (p.deskripsi||'').replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,
-              `<%= p.status %>`,
-              `<%= p.tipeInput || 'harian' %>`,
-              `<%= new Date(p.tanggalManual).toISOString().slice(0,10) %>`,
-              `<%= p.jamMulai || '' %>`,
-              `<%= p.jamSelesai || '' %>`,
-              `<%= p.tanggalMulai ? new Date(p.tanggalMulai).toISOString().slice(0,10) : '' %>`,
-              `<%= p.tanggalSelesai ? new Date(p.tanggalSelesai).toISOString().slice(0,10) : '' %>`
-            )"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
-          </div>
-        </div>
-        <% }) %>
-        <% if (stats.pendingAllTime > 10) { %>
-        <div style="text-align:center;margin-top:8px;font-size:0.7rem;color:var(--body-text3);">+<%= stats.pendingAllTime - 10 %> tiket pending lainnya — gunakan filter Status: Pending</div>
-        <% } %>
-      </div>
-      <% } %>
-
-      <!-- FILTER -->
-      <div class="section-panel mb-3">
-        <form action="/kerja" method="GET" id="filterForm">
-          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
-            <!-- Label filter aktif -->
-            <span style="font-size:0.72rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">FILTER LOG:</span>
-
-            <!-- Quick: Hari Ini -->
-            <button type="button" onclick="setToday()" class="fq-btn <%= (!filterDateFrom && !filterDateTo && !filterStatus) ? 'fq-active' : '' %>">Hari Ini</button>
-
-            <!-- Quick: Kemarin -->
-            <button type="button" onclick="setYesterday()" class="fq-btn">Kemarin</button>
-
-            <!-- Quick: 7 Hari -->
-            <button type="button" onclick="setLast7()" class="fq-btn">7 Hari</button>
-
-            <!-- Quick: Bulan Ini -->
-            <button type="button" onclick="setThisMonth()" class="fq-btn">Bulan Ini</button>
-
-            <div style="width:1px;height:20px;background:var(--body-border);margin:0 2px;flex-shrink:0;"></div>
-
-            <!-- Date From -->
-            <div style="display:flex;align-items:center;gap:5px;">
-              <label style="font-size:0.7rem;font-weight:600;color:var(--body-text3);white-space:nowrap;">Dari</label>
-              <input type="date" name="dateFrom" id="filterFrom" value="<%= filterDateFrom %>"
-                class="form-control form-control-sm" style="width:140px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
-            </div>
-
-            <!-- Date To -->
-            <div style="display:flex;align-items:center;gap:5px;">
-              <label style="font-size:0.7rem;font-weight:600;color:var(--body-text3);white-space:nowrap;">s/d</label>
-              <input type="date" name="dateTo" id="filterTo" value="<%= filterDateTo %>"
-                class="form-control form-control-sm" style="width:140px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
-            </div>
-
-            <!-- Status -->
-            <select name="status" id="filterStatus" class="form-select form-select-sm" style="width:auto;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
-              <option value="" <%= filterStatus==='' ? 'selected' : '' %>>Semua Status</option>
-              <option value="Pending" <%= filterStatus==='Pending' ? 'selected' : '' %>>PENDING</option>
-              <option value="Solved" <%= filterStatus==='Solved' ? 'selected' : '' %>>SOLVED</option>
-            </select>
-
-            <button type="submit" class="btn btn-sm btn-primary fw-bold">Cari</button>
-
-            <% if (typeof userPerms !== 'undefined' && (userPerms.canExport || userPerms.canAudit)) { %>
-            <a id="exportBtn" href="/export?dateFrom=<%= filterDateFrom %>&dateTo=<%= filterDateTo %>"
-               class="btn btn-sm fw-bold" style="background:#166534;border:1px solid #15803d;color:#4ade80;white-space:nowrap;">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Export Excel
-            </a>
-            <% } %>
-
-            <% if (isFiltered) { %>
-            <a href="/kerja" class="btn btn-sm fw-bold" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              Reset
-            </a>
-            <% } %>
-          </div>
+      <% if (p.hariPending >= 3) { %><span class="age-badge age-urgent"><%= p.hariPending %> hari</span>
+      <% } else if (p.hariPending >= 1) { %><span class="age-badge age-warning"><%= p.hariPending %> hari</span>
+      <% } else { %><span class="age-badge age-normal">Baru</span><% } %>
+      <div class="pending-actions">
+        <form method="POST" action="/update-status/<%= p.id %>" style="margin:0;">
+          <input type="hidden" name="newStatus" value="Solved">
+          <button type="submit" class="btn-solve" onclick="return confirm('Tandai Solved?')">✓ Selesai</button>
         </form>
+        <button class="btn-edit-sm" onclick="openEditModal(<%= p.id %>,`<%- (p.aktivitas||'').replace(/`/g,'\\`') %>`,`<%= p.divisi %>`,`<%- (p.pemesan||'').replace(/`/g,'\\`') %>`,`<%- (p.deskripsi||'').replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,`<%= p.status %>`,`<%= p.tipeInput||'harian' %>`,`<%= new Date(p.tanggalManual).toISOString().slice(0,10) %>`,`<%= p.jamMulai||'' %>`,`<%= p.jamSelesai||'' %>`,`<%= p.tanggalMulai?new Date(p.tanggalMulai).toISOString().slice(0,10):'' %>`,`<%= p.tanggalSelesai?new Date(p.tanggalSelesai).toISOString().slice(0,10):'' %>`)">Edit</button>
       </div>
+    </div>
+    <% }) %>
+    <% if (stats.pendingAllTime > 10) { %><div style="text-align:center;font-size:12px;color:#94a3b8;margin-top:8px;">+<%= stats.pendingAllTime-10 %> tiket lainnya</div><% } %>
+  </div>
+  <% } %>
 
-      <!-- TABLE HEADER INFO -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:0.72rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;letter-spacing:0.06em;">LOG JURNAL</span>
-          <span style="background:var(--body-bg3);border:1px solid var(--body-border);border-radius:20px;padding:2px 10px;font-size:0.72rem;font-weight:700;color:var(--body-text2);">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <%= filterLabel %>
-          </span>
-          <span style="font-size:0.72rem;color:var(--body-text3);">(<%= journals.length %> data)</span>
-        </div>
-      </div>
+  <!-- TOOLBAR FILTER -->
+  <div class="toolbar">
+    <span class="toolbar-label">Filter:</span>
+    <form action="/kerja" method="GET" id="filterForm" style="display:contents;">
+      <button type="button" onclick="setToday()" class="chip <%= (!filterDateFrom&&!filterDateTo&&!filterStatus)?'active':'' %>">Hari Ini</button>
+      <button type="button" onclick="setYesterday()" class="chip">Kemarin</button>
+      <button type="button" onclick="setLast7()" class="chip">7 Hari</button>
+      <button type="button" onclick="setThisMonth()" class="chip">Bulan Ini</button>
+      <div class="divider-v"></div>
+      <input type="date" name="dateFrom" id="filterFrom" value="<%= filterDateFrom %>" class="form-control form-control-sm" style="width:145px;">
+      <span style="font-size:12px;color:#94a3b8;">s/d</span>
+      <input type="date" name="dateTo" id="filterTo" value="<%= filterDateTo %>" class="form-control form-control-sm" style="width:145px;">
+      <select name="status" class="form-select form-select-sm" style="width:auto;">
+        <option value="" <%= filterStatus===''?'selected':'' %>>Semua Status</option>
+        <option value="Pending" <%= filterStatus==='Pending'?'selected':'' %>>Pending</option>
+        <option value="Solved"  <%= filterStatus==='Solved' ?'selected':'' %>>Solved</option>
+      </select>
+      <button type="submit" class="btn-search">Cari</button>
+      <% if (typeof userPerms!=='undefined'&&(userPerms.canExport||userPerms.canAudit)) { %>
+      <a id="exportBtn" href="/export?dateFrom=<%= filterDateFrom %>&dateTo=<%= filterDateTo %>" class="btn-export">↓ Export</a>
+      <% } %>
+      <% if (isFiltered) { %><a href="/kerja" class="btn-reset">✕ Reset</a><% } %>
+    </form>
+  </div>
 
-      <!-- TABLE -->
-      <div class="table-container table-responsive">
-        <% if (journals.length === 0) { %>
-        <div style="text-align:center;padding:3rem 1rem;color:var(--body-text3);">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3;display:block;margin:0 auto 12px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <div style="font-size:0.85rem;font-weight:600;">Tidak ada data untuk <strong><%= filterLabel %></strong></div>
-          <div style="font-size:0.75rem;margin-top:4px;">Coba pilih rentang tanggal lain atau <a href="/kerja" style="color:#6366f1;">reset filter</a></div>
-        </div>
-        <% } else { %>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>WAKTU &amp; DURASI</th>
-              <th>UNIT</th>
-              <th style="width:32%;">AKTIVITAS</th>
-              <th>STATUS</th>
-              <th class="text-center">FOTO</th>
-              <th class="text-center">AKSI</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% journals.forEach(item => { %>
-            <% var isMulti = item.tipeInput === 'multihari'; %>
-            <tr style="<%= isMulti ? 'background: var(--body-table-row-alt) !important;' : '' %>">
-              <td style="min-width:145px;">
-                <% if (isMulti && item.tanggalMulai && item.tanggalSelesai) { %>
-                  <span class="multi-badge"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</span>
-                  <div style="font-size:0.78rem;color:#6600aa;font-weight:600;margin-top:3px;">
-                    <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
-                    <% if(item.jamMulai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamMulai %></span><% } %>
-                  </div>
-                  <div style="font-size:0.7rem;color:#888;margin:1px 0;">  ↓</div>
-                  <div style="font-size:0.78rem;color:#6600aa;font-weight:600;">
-                    <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
-                    <% if(item.jamSelesai) { %><span style="color:#888;font-size:0.7rem;"> <%= item.jamSelesai %></span><% } %>
-                  </div>
-                  <% if(item.durasiMenit) { %><span class="durasi-badge durasi-badge-multi"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <%= formatDurasi(item.durasiMenit) %></span><% } %>
-                <% } else { %>
-                  <div style="font-family:monospace;font-size:0.8rem;color:#006666;font-weight:600;">
-                    <%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
-                  </div>
-                  <% if(item.jamMulai) { %><div class="jam-info"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg> Mulai: <strong><%= item.jamMulai %></strong></div><% } %>
-                  <% if(item.jamSelesai) { %><div class="jam-info"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 12"/></svg> Selesai: <strong><%= item.jamSelesai %></strong></div><% } %>
-                  <% if(item.durasiMenit) { %><span class="durasi-badge"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <%= formatDurasi(item.durasiMenit) %></span><% } %>
-                <% } %>
-              </td>
-              <td style="white-space:nowrap;">
-                <div class="txt-bold"><%= item.divisi %></div>
-                <div style="font-size:0.75rem;color:var(--body-text2);">User: <%= item.pemesan %></div>
-              </td>
-              <td>
-                <div class="txt-bold" style="margin-bottom:3px;"><%= item.aktivitas %></div>
-                <div style="font-size:0.8rem;color:var(--body-text2);"><%= item.deskripsi %></div>
-              </td>
-              <td><span class="<%= item.status==='Solved' ? 'status-solved' : 'status-pending' %>"><%= item.status %></span></td>
-              <td style="min-width:115px;">
-                <% if(item.fotoAwalUrl) { %>
-                  <button class="btn-foto btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Kondisi AWAL')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> AWAL</button>
-                <% } else { %>
-                  <button class="btn-foto btn-tambah-awal" onclick="openUploadAwalModal(<%= item.id %>)">+ Foto Awal</button>
-                <% } %>
-                <% if(item.fotoUrl) { %>
-                  <button class="btn-foto btn-foto-sesudah" onclick="showFoto('<%= item.fotoUrl %>','Kondisi SESUDAH')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> SESUDAH</button>
-                <% } else { %>
-                  <button class="btn-foto btn-tambah-sesudah" onclick="openUploadModal(<%= item.id %>)">+ Foto Sesudah</button>
-                <% } %>
-              </td>
-              <td class="text-center" style="min-width:110px;">
-                <% if(item.status==='Pending') { %>
-                  <form action="/update-status/<%= item.id %>" method="POST">
-                    <input type="hidden" name="newStatus" value="Solved">
-                    <button type="submit" class="btn-action" style="background:#198754;color:#fff;">SET SOLVED</button>
-                  </form>
-                <% } %>
-                <button type="button" class="btn-action" style="background:#0d6efd;color:#fff;margin-bottom:4px;" onclick="openEditModal(
-                  <%= item.id %>,
-                  `<%- item.aktivitas.replace(/`/g,'\\`') %>`,
-                  `<%= item.divisi %>`,
-                  `<%- item.pemesan.replace(/`/g,'\\`') %>`,
-                  `<%- item.deskripsi.replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,
-                  `<%= item.status %>`,
-                  `<%= item.tipeInput || 'harian' %>`,
-                  `<%= new Date(item.tanggalManual).toISOString().slice(0,10) %>`,
-                  `<%= item.jamMulai || '' %>`,
-                  `<%= item.jamSelesai || '' %>`,
-                  `<%= item.tanggalMulai ? new Date(item.tanggalMulai).toISOString().slice(0,10) : '' %>`,
-                  `<%= item.tanggalSelesai ? new Date(item.tanggalSelesai).toISOString().slice(0,10) : '' %>`
-                )">EDIT</button>
-                <button type="button" class="btn-action" style="background:#dc3545;color:#fff;" onclick="confirmDelete(<%= item.id %>,`<%- item.aktivitas.replace(/`/g,'\\`') %>`)">HAPUS</button>
-              </td>
-            </tr>
-            <% }) %>
-          </tbody>
-        </table>
-        <% } %>
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-head">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="table-title">Log Jurnal IT</span>
+        <span class="count-badge"><%= filterLabel %> · <%= journals.length %> data</span>
       </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <% if (journals.length === 0) { %>
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <p>Tidak ada data untuk <strong><%= filterLabel %></strong></p>
+        <small><a href="/kerja" style="color:#2563eb;">Reset filter</a></small>
+      </div>
+      <% } else { %>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Waktu & Durasi</th>
+            <th>Unit</th>
+            <th style="width:32%;">Aktivitas</th>
+            <th>Status</th>
+            <th>Foto</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% journals.forEach(item => { var isMulti = item.tipeInput === 'multihari'; %>
+          <tr>
+            <td style="min-width:140px;">
+              <% if (isMulti && item.tanggalMulai && item.tanggalSelesai) { %>
+                <span class="multi-tag">Multi-hari</span>
+                <div class="cell-date"><%= new Date(item.tanggalMulai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
+                <div class="cell-time" style="color:#94a3b8;">↓ <%= new Date(item.tanggalSelesai).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
+                <% if(item.durasiMenit) { %><span class="dur-badge dur-badge-multi"><%= formatDurasi(item.durasiMenit) %></span><% } %>
+              <% } else { %>
+                <div class="cell-date"><%= new Date(item.tanggalManual).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></div>
+                <% if(item.jamMulai) { %><div class="cell-time">Mulai: <%= item.jamMulai %></div><% } %>
+                <% if(item.jamSelesai) { %><div class="cell-time">Selesai: <%= item.jamSelesai %></div><% } %>
+                <% if(item.durasiMenit) { %><span class="dur-badge"><%= formatDurasi(item.durasiMenit) %></span><% } %>
+              <% } %>
+            </td>
+            <td style="white-space:nowrap;">
+              <div style="font-weight:600;"><%= item.divisi %></div>
+              <div style="font-size:12px;color:#64748b;"><%= item.pemesan %></div>
+            </td>
+            <td>
+              <div class="cell-title"><%= item.aktivitas %></div>
+              <div class="cell-desc"><%= item.deskripsi %></div>
+            </td>
+            <td>
+              <% if(item.status==='Solved') { %><span class="badge-solved">Solved</span>
+              <% } else { %><span class="badge-pending">Pending</span><% } %>
+            </td>
+            <td style="min-width:110px;">
+              <% if(item.fotoAwalUrl) { %><button class="btn-foto-awal" onclick="showFoto('<%= item.fotoAwalUrl %>','Foto Awal')">📷 Awal</button>
+              <% } else { %><button class="btn-foto-add" onclick="openUploadAwalModal(<%= item.id %>)">+ Foto Awal</button><% } %>
+              <% if(item.fotoUrl) { %><button class="btn-foto-sesudah" onclick="showFoto('<%= item.fotoUrl %>','Foto Sesudah')">📷 Sesudah</button>
+              <% } else { %><button class="btn-foto-add" onclick="openUploadModal(<%= item.id %>)">+ Foto Sesudah</button><% } %>
+            </td>
+            <td style="min-width:100px;">
+              <% if(item.status==='Pending') { %>
+              <form action="/update-status/<%= item.id %>" method="POST"><input type="hidden" name="newStatus" value="Solved">
+                <button type="submit" class="btn-row-solve">✓ Solved</button>
+              </form><% } %>
+              <button class="btn-row-edit" onclick="openEditModal(<%= item.id %>,`<%- item.aktivitas.replace(/`/g,'\\`') %>`,`<%= item.divisi %>`,`<%- item.pemesan.replace(/`/g,'\\`') %>`,`<%- item.deskripsi.replace(/`/g,'\\`').replace(/\n/g,'\\n') %>`,`<%= item.status %>`,`<%= item.tipeInput||'harian' %>`,`<%= new Date(item.tanggalManual).toISOString().slice(0,10) %>`,`<%= item.jamMulai||'' %>`,`<%= item.jamSelesai||'' %>`,`<%= item.tanggalMulai?new Date(item.tanggalMulai).toISOString().slice(0,10):'' %>`,`<%= item.tanggalSelesai?new Date(item.tanggalSelesai).toISOString().slice(0,10):'' %>`)">Edit</button>
+              <button class="btn-row-del" onclick="confirmDelete(<%= item.id %>,`<%- item.aktivitas.replace(/`/g,'\\`') %>`)">Hapus</button>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } %>
     </div>
   </div>
 </div>
@@ -757,25 +398,17 @@
 <!-- MODAL FOTO -->
 <div class="modal fade" id="fotoModalAdmin" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
-      <div class="modal-header" style="border-color:var(--body-border);">
-        <h5 class="modal-title" style="color:var(--body-text);" id="fotoModalTitle">Dokumentasi</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-content" style="border-radius:12px;overflow:hidden;">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;">
+        <h5 class="modal-title" style="font-size:15px;font-weight:700;" id="fotoModalTitle">Dokumentasi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-0" style="position:relative;background:#000;min-height:200px;">
-        <img id="popupImageAdmin" src="" class="img-fluid d-block mx-auto" style="max-height:75vh;object-fit:contain;">
-        <button id="adminFotoPrev" onclick="adminSliderNav(-1)"
-          style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
-                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.8rem;
-                 width:42px;height:42px;border-radius:50%;cursor:pointer;z-index:10;
-                 align-items:center;justify-content:center;display:none;">&#8249;</button>
-        <button id="adminFotoNext" onclick="adminSliderNav(1)"
-          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
-                 background:rgba(0,0,0,0.55);border:none;color:#fff;font-size:1.8rem;
-                 width:42px;height:42px;border-radius:50%;cursor:pointer;z-index:10;
-                 align-items:center;justify-content:center;display:none;">&#8250;</button>
+      <div class="modal-body p-0" style="background:#000;position:relative;">
+        <img id="popupImageAdmin" src="" class="img-fluid d-block mx-auto" style="max-height:72vh;object-fit:contain;">
+        <button id="adminFotoPrev" onclick="adminSliderNav(-1)" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:24px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:none;">‹</button>
+        <button id="adminFotoNext" onclick="adminSliderNav(1)"  style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:24px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:none;">›</button>
       </div>
-      <div id="adminFotoDots" style="display:flex;justify-content:center;align-items:center;gap:8px;background:var(--body-card);flex-wrap:wrap;"></div>
+      <div id="adminFotoDots" style="display:flex;justify-content:center;gap:8px;background:#fff;flex-wrap:wrap;"></div>
     </div>
   </div>
 </div>
@@ -783,14 +416,11 @@
 <!-- MODAL UPLOAD SESUDAH -->
 <div class="modal fade" id="uploadSusulanModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
-      <div class="modal-header" style="border-color:var(--body-border);"><h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Upload Foto SESUDAH</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-content" style="border-radius:12px;">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;"><h5 class="modal-title" style="font-size:15px;font-weight:700;">Upload Foto Sesudah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="formUploadSusulan" action="" method="POST" enctype="multipart/form-data">
-        <div class="modal-body"><input type="file" name="foto" class="input-custom m-0 file-compress" required accept="image/*" capture="environment"><small class="text-success fw-bold d-none compress-msg mt-1"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small></div>
-        <div class="modal-footer" style="border-color:var(--body-border);">
-          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
-          <button type="submit" class="btn btn-success fw-bold">UPLOAD</button>
-        </div>
+        <div class="modal-body"><input type="file" name="foto" class="f-input" required accept="image/*" capture="environment"></div>
+        <div class="modal-footer" style="border-top:1px solid #f1f5f9;"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-success fw-bold">Upload</button></div>
       </form>
     </div>
   </div>
@@ -799,131 +429,87 @@
 <!-- MODAL UPLOAD AWAL -->
 <div class="modal fade" id="uploadAwalModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="background:var(--body-card);border:1px solid #b45309;">
-      <div class="modal-header" style="border-color:#b45309;"><h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Upload Foto AWAL</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-content" style="border-radius:12px;">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;"><h5 class="modal-title" style="font-size:15px;font-weight:700;">Upload Foto Awal</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="formUploadAwal" action="" method="POST" enctype="multipart/form-data">
-        <div class="modal-body"><input type="file" name="fotoAwal" class="input-custom m-0 file-compress" required accept="image/*" capture="environment"><small class="text-success fw-bold d-none compress-msg mt-1"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small></div>
-        <div class="modal-footer" style="border-color:#b45309;">
-          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
-          <button type="submit" class="btn btn-warning fw-bold text-dark">UPLOAD</button>
-        </div>
+        <div class="modal-body"><input type="file" name="fotoAwal" class="f-input" required accept="image/*" capture="environment"></div>
+        <div class="modal-footer" style="border-top:1px solid #f1f5f9;"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-warning fw-bold">Upload</button></div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- MODAL EDIT JURNAL -->
+<!-- MODAL EDIT -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content" style="background:var(--body-card);border:1px solid var(--body-border);">
-      <div class="modal-header" style="border-color:var(--body-border);">
-        <h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Data Jurnal</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
+    <div class="modal-content" style="border-radius:12px;">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;"><h5 class="modal-title" style="font-size:15px;font-weight:700;">Edit Data Jurnal</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="tipeInput" id="editTipeInputVal" value="harian">
         <div class="modal-body">
-          <div class="row">
-            <div class="col-12 mb-2">
-              <span class="label-text">Tipe Pekerjaan</span>
-              <div class="tipe-toggle">
-                <div class="tipe-btn active-harian" id="editBtnHarian" onclick="setEditTipe('harian')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> HARIAN</div>
-                <div class="tipe-btn" id="editBtnMulti" onclick="setEditTipe('multihari')"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> MULTI-HARI</div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="f-label">Tipe Pekerjaan</label>
+              <div class="tipe-row">
+                <div class="tipe-opt active-harian" id="editBtnHarian" onclick="setEditTipe('harian')">Harian</div>
+                <div class="tipe-opt" id="editBtnMulti" onclick="setEditTipe('multihari')">Multi-hari</div>
               </div>
             </div>
             <div class="col-md-6" id="editFormHarian">
-              <span class="label-text">Tanggal</span>
-              <input type="date" name="tanggalManual" id="edit_tanggal" class="input-custom" required>
+              <label class="f-label">Tanggal</label><input type="date" name="tanggalManual" id="edit_tanggal" class="f-input mb-2" required>
               <div class="row g-2">
-                <div class="col-6"><span class="label-text">Jam Mulai</span><input type="time" name="jamMulai" id="edit_jamMulai" class="input-custom" style="margin-bottom:0;"></div>
-                <div class="col-6"><span class="label-text">Jam Selesai</span><input type="time" name="jamSelesai" id="edit_jamSelesai" class="input-custom" style="margin-bottom:0;"></div>
+                <div class="col-6"><label class="f-label">Jam Mulai</label><input type="time" name="jamMulai" id="edit_jamMulai" class="f-input"></div>
+                <div class="col-6"><label class="f-label">Jam Selesai</label><input type="time" name="jamSelesai" id="edit_jamSelesai" class="f-input"></div>
               </div>
-              <div style="margin-bottom:0.5rem;"></div>
-              <div class="durasi-preview" id="editDurasiPreview"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="editDurasiText">-</strong></div>
+              <div class="dur-preview mt-2" id="editDurasiPreview">Durasi: <strong id="editDurasiText">-</strong></div>
             </div>
             <div class="col-md-6" id="editFormMultihari" style="display:none;">
-              <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Tgl &amp; Jam MULAI</span>
-              <div class="row g-2">
-                <div class="col-7"><input type="date" name="tanggalMulaiDate" id="edit_tanggalMulai" class="input-custom" style="margin-bottom:0;"></div>
-                <div class="col-5"><input type="time" name="jamMulaiMulti" id="edit_jamMulaiMulti" class="input-custom" style="margin-bottom:0;"></div>
-              </div>
-              <div style="margin-bottom:0.5rem;"></div>
-              <span class="label-text" style="color:#9b6dff;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Tgl &amp; Jam SELESAI</span>
-              <div class="row g-2">
-                <div class="col-7"><input type="date" name="tanggalSelesaiDate" id="edit_tanggalSelesai" class="input-custom" style="margin-bottom:0;"></div>
-                <div class="col-5"><input type="time" name="jamSelesaiMulti" id="edit_jamSelesaiMulti" class="input-custom" style="margin-bottom:0;"></div>
-              </div>
-              <div style="margin-bottom:0.5rem;"></div>
-              <div class="durasi-preview" id="editDurasiPreviewMulti" style="background:#1a0d3d;border-color:#6b3dbf;color:#c9aaff;display:none;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Durasi: <strong id="editDurasiTextMulti">-</strong></div>
+              <label class="f-label" style="color:#7c3aed;">Tanggal & Jam Mulai</label>
+              <div class="row g-2 mb-2"><div class="col-7"><input type="date" name="tanggalMulaiDate" id="edit_tanggalMulai" class="f-input"></div><div class="col-5"><input type="time" name="jamMulaiMulti" id="edit_jamMulaiMulti" class="f-input"></div></div>
+              <label class="f-label" style="color:#7c3aed;">Tanggal & Jam Selesai</label>
+              <div class="row g-2"><div class="col-7"><input type="date" name="tanggalSelesaiDate" id="edit_tanggalSelesai" class="f-input"></div><div class="col-5"><input type="time" name="jamSelesaiMulti" id="edit_jamSelesaiMulti" class="f-input"></div></div>
+              <div class="dur-preview mt-2" id="editDurasiPreviewMulti" style="background:#faf5ff;border-color:#d8b4fe;color:#7c3aed;">Durasi: <strong id="editDurasiTextMulti">-</strong></div>
             </div>
             <div class="col-md-6">
-              <span class="label-text">Pemesan (User)</span>
-              <input type="text" name="pemesan" id="edit_pemesan" class="input-custom" required>
-              <span class="label-text">Aktivitas</span>
-              <input type="text" name="aktivitas" id="edit_aktivitas" class="input-custom" required>
-              <span class="label-text">Divisi</span>
-              <select name="divisi" id="edit_divisi" class="input-custom">
-                <option value="IT & IC">IT &amp; IC</option>
-                <option value="HRGA">HRGA</option>
-                <option value="Accounting">Accounting</option>
-                <option value="Exim & Pembelian">Exim &amp; Pembelian</option>
-                <option value="Operasional">Operasional</option>
-                <option value="Finance">Finance</option>
-                <option value="Produksi">Produksi</option>
-                <option value="Bahanbaku">Bahanbaku</option>
-                <option value="Admin Sales">Admin Sales</option>
+              <label class="f-label">Pelapor / User</label><input type="text" name="pemesan" id="edit_pemesan" class="f-input mb-2" required>
+              <label class="f-label">Aktivitas</label><input type="text" name="aktivitas" id="edit_aktivitas" class="f-input mb-2" required>
+              <label class="f-label">Divisi</label>
+              <select name="divisi" id="edit_divisi" class="f-input mb-2">
+                <option>IT & IC</option><option>HRGA</option><option>Accounting</option><option>Exim & Pembelian</option>
+                <option>Operasional</option><option>Finance</option><option>Produksi</option><option>Bahanbaku</option><option>Admin Sales</option>
               </select>
-              <span class="label-text">Status</span>
-              <select name="status" id="edit_status" class="input-custom">
-                <option value="Solved">SOLVED</option>
-                <option value="Pending">PENDING</option>
+              <label class="f-label">Status</label>
+              <select name="status" id="edit_status" class="f-input">
+                <option value="Solved">Solved</option><option value="Pending">Pending</option>
               </select>
             </div>
             <div class="col-md-6">
-              <span class="label-text" style="color:#ffc107;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ganti Foto AWAL (Opsional)</span>
-              <input type="file" name="fotoAwal" class="input-custom file-compress" accept="image/*">
-              <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
-              <span class="label-text" style="color:#90ee90;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ganti Foto SESUDAH (Opsional)</span>
-              <input type="file" name="foto" class="input-custom file-compress" accept="image/*">
-              <small class="text-success fw-bold d-none compress-msg"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg> Foto dikompres!</small>
-            </div>
-            <div class="col-12">
-              <span class="label-text">Deskripsi</span>
+              <label class="f-label">Deskripsi</label>
               <div style="position:relative;">
-                <textarea name="deskripsi" id="edit_deskripsi" class="input-custom" rows="3" required></textarea>
-                <button type="button" onclick="aiGenerateDescEdit()" title="Generate deskripsi pakai AI"
-                  style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg>
-                  AI
-                </button>
+                <textarea name="deskripsi" id="edit_deskripsi" class="f-input mb-2" rows="4" required></textarea>
+                <button type="button" onclick="aiGenerateDescEdit()" style="position:absolute;bottom:14px;right:8px;background:#6366f1;color:#fff;border:none;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;">AI</button>
               </div>
+              <label class="f-label" style="color:#d97706;">Ganti Foto Awal (opsional)</label>
+              <input type="file" name="fotoAwal" class="f-input mb-2" accept="image/*">
+              <label class="f-label" style="color:#2563eb;">Ganti Foto Sesudah (opsional)</label>
+              <input type="file" name="foto" class="f-input" accept="image/*">
             </div>
           </div>
         </div>
-        <div class="modal-footer" style="border-color:var(--body-border);">
-          <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
-          <button type="submit" class="btn btn-primary fw-bold">SIMPAN PERUBAHAN</button>
-        </div>
+        <div class="modal-footer" style="border-top:1px solid #f1f5f9;"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary fw-bold">Simpan</button></div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- MODAL DELETE JURNAL -->
+<!-- MODAL DELETE -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="background:var(--body-card);border:1px solid #dc3545;">
-      <div class="modal-header" style="border-color:#dc3545;"><h5 class="modal-title" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Konfirmasi Hapus</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <p style="color:var(--body-text);" class="mb-1">Yakin mau hapus data ini?</p>
-        <p id="deleteItemName" class="fw-bold" style="color:#ff6b6b;font-size:0.9rem;"></p>
-        <p style="color:var(--body-text2);font-size:0.8rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Data yang dihapus tidak bisa dikembalikan.</p>
-      </div>
-      <div class="modal-footer" style="border-color:#dc3545;">
-        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
-        <form id="formDelete" action="" method="POST" style="display:inline;">
-          <button type="submit" class="btn btn-danger fw-bold">YA, HAPUS SEKARANG</button>
-        </form>
+    <div class="modal-content" style="border-radius:12px;">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;"><h5 class="modal-title" style="font-size:15px;font-weight:700;color:#dc2626;">Konfirmasi Hapus</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><p style="margin:0 0 6px;">Hapus data ini?</p><p id="deleteItemName" style="font-weight:700;color:#dc2626;font-size:14px;"></p><p style="font-size:12px;color:#94a3b8;">Data tidak bisa dikembalikan.</p></div>
+      <div class="modal-footer" style="border-top:1px solid #f1f5f9;"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+        <form id="formDelete" action="" method="POST" style="display:inline;"><button type="submit" class="btn btn-danger fw-bold">Hapus</button></form>
       </div>
     </div>
   </div>
@@ -931,310 +517,87 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ========== TIPE TOGGLE ==========
-function setTipe(tipe) {
-    document.getElementById('tipeInputVal').value = tipe;
-    var isMulti = tipe === 'multihari';
-    document.getElementById('formHarian').style.display    = isMulti ? 'none' : 'block';
-    document.getElementById('formMultihari').style.display = isMulti ? 'block' : 'none';
-    document.getElementById('btnHarian').className = 'tipe-btn' + (!isMulti ? ' active-harian' : '');
-    document.getElementById('btnMulti').className  = 'tipe-btn' + (isMulti ? ' active-multi' : '');
-}
-function setEditTipe(tipe) {
-    document.getElementById('editTipeInputVal').value = tipe;
-    var isMulti = tipe === 'multihari';
-    document.getElementById('editFormHarian').style.display    = isMulti ? 'none' : 'block';
-    document.getElementById('editFormMultihari').style.display = isMulti ? 'block' : 'none';
-    document.getElementById('editBtnHarian').className = 'tipe-btn' + (!isMulti ? ' active-harian' : '');
-    document.getElementById('editBtnMulti').className  = 'tipe-btn' + (isMulti ? ' active-multi' : '');
-    if (isMulti) updatePreviewMultiEdit();
-    else updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText');
-}
+// THEME
+(function(){ var t=localStorage.getItem('theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
 
-// ========== DURASI ==========
-function hitungMenit(a,b){if(!a||!b)return null;var aP=a.split(':').map(Number),bP=b.split(':').map(Number);var mA=aP[0]*60+aP[1],mB=bP[0]*60+bP[1];if(mB<mA)mB+=1440;return mB-mA>0?mB-mA:null;}
-function hitungMenitDT(tA,jA,tB,jB){if(!tA||!tB)return null;var a=new Date(tA+'T'+(jA||'00:00')+':00'),b=new Date(tB+'T'+(jB||'00:00')+':00');var d=Math.floor((b-a)/60000);return d>0?d:null;}
-function formatDurasi(m){if(!m||m<=0)return null;var h=Math.floor(m/1440),s=m%1440,j=Math.floor(s/60),mn=s%60,p=[];if(h>0)p.push(h+' hari');if(j>0)p.push(j+' jam');if(mn>0)p.push(mn+' menit');return p.length>0?p.join(' '):'0 menit';}
-function updatePreviewHarian(mId,sId,pId,tId){var d=hitungMenit(document.getElementById(mId).value,document.getElementById(sId).value),el=document.getElementById(pId);if(d){document.getElementById(tId).textContent=formatDurasi(d);el.style.display='block';}else el.style.display='none';}
-function updatePreviewMulti(){var d=hitungMenitDT(document.getElementById('tanggalMulaiDate').value,document.getElementById('jamMulaiMulti').value,document.getElementById('tanggalSelesaiDate').value,document.getElementById('jamSelesaiMulti').value),el=document.getElementById('durasiPreviewMulti');if(d){document.getElementById('durasiTextMulti').textContent=formatDurasi(d);el.style.display='block';}else el.style.display='none';}
-function updatePreviewMultiEdit(){var d=hitungMenitDT(document.getElementById('edit_tanggalMulai').value,document.getElementById('edit_jamMulaiMulti').value,document.getElementById('edit_tanggalSelesai').value,document.getElementById('edit_jamSelesaiMulti').value),el=document.getElementById('editDurasiPreviewMulti');if(d){document.getElementById('editDurasiTextMulti').textContent=formatDurasi(d);el.style.display='block';}else el.style.display='none';}
+// DRAWER
+function openDrawer(){ document.getElementById('drawerOverlay').classList.add('open'); document.getElementById('drawerPanel').classList.add('open'); document.getElementById('tanggalInput').value=new Date().toISOString().split('T')[0]; }
+function closeDrawer(){ document.getElementById('drawerOverlay').classList.remove('open'); document.getElementById('drawerPanel').classList.remove('open'); }
 
-['jamMulaiInput','jamSelesaiInput'].forEach(function(id){document.getElementById(id).addEventListener('change',function(){updatePreviewHarian('jamMulaiInput','jamSelesaiInput','durasiPreview','durasiText');});});
-['tanggalMulaiDate','jamMulaiMulti','tanggalSelesaiDate','jamSelesaiMulti'].forEach(function(id){document.getElementById(id).addEventListener('change',updatePreviewMulti);});
-['edit_jamMulai','edit_jamSelesai'].forEach(function(id){document.getElementById(id).addEventListener('change',function(){updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText');});});
-['edit_tanggalMulai','edit_jamMulaiMulti','edit_tanggalSelesai','edit_jamSelesaiMulti'].forEach(function(id){document.getElementById(id).addEventListener('change',updatePreviewMultiEdit);});
+// TIPE TOGGLE
+function setTipe(t){ document.getElementById('tipeInputVal').value=t; document.getElementById('btnHarian').className='tipe-opt'+(t==='harian'?' active-harian':''); document.getElementById('btnMulti').className='tipe-opt'+(t==='multihari'?' active-multi':''); document.getElementById('formHarian').style.display=t==='harian'?'':'none'; document.getElementById('formMultihari').style.display=t==='multihari'?'':'none'; }
+function setEditTipe(t){ document.getElementById('editTipeInputVal').value=t; document.getElementById('editBtnHarian').className='tipe-opt'+(t==='harian'?' active-harian':''); document.getElementById('editBtnMulti').className='tipe-opt'+(t==='multihari'?' active-multi':''); document.getElementById('editFormHarian').style.display=t==='harian'?'':'none'; document.getElementById('editFormMultihari').style.display=t==='multihari'?'':'none'; if(t==='multihari')updatePreviewMultiEdit(); else updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText'); }
 
-document.getElementById('tanggalInput').value = new Date().toISOString().split('T')[0];
+// STATUS PILL
+function setStatusPill(s){ document.getElementById('statusVal').value=s; document.getElementById('pillSolved').className='status-opt'+(s==='Solved'?' active-solved':''); document.getElementById('pillPending').className='status-opt'+(s==='Pending'?' active-pending':''); }
 
-// ========== MODAL HELPERS ==========
-// ===== FOTO SLIDER ADMIN =====
-var _aFUrls=[], _aFIdx=0;
-function showFoto(urls, judul) {
-    _aFUrls = Array.isArray(urls) ? urls : [urls];
-    _aFIdx  = 0;
-    _renderAdminFoto(judul);
-    new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show();
-}
-function _renderAdminFoto(judulOverride) {
-    var total = _aFUrls.length;
-    var url   = _aFUrls[_aFIdx];
-    document.getElementById('popupImageAdmin').src = url;
-    var svgCam = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
-    var judul = judulOverride || _aFUrls._judul || 'Dokumentasi';
-    if(judulOverride) _aFUrls._judul = judulOverride;
-    document.getElementById('fotoModalTitle').innerHTML = svgCam + ' ' + judul + (total>1?' ('+ (_aFIdx+1)+'/'+total+')':'');
-    var btnP=document.getElementById('adminFotoPrev'), btnN=document.getElementById('adminFotoNext');
-    if(total>1){btnP.style.display='flex';btnN.style.display='flex';btnP.style.opacity=_aFIdx===0?'0.3':'1';btnN.style.opacity=_aFIdx===total-1?'0.3':'1';}
-    else{btnP.style.display='none';btnN.style.display='none';}
-    var dotsEl=document.getElementById('adminFotoDots'); dotsEl.innerHTML='';
-    if(total>1){
-        _aFUrls.forEach(function(u,i){
-            var th=document.createElement('img'); th.src=u;
-            th.onclick=(function(idx){return function(){_aFIdx=idx;_renderAdminFoto();};})(i);
-            Object.assign(th.style,{width:'52px',height:'52px',objectFit:'cover',borderRadius:'6px',cursor:'pointer',transition:'all 0.15s',border:i===_aFIdx?'2px solid #4ade80':'2px solid transparent',opacity:i===_aFIdx?'1':'0.55'});
-            dotsEl.appendChild(th);
-        });
-        dotsEl.style.padding='10px 16px';
-    } else { dotsEl.style.padding='0'; }
-}
+// DURASI
+function hitungMenit(a,b){ if(!a||!b)return null; var aP=a.split(':').map(Number),bP=b.split(':').map(Number),mA=aP[0]*60+aP[1],mB=bP[0]*60+bP[1]; if(mB<mA)mB+=1440; return mB-mA>0?mB-mA:null; }
+function hitungMenitDT(tA,jA,tB,jB){ if(!tA||!tB)return null; var a=new Date(tA+'T'+(jA||'00:00')+':00'),b=new Date(tB+'T'+(jB||'00:00')+':00'); var d=Math.floor((b-a)/60000); return d>0?d:null; }
+function formatDurasi(m){ if(!m||m<=0)return null; var h=Math.floor(m/1440),s=m%1440,j=Math.floor(s/60),mn=s%60,p=[]; if(h>0)p.push(h+' hari'); if(j>0)p.push(j+' jam'); if(mn>0)p.push(mn+' menit'); return p.length?p.join(' '):'0 menit'; }
+function updatePreviewHarian(mId,sId,pId,tId){ var d=hitungMenit(document.getElementById(mId).value,document.getElementById(sId).value),el=document.getElementById(pId); if(d){document.getElementById(tId).textContent=formatDurasi(d);el.style.display='block';}else el.style.display='none'; }
+function updatePreviewMulti(){ var d=hitungMenitDT(document.getElementById('tanggalMulaiDate').value,document.getElementById('jamMulaiMulti').value,document.getElementById('tanggalSelesaiDate').value,document.getElementById('jamSelesaiMulti').value),el=document.getElementById('durasiPreviewMulti'); if(d){document.getElementById('durasiTextMulti').textContent=formatDurasi(d);el.style.display='block';}else el.style.display='none'; }
+function updatePreviewMultiEdit(){ var d=hitungMenitDT(document.getElementById('edit_tanggalMulai').value,document.getElementById('edit_jamMulaiMulti').value,document.getElementById('edit_tanggalSelesai').value,document.getElementById('edit_jamSelesaiMulti').value),el=document.getElementById('editDurasiPreviewMulti'); if(d){document.getElementById('editDurasiTextMulti').textContent=formatDurasi(d);el.style.display='block';}else el.style.display='none'; }
+['jamMulaiInput','jamSelesaiInput'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('change',function(){updatePreviewHarian('jamMulaiInput','jamSelesaiInput','durasiPreview','durasiText');});});
+['tanggalMulaiDate','jamMulaiMulti','tanggalSelesaiDate','jamSelesaiMulti'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('change',updatePreviewMulti);});
+['edit_jamMulai','edit_jamSelesai'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('change',function(){updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText');});});
+['edit_tanggalMulai','edit_jamMulaiMulti','edit_tanggalSelesai','edit_jamSelesaiMulti'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('change',updatePreviewMultiEdit);});
+
+// FILE LABEL
+function updateFileLabel(input,labelId){ if(input.files&&input.files[0])document.getElementById(labelId).textContent=input.files[0].name; }
+
+// FOTO SLIDER
+var _aFUrls=[],_aFIdx=0;
+function showFoto(urls,judul){ _aFUrls=Array.isArray(urls)?urls:[urls]; _aFIdx=0; _renderAdminFoto(judul); new bootstrap.Modal(document.getElementById('fotoModalAdmin')).show(); }
+function _renderAdminFoto(judulOverride){ var total=_aFUrls.length; document.getElementById('popupImageAdmin').src=_aFUrls[_aFIdx]; var judul=judulOverride||_aFUrls._judul||'Foto'; if(judulOverride)_aFUrls._judul=judulOverride; document.getElementById('fotoModalTitle').textContent=judul+(total>1?' ('+(_aFIdx+1)+'/'+total+')':''); var bP=document.getElementById('adminFotoPrev'),bN=document.getElementById('adminFotoNext'); if(total>1){bP.style.display='block';bN.style.display='block';}else{bP.style.display='none';bN.style.display='none';} var dots=document.getElementById('adminFotoDots');dots.innerHTML=''; if(total>1){_aFUrls.forEach(function(u,i){var th=document.createElement('img');th.src=u;th.onclick=(function(idx){return function(){_aFIdx=idx;_renderAdminFoto();};})(i);Object.assign(th.style,{width:'48px',height:'48px',objectFit:'cover',borderRadius:'6px',cursor:'pointer',border:i===_aFIdx?'2px solid #2563eb':'2px solid transparent',opacity:i===_aFIdx?'1':'0.5',margin:'8px 0'});dots.appendChild(th);});}else{dots.style.padding='0';} }
 function adminSliderNav(dir){_aFIdx=Math.max(0,Math.min(_aFUrls.length-1,_aFIdx+dir));_renderAdminFoto();}
-document.addEventListener('keydown',function(e){var m=document.getElementById('fotoModalAdmin');if(!m||!m.classList.contains('show'))return;if(e.key==='ArrowRight')adminSliderNav(1);if(e.key==='ArrowLeft')adminSliderNav(-1);});
-function openUploadModal(id){document.getElementById('formUploadSusulan').action='/upload-foto/'+id;new bootstrap.Modal(document.getElementById('uploadSusulanModal')).show();}
-function openUploadAwalModal(id){document.getElementById('formUploadAwal').action='/upload-foto-awal/'+id;new bootstrap.Modal(document.getElementById('uploadAwalModal')).show();}
-function openEditModal(id,aktivitas,divisi,pemesan,deskripsi,status,tipe,tanggal,jamMulai,jamSelesai,tglMulai,tglSelesai){
-    document.getElementById('formEdit').action='/edit/'+id;
-    document.getElementById('edit_aktivitas').value=aktivitas;
-    document.getElementById('edit_pemesan').value=pemesan;
-    document.getElementById('edit_deskripsi').value=deskripsi.replace(/\\n/g,'\n');
-    document.getElementById('edit_divisi').value=divisi;
-    document.getElementById('edit_status').value=status;
-    if(tipe==='multihari'){setEditTipe('multihari');document.getElementById('edit_tanggalMulai').value=tglMulai;document.getElementById('edit_tanggalSelesai').value=tglSelesai;document.getElementById('edit_jamMulaiMulti').value=jamMulai;document.getElementById('edit_jamSelesaiMulti').value=jamSelesai;updatePreviewMultiEdit();}
-    else{setEditTipe('harian');document.getElementById('edit_tanggal').value=tanggal;document.getElementById('edit_jamMulai').value=jamMulai;document.getElementById('edit_jamSelesai').value=jamSelesai;updatePreviewHarian('edit_jamMulai','edit_jamSelesai','editDurasiPreview','editDurasiText');}
-    new bootstrap.Modal(document.getElementById('editModal')).show();
-}
-function confirmDelete(id,aktivitas){document.getElementById('formDelete').action='/delete/'+id;document.getElementById('deleteItemName').textContent='"'+aktivitas+'"';new bootstrap.Modal(document.getElementById('deleteModal')).show();}
 
-// ========== COMPRESS IMAGE ==========
-async function compressImage(file){return new Promise(function(resolve,reject){var reader=new FileReader();reader.readAsDataURL(file);reader.onload=function(e){var img=new Image();img.src=e.target.result;img.onload=function(){var w=img.width,h=img.height,max=1000;if(w>h){if(w>max){h=Math.round(h*max/w);w=max;}}else{if(h>max){w=Math.round(w*max/h);h=max;}}var canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);canvas.toBlob(function(blob){resolve(new File([blob],file.name.replace(/\.[^/.]+$/,'.jpg'),{type:'image/jpeg',lastModified:Date.now()}));}, 'image/jpeg',0.6);};};reader.onerror=function(e){reject(e);};}); }
-document.querySelectorAll('.file-compress').forEach(function(input){input.addEventListener('change',async function(e){var file=e.target.files[0];if(!file||!file.type.startsWith('image/'))return;var msg=e.target.nextElementSibling;try{var c=await compressImage(file);var dt=new DataTransfer();dt.items.add(c);e.target.files=dt.files;if(msg&&msg.classList.contains('compress-msg'))msg.classList.remove('d-none');}catch(err){console.error('Gagal kompres:',err);}});});
+// UPLOAD MODALS
+function openUploadModal(id){ document.getElementById('formUploadSusulan').action='/upload-foto/'+id; new bootstrap.Modal(document.getElementById('uploadSusulanModal')).show(); }
+function openUploadAwalModal(id){ document.getElementById('formUploadAwal').action='/upload-foto-awal/'+id; new bootstrap.Modal(document.getElementById('uploadAwalModal')).show(); }
 
-// ========== PWA ==========
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js');});}
-var saveToastEl=document.getElementById('saveToast');
-if(saveToastEl) new bootstrap.Toast(saveToastEl,{delay:4000}).show();
-var deferredPrompt,installBtn=document.getElementById('btnInstallPwa');
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;installBtn.style.display='block';});
-installBtn.addEventListener('click',async function(){if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;installBtn.style.display='none';}});
-window.addEventListener('appinstalled',function(){installBtn.style.display='none';});
-
-// ========== NOTES (with EDIT) ==========
-async function loadAdminNotes() {
-    try {
-        var res = await fetch('/api/notes'), notes = await res.json(), el = document.getElementById('adminNotesList');
-        if (notes.length === 0) { el.innerHTML = '<p style="color:var(--body-text3);">Belum ada catatan.</p>'; return; }
-        el.innerHTML = notes.map(function(n) {
-            var d = new Date(n.createdAt).toLocaleString('id-ID', {dateStyle:'short',timeStyle:'short'});
-            return '<div class="note-item">' +
-                '<div style="flex:1;">' +
-                    '<div class="note-item-title">' + escHtml(n.title) + '</div>' +
-                    '<p class="note-item-content">' + escHtml(n.content) + '</p>' +
-                    '<small class="note-item-date">' + d + '</small>' +
-                '</div>' +
-                '<div style="display:flex;flex-direction:column;gap:4px;margin-left:8px;">' +
-                    '<button onclick="openEditNote(' + n.id + ',`' + escJs(n.title) + '`,`' + escJs(n.content) + '`)" class="btn btn-sm btn-outline-primary fw-bold" style="padding:2px 7px;font-size:0.7rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
-                    '<button onclick="deleteAdminNote(' + n.id + ')" class="btn btn-sm btn-danger fw-bold" style="padding:2px 7px;font-size:0.7rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>' +
-                '</div>' +
-            '</div>';
-        }).join('');
-    } catch(e) { document.getElementById('adminNotesList').innerHTML = '<p style="color:#f00;">Error load notes</p>'; }
+// EDIT MODAL
+function openEditModal(id,aktivitas,divisi,pemesan,deskripsi,status,tipeInput,tanggal,jamMulai,jamSelesai,tglMulai,tglSelesai){
+  document.getElementById('formEdit').action='/edit/'+id;
+  document.getElementById('edit_aktivitas').value=aktivitas; document.getElementById('edit_pemesan').value=pemesan;
+  document.getElementById('edit_deskripsi').value=deskripsi.replace(/\\n/g,'\n'); document.getElementById('edit_status').value=status;
+  var ds=document.getElementById('edit_divisi'); for(var i=0;i<ds.options.length;i++){if(ds.options[i].value===divisi){ds.selectedIndex=i;break;}}
+  setEditTipe(tipeInput||'harian');
+  if(tipeInput==='multihari'){document.getElementById('edit_tanggalMulai').value=tglMulai||'';document.getElementById('edit_tanggalSelesai').value=tglSelesai||'';document.getElementById('edit_jamMulaiMulti').value=jamMulai||'';document.getElementById('edit_jamSelesaiMulti').value=jamSelesai||'';}
+  else{document.getElementById('edit_tanggal').value=tanggal||'';document.getElementById('edit_jamMulai').value=jamMulai||'';document.getElementById('edit_jamSelesai').value=jamSelesai||'';}
+  new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
-function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function escJs(s)   { return (s||'').replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/\$/g,'\\$'); }
+// DELETE
+function confirmDelete(id,nama){ document.getElementById('formDelete').action='/delete/'+id; document.getElementById('deleteItemName').textContent=nama; new bootstrap.Modal(document.getElementById('deleteModal')).show(); }
 
-async function addNoteAdmin() {
-    var title=document.getElementById('noteTitle').value.trim(), content=document.getElementById('noteContent').value.trim();
-    if(!title||!content){alert('Judul dan isi harus diisi!');return;}
-    await fetch('/api/notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,content})});
-    document.getElementById('noteTitle').value=''; document.getElementById('noteContent').value='';
-    loadAdminNotes();
-}
+// FILTER QUICK
+function fmt(d){return d.toISOString().split('T')[0];}
+function setToday(){var t=new Date();document.getElementById('filterFrom').value=fmt(t);document.getElementById('filterTo').value=fmt(t);document.getElementById('filterForm').submit();}
+function setYesterday(){var t=new Date();t.setDate(t.getDate()-1);document.getElementById('filterFrom').value=fmt(t);document.getElementById('filterTo').value=fmt(t);document.getElementById('filterForm').submit();}
+function setLast7(){var e=new Date(),s=new Date();s.setDate(s.getDate()-6);document.getElementById('filterFrom').value=fmt(s);document.getElementById('filterTo').value=fmt(e);document.getElementById('filterForm').submit();}
+function setThisMonth(){var n=new Date(),s=new Date(n.getFullYear(),n.getMonth(),1),e=new Date(n.getFullYear(),n.getMonth()+1,0);document.getElementById('filterFrom').value=fmt(s);document.getElementById('filterTo').value=fmt(e);document.getElementById('filterForm').submit();}
 
-function openEditNote(id, title, content) {
-    document.getElementById('editNoteId').value = id;
-    document.getElementById('editNoteTitle').value = title;
-    document.getElementById('editNoteContent').value = content;
-    new bootstrap.Modal(document.getElementById('editNoteModal')).show();
-}
+// EXPORT BTN SYNC
+var ef=document.getElementById('filterFrom'),et=document.getElementById('filterTo'),eb=document.getElementById('exportBtn');
+function syncExport(){if(eb)eb.href='/export?dateFrom='+(ef?ef.value:'')+'&dateTo='+(et?et.value:'');}
+if(ef)ef.addEventListener('change',syncExport); if(et)et.addEventListener('change',syncExport);
 
-async function saveEditNote() {
-    var id      = document.getElementById('editNoteId').value;
-    var title   = document.getElementById('editNoteTitle').value.trim();
-    var content = document.getElementById('editNoteContent').value.trim();
-    if(!title||!content){alert('Judul dan isi harus diisi!');return;}
-    var res = await fetch('/api/notes/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title,content})});
-    if(res.ok){
-        bootstrap.Modal.getInstance(document.getElementById('editNoteModal')).hide();
-        loadAdminNotes();
-    } else { alert('Gagal menyimpan catatan.'); }
-}
+// TOAST
+window.addEventListener('load',function(){var el=document.getElementById('saveToast');if(el){var t=new bootstrap.Toast(el,{delay:3500});t.show();}});
 
-async function deleteAdminNote(id) {
-    if(!confirm('Yakin hapus catatan ini?'))return;
-    await fetch('/api/notes/'+id,{method:'DELETE'});
-    loadAdminNotes();
-}
+// AI DESC
+async function aiGenerateDesc(){ var aktivitas=document.getElementById('add_deskripsi').closest('form').querySelector('[name="aktivitas"]').value.trim(); if(!aktivitas){alert('Isi Aktivitas dulu.');return;} var btn=event.target; btn.textContent='...'; btn.disabled=true; try{ var r=await fetch('/ai/generate-desc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({aktivitas:aktivitas,divisi:'',pemesan:''})}); var d=await r.json(); if(d.result){document.getElementById('add_deskripsi').value=d.result;} }catch(e){} btn.textContent='AI'; btn.disabled=false; }
+async function aiGenerateDescEdit(){ var aktivitas=document.getElementById('edit_aktivitas').value.trim(); if(!aktivitas){alert('Isi Aktivitas dulu.');return;} var btn=event.target; btn.textContent='...'; btn.disabled=true; try{ var r=await fetch('/ai/generate-desc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({aktivitas:aktivitas,divisi:'',pemesan:''})}); var d=await r.json(); if(d.result){document.getElementById('edit_deskripsi').value=d.result;} }catch(e){} btn.textContent='AI'; btn.disabled=false; }
 
-window.addEventListener('load', function() { loadAdminNotes(); });
-
-// ===== QUICK DATE FILTER =====
-function fmtDate(d) { return d.toISOString().split('T')[0]; }
-function applyFilter(from, to) {
-    document.getElementById('filterFrom').value = from || '';
-    document.getElementById('filterTo').value   = to   || '';
-    document.getElementById('filterForm').submit();
-}
-function setToday() {
-    var t = fmtDate(new Date()); applyFilter(t, t);
-}
-function setYesterday() {
-    var d = new Date(); d.setDate(d.getDate() - 1); var t = fmtDate(d); applyFilter(t, t);
-}
-function setLast7() {
-    var to = new Date(), from = new Date(); from.setDate(from.getDate() - 6);
-    applyFilter(fmtDate(from), fmtDate(to));
-}
-function setThisMonth() {
-    var now = new Date();
-    var from = new Date(now.getFullYear(), now.getMonth(), 1);
-    var to   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    applyFilter(fmtDate(from), fmtDate(to));
-}
-// Sync export button URL saat filter input berubah
-(function() {
-    var fromEl = document.getElementById('filterFrom');
-    var toEl   = document.getElementById('filterTo');
-    var expBtn = document.getElementById('exportBtn');
-    function syncExport() {
-        if (!expBtn) return;
-        expBtn.href = '/export?dateFrom=' + (fromEl ? fromEl.value : '') + '&dateTo=' + (toEl ? toEl.value : '');
-    }
-    if (fromEl) fromEl.addEventListener('change', syncExport);
-    if (toEl)   toEl.addEventListener('change', syncExport);
-})();
+// THEME TOGGLE
+function toggleTheme(){var c=document.documentElement.getAttribute('data-theme');var n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);updateThemeUI(n);}
+function updateThemeUI(t){var l=document.getElementById('navThemeLabel');var th=document.getElementById('navThumb');if(l)l.textContent=t==='light'?'Light':'Dark';document.documentElement.setAttribute('data-theme',t);if(th){th.style.transform=t==='light'?'translateX(12px)':'';th.style.background=t==='light'?'#fff':'';}};
+(function(){updateThemeUI(localStorage.getItem('theme')||'dark');})();
+function toggleUserDropdown(e){e.stopPropagation();document.getElementById('userDropdown')?.classList.toggle('open');}
+document.addEventListener('click',function(){document.getElementById('userDropdown')?.classList.remove('open');});
+function toggleMobileNav(){document.getElementById('mobileNav')?.classList.add('open');document.getElementById('sidebarOverlay')?.classList.add('open');}
+function closeSidebar(){document.getElementById('mobileNav')?.classList.remove('open');document.getElementById('sidebarOverlay')?.classList.remove('open');}
 </script>
-
-<script>
-// ===== AI GENERATE DESKRIPSI =====
-async function aiGenerateDesc() {
-  var aktivitas = document.querySelector('input[name="aktivitas"]').value.trim();
-  var divisi    = document.querySelector('select[name="divisi"]').value;
-  var pemesan   = document.querySelector('input[name="pemesan"]').value.trim();
-  var btn       = document.getElementById('btn_ai_desc');
-  var textarea  = document.getElementById('add_deskripsi');
-
-  if (!aktivitas) { alert('Isi dulu kolom Aktivitas!'); return; }
-
-  btn.disabled = true;
-  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> ...';
-
-  try {
-    var res  = await fetch('/api/ai-describe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ aktivitas, divisi, pemesan })
-    });
-    var data = await res.json();
-    if (data.deskripsi) {
-      textarea.value = data.deskripsi;
-      textarea.style.borderColor = '#6366f1';
-      setTimeout(function(){ textarea.style.borderColor = ''; }, 2000);
-    } else {
-      alert(data.error || 'Gagal generate deskripsi.');
-    }
-  } catch(e) {
-    alert('Gagal koneksi ke AI.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a6 6 0 0 1 6 6c0 2.4-1.4 4.5-3.5 5.5L16 21H8l1.5-7.5C7.4 12.5 6 10.4 6 8a6 6 0 0 1 6-6z"/><circle cx="9" cy="8" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="8" r="1" fill="currentColor" stroke="none"/></svg> AI';
-  }
-}
-
-async function aiGenerateDescEdit() {
-  var aktivitas = document.getElementById('edit_aktivitas').value.trim();
-  var divisi    = document.getElementById('edit_divisi').value;
-  var pemesan   = document.getElementById('edit_pemesan').value.trim();
-  var textarea  = document.getElementById('edit_deskripsi');
-
-  if (!aktivitas) { alert('Isi dulu kolom Aktivitas!'); return; }
-  textarea.value = '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M17 2v4.172a2 2 0 0 1-.586 1.414L12 12 7.586 7.586A2 2 0 0 1 7 6.172V2"/></svg> Generating...';
-
-  try {
-    var res  = await fetch('/api/ai-describe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ aktivitas, divisi, pemesan })
-    });
-    var data = await res.json();
-    textarea.value = data.deskripsi || data.error || 'Gagal generate.';
-    if (data.deskripsi) {
-      textarea.style.borderColor = '#6366f1';
-      setTimeout(function(){ textarea.style.borderColor = ''; }, 2000);
-    }
-  } catch(e) {
-    textarea.value = 'Gagal koneksi ke AI.';
-  }
-}
-// ===== STATUS PILL =====
-function setStatusPill(val) {
-    document.getElementById('statusVal').value = val;
-    document.getElementById('pillSolved').className = 'status-pill' + (val === 'Solved' ? ' active-solved' : '');
-    document.getElementById('pillPending').className = 'status-pill' + (val === 'Pending' ? ' active-pending' : '');
-}
-// ===== UPLOAD LABEL =====
-function updateUploadLabel(input, lblId) {
-    var lbl = document.getElementById(lblId);
-    if (lbl && input.files && input.files[0]) {
-        lbl.textContent = input.files[0].name;
-        lbl.style.color = 'var(--body-text)';
-    }
-}
-// ===== DRAWER / MODAL =====
-function isDesktop() { return window.innerWidth >= 768; }
-function openDrawer() {
-    var panel = document.getElementById('drawerPanel');
-    var overlay = document.getElementById('drawerOverlay');
-    var fab = document.getElementById('fabTambah');
-    if (isDesktop()) {
-        // Desktop: pindahkan panel ke dalam overlay agar modal center
-        overlay.appendChild(panel);
-    }
-    panel.classList.add('open');
-    overlay.classList.add('open');
-    if (fab) fab.classList.add('hidden');
-    document.body.style.overflow = 'hidden';
-}
-function closeDrawer() {
-    var panel = document.getElementById('drawerPanel');
-    var overlay = document.getElementById('drawerOverlay');
-    var fab = document.getElementById('fabTambah');
-    panel.classList.remove('open');
-    overlay.classList.remove('open');
-    if (fab) fab.classList.remove('hidden');
-    document.body.style.overflow = '';
-    // Kembalikan panel ke body agar mobile drawer tetap benar
-    if (isDesktop()) {
-        document.body.appendChild(panel);
-    }
-}
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeDrawer();
-    if (e.key === 'n' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'SELECT') {
-        e.preventDefault(); openDrawer();
-    }
-});
-</script>
-
-<script src="/offline-sync.js"></script>
 </body>
 </html>

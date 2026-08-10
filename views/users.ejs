@@ -1,169 +1,137 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#1a3a1a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="IT Log">
-    <link rel="icon" type="image/x-icon"   href="/favicon.ico">
-    <link rel="icon" type="image/svg+xml"  href="/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180x180.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen User — IT Support Log</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; }
-        body { background: var(--body-bg) !important; color: var(--body-text) !important; font-family: 'Inter', -apple-system, sans-serif; margin: 0; transition: background 0.25s, color 0.25s; }
-        .page-wrap { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>Manajemen User</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;}
+    body{background:#f1f5f9;color:#0f172a;font-family:'Inter',system-ui,sans-serif;margin:0;font-size:14px;}
+    .page{max-width:1300px;margin:0 auto;padding:24px 20px;}
+    .alert-ok{background:#f0fdf4;border:1px solid #86efac;color:#16a34a;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;margin-bottom:16px;}
+    .alert-err{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;margin-bottom:16px;}
 
-        /* FORM PANEL */
-        .form-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; padding: 1.25rem; position: sticky; top: 72px; }
-        .form-panel h6 { font-size: 0.78rem; font-weight: 700; color: #4ade80; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
-        .f-label { display: block; font-size: 0.68rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-        .f-input { background: var(--body-input) !important; border: 1px solid var(--body-input-border) !important; border-radius: 6px; color: var(--body-text) !important; padding: 8px 10px; width: 100%; margin-bottom: 0.65rem; font-size: 0.83rem; outline: none; transition: border-color 0.15s; }
-        .f-input:focus { border-color: var(--body-input-focus) !important; }
-        .btn-add { background: #1a3a2a; border: 1px solid #2d6a4a; color: #4ade80; width: 100%; padding: 9px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
-        .btn-add:hover { background: #224a36; }
+    /* FORM PANEL */
+    .form-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:24px;position:sticky;top:72px;}
+    .form-card-title{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #f1f5f9;}
+    .f-label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;}
+    .f-input{width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:#0f172a;background:#fff;outline:none;transition:border-color .15s,box-shadow .15s;margin-bottom:12px;}
+    .f-input:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+    .pass-bar{height:3px;border-radius:2px;background:#e2e8f0;overflow:hidden;margin-top:-8px;margin-bottom:12px;}
+    .pass-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%;}
 
-        /* PERMISSIONS GRID */
-        .perm-section { margin-bottom: 0.75rem; }
-        .perm-section-title { font-size: 0.65rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
-        .perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .perm-check { display: flex; align-items: center; gap: 7px; padding: 6px 9px; background: var(--body-bg); border: 1px solid var(--body-border); border-radius: 6px; cursor: pointer; transition: all 0.15s; user-select: none; }
-        .perm-check:hover { border-color: var(--body-border2); }
-        .perm-check.checked { border-color: #2d6a4a; background: #0d2a18; }
-        .perm-check.checked-delete { border-color: #5c1a1a; background: #2a0d0d; }
-        .perm-check.checked-users { border-color: #4c3780; background: #1a0d3d; }
-        .perm-check.checked-viewlog { border-color: #0e4d6a; background: #0d2234; }
-        .perm-check.checked-audit { border-color: #92400e; background: #2d1a00; }
-        .perm-check.checked-vendor { border-color: #0d3d6e; background: #0d1a38; }
-        .perm-check input[type="checkbox"] { display: none; }
-        .perm-box { width: 16px; height: 16px; border: 1.5px solid var(--body-border2); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; font-size: 10px; }
-        .perm-check.checked .perm-box { background: #4ade80; border-color: #4ade80; color: #0d2a18; }
-        .perm-check.checked-delete .perm-box { background: #f87171; border-color: #f87171; color: #2a0d0d; }
-        .perm-check.checked-users .perm-box { background: #a78bfa; border-color: #a78bfa; color: #1a0d3d; }
-        .perm-check.checked-viewlog .perm-box { background: #67e8f9; border-color: #67e8f9; color: #0d2234; }
-        .perm-check.checked-audit .perm-box { background: #f59e0b; border-color: #f59e0b; color: #2d1a00; }
-        .perm-check.checked-vendor .perm-box { background: #4da6ff; border-color: #4da6ff; color: #0d1a38; }
-        .perm-label-text { font-size: 0.72rem; font-weight: 600; color: var(--body-text2); }
-        .perm-check.checked .perm-label-text { color: #4ade80; }
-        .perm-check.checked-delete .perm-label-text { color: #f87171; }
-        .perm-check.checked-users .perm-label-text { color: #a78bfa; }
-        .perm-check.checked-viewlog .perm-label-text { color: #67e8f9; }
-        .perm-check.checked-audit .perm-label-text { color: #f59e0b; }
-        .perm-check.checked-vendor .perm-label-text { color: #4da6ff; }
-        .perm-icon { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; flex-shrink:0; }
-        .perm-icon .lc { width:12px !important; height:12px !important; flex-shrink:0; }
-        .pt .lc { width:8px !important; height:8px !important; vertical-align:0; flex-shrink:0; }
+    /* PRESETS */
+    .preset-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+    .preset{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .12s;}
+    .p-admin {background:#eff6ff;color:#2563eb;border-color:#93c5fd;} .p-admin:hover{background:#2563eb;color:#fff;}
+    .p-user  {background:#f0fdf4;color:#16a34a;border-color:#86efac;} .p-user:hover{background:#16a34a;color:#fff;}
+    .p-viewer{background:#f8fafc;color:#64748b;border-color:#cbd5e1;} .p-viewer:hover{background:#64748b;color:#fff;}
+    .p-mtc   {background:#fff7ed;color:#d97706;border-color:#fcd34d;} .p-mtc:hover{background:#d97706;color:#fff;}
+    .p-vmtc  {background:#f0f9ff;color:#0284c7;border-color:#7dd3fc;} .p-vmtc:hover{background:#0284c7;color:#fff;}
+    .p-clear {background:#f8fafc;color:#94a3b8;border-color:#e2e8f0;} .p-clear:hover{background:#e2e8f0;color:#374151;}
 
-        /* PRESET BUTTONS */
-        .preset-row { display: flex; gap: 5px; margin-bottom: 0.75rem; flex-wrap: wrap; }
-        .preset-btn { padding: 4px 10px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; cursor: pointer; border: 1px solid; transition: all 0.15s; }
-        .preset-admin  { background: #1a0d3d; color: #a78bfa; border-color: #4c3780; }
-        .preset-admin:hover { background: #250f50; }
-        .preset-user   { background: #0d2a18; color: #4ade80; border-color: #2d6a4a; }
-        .preset-user:hover { background: #0f3020; }
-        .preset-viewer { background: #0d1a38; color: #7eb8f7; border-color: #2a3d6a; }
-        .preset-viewer:hover { background: #0f2040; }
-        .preset-clear  { background: var(--body-bg); color: var(--body-text2); border-color: var(--body-border); }
-        .preset-clear:hover { border-color: var(--body-border2); color: var(--body-text); }
+    /* PERMISSION TOGGLES */
+    .perm-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;}
+    .perm-section-title{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+    .perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .perm-toggle{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:all .12s;user-select:none;}
+    .perm-toggle:hover{border-color:#93c5fd;background:#f0f9ff;}
+    .perm-toggle.on{border-color:#86efac;background:#f0fdf4;}
+    .perm-toggle.on-del{border-color:#fca5a5;background:#fef2f2;}
+    .perm-toggle.on-adm{border-color:#c4b5fd;background:#faf5ff;}
+    .perm-toggle.on-log{border-color:#67e8f9;background:#f0fdff;}
+    .perm-toggle.on-aud{border-color:#fcd34d;background:#fffbeb;}
+    .perm-toggle.on-ven{border-color:#93c5fd;background:#eff6ff;}
+    .perm-toggle.on-tgs{border-color:#fb923c;background:#fff7ed;}
+    .perm-toggle.on-vmtc{border-color:#7dd3fc;background:#f0f9ff;}
+    .perm-name{font-size:12px;font-weight:600;color:#374151;}
+    .perm-toggle.on .perm-name,.perm-toggle.on-log .perm-name,.perm-toggle.on-adm .perm-name{color:#16a34a;}
+    .perm-toggle.on-del .perm-name{color:#dc2626;}
+    .perm-toggle.on-adm .perm-name{color:#7c3aed;}
+    .perm-toggle.on-log .perm-name{color:#0891b2;}
+    .perm-toggle.on-aud .perm-name{color:#d97706;}
+    .perm-toggle.on-ven .perm-name{color:#2563eb;}
+    .perm-toggle.on-tgs .perm-name{color:#ea580c;}
+    .perm-toggle.on-vmtc .perm-name{color:#0284c7;}
+    .switch{width:32px;height:18px;background:#e2e8f0;border-radius:9px;position:relative;transition:background .2s;flex-shrink:0;}
+    .switch::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+    .perm-toggle.on .switch,.perm-toggle.on-log .switch{background:#16a34a;}
+    .perm-toggle.on-del .switch{background:#dc2626;}
+    .perm-toggle.on-adm .switch{background:#7c3aed;}
+    .perm-toggle.on-log .switch{background:#0891b2;}
+    .perm-toggle.on-aud .switch{background:#d97706;}
+    .perm-toggle.on-ven .switch{background:#2563eb;}
+    .perm-toggle.on-tgs .switch{background:#ea580c;}
+    .perm-toggle.on-vmtc .switch{background:#0284c7;}
+    .perm-toggle.on .switch::after,.perm-toggle.on-del .switch::after,.perm-toggle.on-adm .switch::after,.perm-toggle.on-log .switch::after,.perm-toggle.on-aud .switch::after,.perm-toggle.on-ven .switch::after,.perm-toggle.on-tgs .switch::after,.perm-toggle.on-vmtc .switch::after{transform:translateX(14px);}
+    .btn-add{width:100%;padding:10px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;}
+    .btn-add:hover{background:#15803d;}
 
-        /* MAIN PANEL */
-        .main-panel { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 12px; overflow: hidden; }
-        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--body-border); }
-        .panel-title { font-size: 0.82rem; font-weight: 700; color: var(--body-text2); text-transform: uppercase; letter-spacing: 0.07em; }
-
-        /* TABLE */
-        .user-table { width: 100%; border-collapse: collapse; }
-        .user-table th { padding: 10px 14px; font-size: 0.65rem; font-weight: 700; color: var(--body-text3); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--body-border); background: var(--body-bg); text-align: left; white-space: nowrap; }
-        .user-table td { padding: 11px 14px; font-size: 0.83rem; color: var(--body-text); border-bottom: 1px solid var(--body-border); vertical-align: middle; }
-        .user-table tr:last-child td { border-bottom: none; }
-        .user-table tr:hover td { background: var(--body-bg3); }
-
-        /* PERM TAGS inline di tabel */
-        .perm-tags { display: flex; flex-wrap: wrap; gap: 3px; }
-        .pt { display: inline-flex; align-items:center; gap:3px; padding: 1px 6px; border-radius: 3px; font-size: 0.6rem; font-weight: 700; line-height:1.6; }
-        .pt-view   { background: #0d1a38; color: #7eb8f7; border: 1px solid #1a2d5c; }
-        .pt-add    { background: #0d2a18; color: #4ade80; border: 1px solid #1a5c30; }
-        .pt-edit   { background: #0d2210; color: #86efac; border: 1px solid #145c28; }
-        .pt-delete { background: #2a0d0d; color: #f87171; border: 1px solid #5c1a1a; }
-        .pt-asset  { background: #1a1a0d; color: #fde68a; border: 1px solid #5c4a00; }
-        .pt-export { background: #1a0d2a; color: #d8b4fe; border: 1px solid #4c1a7a; }
-        .pt-users  { background: #1a0d3d; color: #a78bfa; border: 1px solid #4c3780; }
-        .pt-viewlog { background: #0d2234; color: #67e8f9; border: 1px solid #0e4d6a; }
-        .pt-audit  { background: #2d1a00; color: #f59e0b; border: 1px solid #92400e; }
-        .pt-vendor { background: #0d1a38; color: #4da6ff; border: 1px solid #0d3d6e; }
-
-        /* ROLE BADGE */
-        .role-admin  { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a0d3d;color:#a78bfa;border:1px solid #4c3780; }
-        .role-user   { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#0d2a18;color:#4ade80;border:1px solid #1a5c30; }
-        .role-viewer { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#1a2a3a;color:#7eb8f7;border:1px solid #2a4a6a; }
-        .role-custom { display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:#2a1a0d;color:#fb923c;border:1px solid #5c3010; }
-
-        /* ACTION BTN */
-        .act-btn { background: none; border: 1px solid var(--body-border); color: var(--body-text2); padding: 4px 9px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.12s; }
-        .act-btn.blue:hover  { border-color: #2a3d6a; color: #7eb8f7; background: #0d1a38; }
-        .act-btn.red:hover   { border-color: #5c1a1a; color: #f87171; background: #2a0d0d; }
-
-        /* MODAL */
-        .m-content { background: var(--body-card) !important; border: 1px solid var(--body-border) !important; }
-        .m-header  { border-bottom: 1px solid var(--body-border) !important; }
-        .m-footer  { border-top: 1px solid var(--body-border) !important; }
-        .m-content .modal-title { color: var(--body-text) !important; }
-
-        /* ALERT */
-        .alert-success-custom { background: #0d2a18; border: 1px solid #1a5c30; color: #4ade80; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
-        .alert-error-custom   { background: #2a0d0d; border: 1px solid #5c1a1a; color: #f87171; border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; font-weight: 600; margin-bottom: 1rem; }
-        .you-badge { display: inline-block; background: #1a2a0d; color: #86efac; border: 1px solid #2d5c1a; border-radius: 3px; padding: 1px 6px; font-size: 0.6rem; font-weight: 700; margin-left: 6px; vertical-align: middle; }
-
-        /* PASS STRENGTH */
-        .pass-strength { height: 3px; border-radius: 2px; margin-top: 4px; margin-bottom: 0.65rem; background: var(--body-border); overflow: hidden; }
-        .pass-strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
-
-        @media (max-width: 768px) { .page-wrap { padding: 1rem; } .form-panel { position: static; margin-bottom: 1rem; } .perm-grid { grid-template-columns: 1fr; } }
-    </style>
+    /* TABLE PANEL */
+    .table-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;}
+    .table-card-head{padding:16px 20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
+    .table-card-title{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em;}
+    .count-badge{background:#f1f5f9;color:#475569;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;}
+    .user-table{width:100%;border-collapse:collapse;}
+    .user-table thead th{padding:10px 16px;font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;background:#f8fafc;border-bottom:1px solid #e2e8f0;white-space:nowrap;}
+    .user-table tbody td{padding:12px 16px;font-size:13px;color:#0f172a;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+    .user-table tbody tr:last-child td{border-bottom:none;}
+    .user-table tbody tr:hover td{background:#fafafa;}
+    .avatar{width:32px;height:32px;border-radius:50%;background:#dbeafe;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#1d4ed8;flex-shrink:0;}
+    .you-tag{display:inline-block;background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px;}
+    .role-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+    .rt-admin{background:#faf5ff;color:#7c3aed;}
+    .rt-user{background:#f0fdf4;color:#16a34a;}
+    .rt-viewer{background:#f0f9ff;color:#0284c7;}
+    .rt-other{background:#f8fafc;color:#64748b;}
+    .div-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:#f1f5f9;color:#475569;}
+    .pt-wrap{display:flex;flex-wrap:wrap;gap:3px;}
+    .pt{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:700;}
+    .pt-v{background:#dbeafe;color:#1d4ed8;} .pt-a{background:#dcfce7;color:#16a34a;} .pt-e{background:#d1fae5;color:#059669;}
+    .pt-d{background:#fee2e2;color:#dc2626;} .pt-as{background:#fef9c3;color:#ca8a04;} .pt-ex{background:#ede9fe;color:#7c3aed;}
+    .pt-u{background:#e0e7ff;color:#4338ca;} .pt-l{background:#cffafe;color:#0891b2;} .pt-au{background:#fef3c7;color:#d97706;}
+    .pt-vn{background:#dbeafe;color:#2563eb;} .pt-tg{background:#ffedd5;color:#ea580c;} .pt-vm{background:#e0f2fe;color:#0284c7;}
+    .btn-edit-sm{padding:4px 10px;background:#eff6ff;color:#2563eb;border:1px solid #93c5fd;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;}
+    .btn-edit-sm:hover{background:#2563eb;color:#fff;}
+    .btn-del-sm{padding:4px 10px;background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;}
+    .btn-del-sm:hover{background:#dc2626;color:#fff;}
+    @media(max-width:768px){.page{padding:16px 12px;} .perm-grid{grid-template-columns:1fr;}}
+  </style>
 </head>
 <body>
 <%- include('navbar', {activePage: 'users'}) %>
-
-<div class="page-wrap">
+<div class="page">
   <% if (typeof msg !== 'undefined' && msg) { %>
-    <div class="<%= msgType === 'error' ? 'alert-error-custom' : 'alert-success-custom' %>">
-      <%- msgType === 'error' ? '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' : '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg>' %> <%= msg %>
-    </div>
+  <div class="<%= msgType==='error'?'alert-err':'alert-ok' %>"><%= msg %></div>
   <% } %>
 
   <div class="row g-4">
-
-    <!-- FORM SIDEBAR -->
+    <!-- FORM PANEL -->
     <div class="col-md-4">
-      <div class="form-panel">
-        <h6>+ Tambah User Baru</h6>
+      <div class="form-card">
+        <div class="form-card-title">Tambah User Baru</div>
         <form action="/users/tambah" method="POST" id="formTambah">
 
           <label class="f-label">Nama Lengkap</label>
-          <input type="text" name="nama" class="f-input" placeholder="cth: Rizqi Subagyo" required>
+          <input type="text" name="nama" class="f-input" placeholder="Nama lengkap" required>
 
           <label class="f-label">Username</label>
-          <input type="text" name="username" class="f-input" placeholder="huruf kecil, tanpa spasi" required pattern="[a-z0-9_]+" title="Hanya huruf kecil, angka, underscore">
+          <input type="text" name="username" class="f-input" placeholder="huruf kecil tanpa spasi" required pattern="[a-z0-9_]+">
 
           <label class="f-label">Password</label>
-          <input type="password" name="password" id="newPass" class="f-input" placeholder="Min 6 karakter" required minlength="6" oninput="checkStrength(this.value, 'passStrengthBar')">
-          <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBar"></div></div>
+          <input type="password" name="password" id="newPass" class="f-input" placeholder="Min 6 karakter" required minlength="6" oninput="checkStrength(this.value,'passStrengthBar')">
+          <div class="pass-bar"><div class="pass-fill" id="passStrengthBar"></div></div>
 
-          <label class="f-label">No. HP / WhatsApp <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(untuk notif WA, format: 628xxx)</span></label>
-          <input type="text" name="noHp" class="f-input" placeholder="cth: 6281234567890">
+          <label class="f-label">No. HP / WhatsApp <span style="color:#94a3b8;font-weight:400;">(untuk notif WA)</span></label>
+          <input type="text" name="noHp" id="add_noHp" class="f-input" placeholder="628xxx...">
 
-          <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
-          <input type="text" name="role" class="f-input" placeholder="cth: IT Support, Supervisor, Operator..." value="user">
+          <label class="f-label">Label Role</label>
+          <input type="text" name="role" class="f-input" placeholder="IT Support / Supervisor..." value="user">
 
-          <label class="f-label">Divisi <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(menentukan akses data aset)</span></label>
-          <select name="divisi" id="add_divisi" class="f-input" onchange="this.value=this.value.toUpperCase()">
+          <label class="f-label">Divisi</label>
+          <select name="divisi" id="add_divisi" class="f-input">
             <option value="IT">IT</option>
             <option value="MAINTENANCE">MAINTENANCE</option>
             <option value="HRGA">HRGA</option>
@@ -177,174 +145,103 @@
             <option value="IT & IC">IT &amp; IC</option>
           </select>
 
-          <!-- PERMISSION BUILDER -->
-          <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; margin-bottom: 0.75rem; background: var(--body-bg);">
-            <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;">
-              <svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Hak Akses
-            </div>
+          <!-- HIDDEN CHECKBOXES (dikelola JS) -->
+          <input type="checkbox" name="canView"            id="add_canView"            style="display:none;">
+          <input type="checkbox" name="canAdd"             id="add_canAdd"             style="display:none;">
+          <input type="checkbox" name="canEdit"            id="add_canEdit"            style="display:none;">
+          <input type="checkbox" name="canDelete"          id="add_canDelete"          style="display:none;">
+          <input type="checkbox" name="canAsset"           id="add_canAsset"           style="display:none;">
+          <input type="checkbox" name="canExport"          id="add_canExport"          style="display:none;">
+          <input type="checkbox" name="canUsers"           id="add_canUsers"           style="display:none;">
+          <input type="checkbox" name="canViewLog"         id="add_canViewLog"         style="display:none;">
+          <input type="checkbox" name="canAudit"           id="add_canAudit"           style="display:none;">
+          <input type="checkbox" name="canVendor"          id="add_canVendor"          style="display:none;">
+          <input type="checkbox" name="canTugas"           id="add_canTugas"           style="display:none;">
+          <input type="checkbox" name="canViewMaintenance" id="add_canViewMaintenance" style="display:none;">
 
-            <!-- PRESET BUTTONS -->
+          <div class="perm-section">
+            <div class="perm-section-title">Hak Akses</div>
             <div class="preset-row">
-              <button type="button" class="preset-btn preset-admin"  onclick="setPreset('add', 'admin')">Admin</button>
-              <button type="button" class="preset-btn preset-user"   onclick="setPreset('add', 'user')">User IT</button>
-              <button type="button" class="preset-btn preset-viewer" onclick="setPreset('add', 'viewer')">Viewer</button>
-              <button type="button" class="preset-btn" style="background:#3d1a00;color:#fb923c;border-color:#7c3300;" onclick="setPreset('add', 'maintenance')">🔧 MTC</button>
-              <button type="button" class="preset-btn" style="background:#0d2234;color:#67e8f9;border-color:#0e4d6a;" onclick="setPreset('add', 'viewerMaintenance')">👁 View MTC</button>
-              <button type="button" class="preset-btn preset-clear"  onclick="setPreset('add', 'clear')">Clear</button>
+              <button type="button" class="preset p-admin"  onclick="setPreset('add','admin')">Admin</button>
+              <button type="button" class="preset p-user"   onclick="setPreset('add','user')">User IT</button>
+              <button type="button" class="preset p-viewer" onclick="setPreset('add','viewer')">Viewer</button>
+              <button type="button" class="preset p-mtc"    onclick="setPreset('add','maintenance')">🔧 MTC</button>
+              <button type="button" class="preset p-vmtc"   onclick="setPreset('add','viewerMaintenance')">👁 View MTC</button>
+              <button type="button" class="preset p-clear"  onclick="setPreset('add','clear')">Clear</button>
             </div>
-
             <div class="perm-grid" id="permGrid_add">
-              <div class="perm-check" id="lbl_add_canView" data-form="add" data-perm="canView">
-                <input type="checkbox" name="canView" id="add_canView">
-                <div class="perm-box" id="box_add_canView"></div>
-                <span class="perm-label-text">Lihat</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canAdd" data-form="add" data-perm="canAdd">
-                <input type="checkbox" name="canAdd" id="add_canAdd">
-                <div class="perm-box" id="box_add_canAdd"></div>
-                <span class="perm-label-text">Tambah</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canEdit" data-form="add" data-perm="canEdit">
-                <input type="checkbox" name="canEdit" id="add_canEdit">
-                <div class="perm-box" id="box_add_canEdit"></div>
-                <span class="perm-label-text">Edit</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canDelete" data-form="add" data-perm="canDelete">
-                <input type="checkbox" name="canDelete" id="add_canDelete">
-                <div class="perm-box" id="box_add_canDelete"></div>
-                <span class="perm-label-text">Hapus</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canAsset" data-form="add" data-perm="canAsset">
-                <input type="checkbox" name="canAsset" id="add_canAsset">
-                <div class="perm-box" id="box_add_canAsset"></div>
-                <span class="perm-label-text">Aset</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canExport" data-form="add" data-perm="canExport">
-                <input type="checkbox" name="canExport" id="add_canExport">
-                <div class="perm-box" id="box_add_canExport"></div>
-                <span class="perm-label-text">Export</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canUsers" data-form="add" data-perm="canUsers">
-                <input type="checkbox" name="canUsers" id="add_canUsers">
-                <div class="perm-box" id="box_add_canUsers"></div>
-                <span class="perm-label-text">Kelola User</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canViewLog" data-form="add" data-perm="canViewLog">
-                <input type="checkbox" name="canViewLog" id="add_canViewLog">
-                <div class="perm-box" id="box_add_canViewLog"></div>
-                <span class="perm-label-text">Lihat Log</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canAudit" data-form="add" data-perm="canAudit" style="border:1px solid #7c3aed33;background:rgba(124,58,237,0.06);">
-                <input type="checkbox" name="canAudit" id="add_canAudit">
-                <div class="perm-box" id="box_add_canAudit"></div>
-                <span class="perm-label-text">Audit (Lht Smua Aset)</span>
-              </div>
-              <!-- TAMBAHAN: Akses Vendor -->
-              <div class="perm-check" id="lbl_add_canVendor" data-form="add" data-perm="canVendor" style="border:1px solid #1e3a8a33;background:rgba(30,58,138,0.06);">
-                <input type="checkbox" name="canVendor" id="add_canVendor">
-                <div class="perm-box" id="box_add_canVendor"></div>
-                <span class="perm-label-text">Akses Vendor</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canTugas" data-form="add" data-perm="canTugas" style="border:1px solid #7c330033;background:rgba(124,51,0,0.06);">
-                <input type="checkbox" name="canTugas" id="add_canTugas">
-                <div class="perm-box" id="box_add_canTugas"></div>
-                <span class="perm-label-text">Kelola Tugas MTC</span>
-              </div>
-              <div class="perm-check" id="lbl_add_canViewMaintenance" data-form="add" data-perm="canViewMaintenance" style="border:1px solid #0e4d6a33;background:rgba(14,77,106,0.06);">
-                <input type="checkbox" name="canViewMaintenance" id="add_canViewMaintenance">
-                <div class="perm-box" id="box_add_canViewMaintenance"></div>
-                <span class="perm-label-text">Lihat Jurnal MTC</span>
-              </div>
+              <div class="perm-toggle" id="pt_add_canView"   onclick="togglePerm('add','canView')"><span class="perm-name">Lihat</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canAdd"    onclick="togglePerm('add','canAdd')"><span class="perm-name">Tambah</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canEdit"   onclick="togglePerm('add','canEdit')"><span class="perm-name">Edit</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canDelete" onclick="togglePerm('add','canDelete')"><span class="perm-name">Hapus</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canAsset"  onclick="togglePerm('add','canAsset')"><span class="perm-name">Aset</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canExport" onclick="togglePerm('add','canExport')"><span class="perm-name">Export</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canUsers"  onclick="togglePerm('add','canUsers')"><span class="perm-name">Kelola User</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canViewLog" onclick="togglePerm('add','canViewLog')"><span class="perm-name">Lihat Log IT</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canAudit"  onclick="togglePerm('add','canAudit')"><span class="perm-name">Audit</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canVendor" onclick="togglePerm('add','canVendor')"><span class="perm-name">Vendor</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canTugas"  onclick="togglePerm('add','canTugas')"><span class="perm-name">Kelola Tugas MTC</span><div class="switch"></div></div>
+              <div class="perm-toggle" id="pt_add_canViewMaintenance" onclick="togglePerm('add','canViewMaintenance')"><span class="perm-name">Lihat Jurnal MTC</span><div class="switch"></div></div>
             </div>
           </div>
 
-          <button type="submit" class="btn-add">SIMPAN USER</button>
+          <button type="submit" class="btn-add">Simpan User</button>
         </form>
       </div>
     </div>
 
-    <!-- TABLE -->
+    <!-- TABLE PANEL -->
     <div class="col-md-8">
-      <div class="main-panel">
-        <div class="panel-header">
-          <div class="panel-title">Daftar User (<%= users.length %> akun)</div>
+      <div class="table-card">
+        <div class="table-card-head">
+          <span class="table-card-title">Daftar User</span>
+          <span class="count-badge"><%= users.length %> akun</span>
         </div>
         <div style="overflow-x:auto;">
           <table class="user-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Nama</th>
-                <th>Username</th>
-                <th>Divisi</th>
-                <th>Hak Akses</th>
-                <th>Dibuat</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
+            <thead><tr><th>#</th><th>User</th><th>Divisi</th><th>Hak Akses</th><th>Dibuat</th><th>Aksi</th></tr></thead>
             <tbody>
-              <% users.forEach((u, i) => {
+              <% users.forEach((u,i) => {
                 let perms = {};
-                if (u.permissions) {
-                  try { perms = JSON.parse(u.permissions); } catch(e) {}
-                }
-                if (!Object.keys(perms).length) {
-                  const defaults = {
-                    admin:  { canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true,canViewLog:true,canVendor:true },
-                    user:   { canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false,canViewLog:true,canVendor:false },
-                    viewer: { canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canVendor:false }
-                  };
-                  perms = defaults[u.role] || defaults.viewer;
-                }
+                try { perms = u.permissions ? JSON.parse(u.permissions) : {}; } catch(e) {}
+                const rc = u.role==='admin'?'rt-admin':u.role==='user'?'rt-user':u.role==='viewer'?'rt-viewer':'rt-other';
+                const initials = u.nama ? u.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase() : u.username.slice(0,2).toUpperCase();
               %>
               <tr>
-                <td style="color:var(--body-text3);font-size:0.75rem;"><%= i+1 %></td>
+                <td style="color:#94a3b8;font-size:12px;"><%= i+1 %></td>
                 <td>
-                  <strong><%= u.nama %></strong>
-                  <% if (currentUser && u.id === currentUser.id) { %><span class="you-badge">KAMU</span><% } %>
-                  <div style="font-size:0.72rem;margin-top:3px;">
-                    <span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700;background:var(--body-bg);color:var(--body-text2);border:1px solid var(--body-border2);"><%= u.role %></span>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="avatar"><% if(u.fotoUrl){%><img src="<%= u.fotoUrl %>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><%}else{%><%= initials %><%}%></div>
+                    <div>
+                      <div style="font-weight:600;"><%= u.nama %><% if(currentUser&&u.id===currentUser.id){%><span class="you-tag">Kamu</span><%}%></div>
+                      <div style="font-size:12px;color:#64748b;">@<%= u.username %> &nbsp;<span class="role-tag <%= rc %>"><%= u.role %></span></div>
+                    </div>
                   </div>
                 </td>
-                <td><code style="color:#4ade80;background:var(--body-bg);padding:2px 6px;border-radius:3px;font-size:0.78rem;"><%= u.username %></code></td>
+                <td><span class="div-tag"><%= u.divisi||'IT' %></span></td>
                 <td>
-                  <span style="display:inline-block;padding:2px 9px;border-radius:4px;font-size:0.68rem;font-weight:700;background:var(--body-bg3);color:var(--body-text2);border:1px solid var(--body-border2);letter-spacing:0.05em;">
-                    <%= u.divisi || 'IT' %>
-                  </span>
-                </td>
-                <td>
-                  <div class="perm-tags">
-                    <% if(perms.canView)   { %><span class="pt pt-view"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Lihat</span><% } %>
-                    <% if(perms.canAdd)    { %><span class="pt pt-add"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tambah</span><% } %>
-                    <% if(perms.canEdit)   { %><span class="pt pt-edit"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</span><% } %>
-                    <% if(perms.canDelete) { %><span class="pt pt-delete"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Hapus</span><% } %>
-                    <% if(perms.canAsset)  { %><span class="pt pt-asset"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Aset</span><% } %>
-                    <% if(perms.canExport) { %><span class="pt pt-export"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Export</span><% } %>
-                    <% if(perms.canUsers)  { %><span class="pt pt-users"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> User</span><% } %>
-                    <% if(perms.canViewLog){ %><span class="pt pt-viewlog"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Lihat Log</span><% } %>
-                    <% if(perms.canAudit)  { %><span class="pt pt-audit"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Audit</span><% } %>
-                    <% if(perms.canVendor) { %><span class="pt pt-vendor"><svg class="lc" width="8" height="8" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Vendor</span><% } %>
+                  <div class="pt-wrap">
+                    <% if(perms.canView)    { %><span class="pt pt-v">Lihat</span><% } %>
+                    <% if(perms.canAdd)     { %><span class="pt pt-a">Tambah</span><% } %>
+                    <% if(perms.canEdit)    { %><span class="pt pt-e">Edit</span><% } %>
+                    <% if(perms.canDelete)  { %><span class="pt pt-d">Hapus</span><% } %>
+                    <% if(perms.canAsset)   { %><span class="pt pt-as">Aset</span><% } %>
+                    <% if(perms.canExport)  { %><span class="pt pt-ex">Export</span><% } %>
+                    <% if(perms.canUsers)   { %><span class="pt pt-u">User</span><% } %>
+                    <% if(perms.canViewLog) { %><span class="pt pt-l">Log IT</span><% } %>
+                    <% if(perms.canAudit)   { %><span class="pt pt-au">Audit</span><% } %>
+                    <% if(perms.canVendor)  { %><span class="pt pt-vn">Vendor</span><% } %>
+                    <% if(perms.canTugas)   { %><span class="pt pt-tg">Tugas MTC</span><% } %>
+                    <% if(perms.canViewMaintenance){ %><span class="pt pt-vm">View MTC</span><% } %>
                   </div>
                 </td>
-                <td style="color:var(--body-text2);font-size:0.75rem;white-space:nowrap;">
-                  <%= new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %>
-                </td>
+                <td style="font-size:12px;color:#64748b;white-space:nowrap;"><%= new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
                 <td>
-                  <div style="display:flex;gap:5px;">
-                    <button class="act-btn blue" onclick="openEditModal(
-                      <%= u.id %>,
-                      `<%= u.nama.replace(/`/g,'\\`') %>`,
-                      `<%= u.username %>`,
-                      `<%= u.role %>`,
-                      `<%= u.divisi || 'IT' %>`,
-                      <%= JSON.stringify(perms) %>,
-                      `<%= u.noHp || '' %>`
-                    )">Edit</button>
-                    <% if (!currentUser || u.id !== currentUser.id) { %>
-                    <button class="act-btn red" onclick="confirmHapus(<%= u.id %>, `<%= u.nama.replace(/`/g,'\\`') %>`)">Hapus</button>
-                    <% } else { %>
-                    <button class="act-btn" style="opacity:0.3;cursor:not-allowed;" disabled>Hapus</button>
-                    <% } %>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn-edit-sm" onclick="openEditModal(<%= u.id %>,`<%= u.nama.replace(/`/g,'\\`') %>`,`<%= u.username %>`,`<%= u.role %>`,`<%= u.divisi||'IT' %>`,<%= JSON.stringify(perms) %>,`<%= u.noHp||'' %>`)">Edit</button>
+                    <% if(!currentUser||u.id!==currentUser.id){ %>
+                    <button class="btn-del-sm" onclick="confirmHapus(<%= u.id %>,`<%= u.nama.replace(/`/g,'\\`') %>`)">Hapus</button>
+                    <%}else{%><button class="btn-del-sm" style="opacity:.3;cursor:not-allowed;" disabled>Hapus</button><%}%>
                   </div>
                 </td>
               </tr>
@@ -360,11 +257,8 @@
 <!-- MODAL EDIT USER -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content m-content">
-      <div class="modal-header m-header">
-        <h5 class="modal-title"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit User</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
+    <div class="modal-content" style="border-radius:14px;">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;"><h5 class="modal-title" style="font-size:15px;font-weight:700;">Edit User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <form id="formEdit" action="" method="POST">
         <div class="modal-body">
           <div class="row g-3">
@@ -373,102 +267,67 @@
               <input type="text" name="nama" id="edit_nama" class="f-input" required>
               <label class="f-label">Username</label>
               <input type="text" name="username" id="edit_username" class="f-input" required pattern="[a-z0-9_]+">
-              <label class="f-label">Label Role <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(bebas, hanya untuk tampilan)</span></label>
-              <input type="text" name="role" id="edit_role" class="f-input" placeholder="cth: IT Support, Supervisor...">
-              <label class="f-label">Divisi <span style="color:var(--body-text3);font-size:0.62rem;font-weight:400;">(menentukan akses data aset)</span></label>
+              <label class="f-label">Label Role</label>
+              <input type="text" name="role" id="edit_role" class="f-input">
+              <label class="f-label">Divisi</label>
               <select name="divisi" id="edit_divisi" class="f-input">
-                <option value="IT">IT</option>
-                <option value="MAINTENANCE">MAINTENANCE</option>
-                <option value="HRGA">HRGA</option>
-                <option value="ACCOUNTING">ACCOUNTING</option>
-                <option value="FINANCE">FINANCE</option>
-                <option value="OPERASIONAL">OPERASIONAL</option>
-                <option value="PRODUKSI">PRODUKSI</option>
-                <option value="BAHANBAKU">BAHANBAKU</option>
+                <option value="IT">IT</option><option value="MAINTENANCE">MAINTENANCE</option>
+                <option value="HRGA">HRGA</option><option value="ACCOUNTING">ACCOUNTING</option>
+                <option value="FINANCE">FINANCE</option><option value="OPERASIONAL">OPERASIONAL</option>
+                <option value="PRODUKSI">PRODUKSI</option><option value="BAHANBAKU">BAHANBAKU</option>
                 <option value="ADMIN SALES">ADMIN SALES</option>
                 <option value="EXIM & PEMBELIAN">EXIM &amp; PEMBELIAN</option>
                 <option value="IT & IC">IT &amp; IC</option>
               </select>
-              <label class="f-label">Password Baru <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(kosongkan jika tidak diganti)</span></label>
-              <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter (opsional)" minlength="6" oninput="checkStrength(this.value, 'passStrengthBarEdit')">
-              <div class="pass-strength"><div class="pass-strength-fill" id="passStrengthBarEdit"></div></div>
-              <label class="f-label">No. HP / WhatsApp <span style="color:var(--body-text3);font-size:0.6rem;font-weight:400;">(format: 628xxx)</span></label>
-              <input type="text" name="noHp" id="edit_noHp" class="f-input" placeholder="cth: 6281234567890">
+              <label class="f-label">No. HP / WhatsApp</label>
+              <input type="text" name="noHp" id="edit_noHp" class="f-input" placeholder="628xxx...">
+              <label class="f-label">Password Baru <span style="color:#94a3b8;font-weight:400;">(kosong = tidak berubah)</span></label>
+              <input type="password" name="password" id="edit_pass" class="f-input" placeholder="Min 6 karakter" minlength="6" oninput="checkStrength(this.value,'passStrengthBarEdit')">
+              <div class="pass-bar"><div class="pass-fill" id="passStrengthBarEdit"></div></div>
             </div>
             <div class="col-md-6">
-              <!-- PERMISSION BUILDER EDIT -->
-              <div style="border: 1px solid var(--body-border); border-radius: 8px; padding: 10px; background: var(--body-bg); height: 100%;">
-                <div style="font-size:0.68rem;font-weight:700;color:var(--body-text2);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Hak Akses</div>
+              <div class="perm-section" style="height:100%;">
+                <div class="perm-section-title">Hak Akses</div>
                 <div class="preset-row">
-                  <button type="button" class="preset-btn preset-admin"  onclick="setPreset('edit', 'admin')">Admin</button>
-                  <button type="button" class="preset-btn preset-user"   onclick="setPreset('edit', 'user')">User IT</button>
-                  <button type="button" class="preset-btn preset-viewer" onclick="setPreset('edit', 'viewer')">Viewer</button>
-                  <button type="button" class="preset-btn" style="background:#3d1a00;color:#fb923c;border-color:#7c3300;" onclick="setPreset('edit', 'maintenance')">🔧 MTC</button>
-                  <button type="button" class="preset-btn" style="background:#0d2234;color:#67e8f9;border-color:#0e4d6a;" onclick="setPreset('edit', 'viewerMaintenance')">👁 View MTC</button>
-                  <button type="button" class="preset-btn preset-clear"  onclick="setPreset('edit', 'clear')">Clear</button>
+                  <button type="button" class="preset p-admin"  onclick="setPreset('edit','admin')">Admin</button>
+                  <button type="button" class="preset p-user"   onclick="setPreset('edit','user')">User IT</button>
+                  <button type="button" class="preset p-viewer" onclick="setPreset('edit','viewer')">Viewer</button>
+                  <button type="button" class="preset p-mtc"    onclick="setPreset('edit','maintenance')">🔧 MTC</button>
+                  <button type="button" class="preset p-vmtc"   onclick="setPreset('edit','viewerMaintenance')">👁 View MTC</button>
+                  <button type="button" class="preset p-clear"  onclick="setPreset('edit','clear')">Clear</button>
                 </div>
+                <!-- HIDDEN CHECKBOXES EDIT -->
+                <input type="checkbox" name="canView"            id="edit_canView"            style="display:none;">
+                <input type="checkbox" name="canAdd"             id="edit_canAdd"             style="display:none;">
+                <input type="checkbox" name="canEdit"            id="edit_canEdit"            style="display:none;">
+                <input type="checkbox" name="canDelete"          id="edit_canDelete"          style="display:none;">
+                <input type="checkbox" name="canAsset"           id="edit_canAsset"           style="display:none;">
+                <input type="checkbox" name="canExport"          id="edit_canExport"          style="display:none;">
+                <input type="checkbox" name="canUsers"           id="edit_canUsers"           style="display:none;">
+                <input type="checkbox" name="canViewLog"         id="edit_canViewLog"         style="display:none;">
+                <input type="checkbox" name="canAudit"           id="edit_canAudit"           style="display:none;">
+                <input type="checkbox" name="canVendor"          id="edit_canVendor"          style="display:none;">
+                <input type="checkbox" name="canTugas"           id="edit_canTugas"           style="display:none;">
+                <input type="checkbox" name="canViewMaintenance" id="edit_canViewMaintenance" style="display:none;">
                 <div class="perm-grid" id="permGrid_edit">
-                  <div class="perm-check" id="lbl_edit_canView" data-form="edit" data-perm="canView">
-                    <input type="checkbox" name="canView" id="edit_canView">
-                    <div class="perm-box" id="box_edit_canView"></div><span class="perm-label-text">Lihat</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canAdd" data-form="edit" data-perm="canAdd">
-                    <input type="checkbox" name="canAdd" id="edit_canAdd">
-                    <div class="perm-box" id="box_edit_canAdd"></div><span class="perm-label-text">Tambah</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canEdit" data-form="edit" data-perm="canEdit">
-                    <input type="checkbox" name="canEdit" id="edit_canEdit">
-                    <div class="perm-box" id="box_edit_canEdit"></div><span class="perm-label-text">Edit</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canDelete" data-form="edit" data-perm="canDelete">
-                    <input type="checkbox" name="canDelete" id="edit_canDelete">
-                    <div class="perm-box" id="box_edit_canDelete"></div><span class="perm-label-text">Hapus</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canAsset" data-form="edit" data-perm="canAsset">
-                    <input type="checkbox" name="canAsset" id="edit_canAsset">
-                    <div class="perm-box" id="box_edit_canAsset"></div><span class="perm-label-text">Aset</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canExport" data-form="edit" data-perm="canExport">
-                    <input type="checkbox" name="canExport" id="edit_canExport">
-                    <div class="perm-box" id="box_edit_canExport"></div><span class="perm-label-text">Export</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canUsers" data-form="edit" data-perm="canUsers">
-                    <input type="checkbox" name="canUsers" id="edit_canUsers">
-                    <div class="perm-box" id="box_edit_canUsers"></div><span class="perm-label-text">Kelola User</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canViewLog" data-form="edit" data-perm="canViewLog">
-                    <input type="checkbox" name="canViewLog" id="edit_canViewLog">
-                    <div class="perm-box" id="box_edit_canViewLog"></div><span class="perm-label-text">Lihat Log</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canAudit" data-form="edit" data-perm="canAudit" style="border:1px solid #7c3aed33;background:rgba(124,58,237,0.06);">
-                    <input type="checkbox" name="canAudit" id="edit_canAudit">
-                    <div class="perm-box" id="box_edit_canAudit"></div><span class="perm-label-text">Audit (Lht Smua Aset)</span>
-                  </div>
-                  <!-- TAMBAHAN: Akses Vendor Edit -->
-                  <div class="perm-check" id="lbl_edit_canVendor" data-form="edit" data-perm="canVendor" style="border:1px solid #1e3a8a33;background:rgba(30,58,138,0.06);">
-                    <input type="checkbox" name="canVendor" id="edit_canVendor">
-                    <div class="perm-box" id="box_edit_canVendor"></div>
-                    <span class="perm-label-text">Akses Vendor</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canTugas" data-form="edit" data-perm="canTugas" style="border:1px solid #7c330033;background:rgba(124,51,0,0.06);">
-                    <input type="checkbox" name="canTugas" id="edit_canTugas">
-                    <div class="perm-box" id="box_edit_canTugas"></div>
-                    <span class="perm-label-text">Kelola Tugas MTC</span>
-                  </div>
-                  <div class="perm-check" id="lbl_edit_canViewMaintenance" data-form="edit" data-perm="canViewMaintenance" style="border:1px solid #0e4d6a33;background:rgba(14,77,106,0.06);">
-                    <input type="checkbox" name="canViewMaintenance" id="edit_canViewMaintenance">
-                    <div class="perm-box" id="box_edit_canViewMaintenance"></div>
-                    <span class="perm-label-text">Lihat Jurnal MTC</span>
-                  </div>
+                  <div class="perm-toggle" id="pt_edit_canView"             onclick="togglePerm('edit','canView')"><span class="perm-name">Lihat</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canAdd"              onclick="togglePerm('edit','canAdd')"><span class="perm-name">Tambah</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canEdit"             onclick="togglePerm('edit','canEdit')"><span class="perm-name">Edit</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canDelete"           onclick="togglePerm('edit','canDelete')"><span class="perm-name">Hapus</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canAsset"            onclick="togglePerm('edit','canAsset')"><span class="perm-name">Aset</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canExport"           onclick="togglePerm('edit','canExport')"><span class="perm-name">Export</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canUsers"            onclick="togglePerm('edit','canUsers')"><span class="perm-name">Kelola User</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canViewLog"          onclick="togglePerm('edit','canViewLog')"><span class="perm-name">Lihat Log IT</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canAudit"            onclick="togglePerm('edit','canAudit')"><span class="perm-name">Audit</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canVendor"           onclick="togglePerm('edit','canVendor')"><span class="perm-name">Vendor</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canTugas"            onclick="togglePerm('edit','canTugas')"><span class="perm-name">Kelola Tugas MTC</span><div class="switch"></div></div>
+                  <div class="perm-toggle" id="pt_edit_canViewMaintenance"  onclick="togglePerm('edit','canViewMaintenance')"><span class="perm-name">Lihat Jurnal MTC</span><div class="switch"></div></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div class="modal-footer m-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary fw-bold">Simpan Perubahan</button>
-        </div>
+        <div class="modal-footer" style="border-top:1px solid #f1f5f9;"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button><button type="submit" class="btn btn-primary fw-bold">Simpan</button></div>
       </form>
     </div>
   </div>
@@ -477,21 +336,11 @@
 <!-- MODAL HAPUS -->
 <div class="modal fade" id="hapusModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content m-content" style="border-color:#5c1a1a !important;">
-      <div class="modal-header" style="border-color:#5c1a1a;">
-        <h5 class="modal-title"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Hapus User</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p style="color:var(--body-text);" class="mb-2">Yakin hapus user ini?</p>
-        <p id="hapusNama" style="color:#f87171;font-weight:700;font-size:0.95rem;"></p>
-        <p style="color:var(--body-text2);font-size:0.8rem;"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Tidak bisa dikembalikan.</p>
-      </div>
-      <div class="modal-footer" style="border-color:#5c1a1a;">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        <form id="formHapus" action="" method="POST" style="display:inline;">
-          <button type="submit" class="btn btn-danger fw-bold">Ya, Hapus</button>
-        </form>
+    <div class="modal-content" style="border-radius:12px;">
+      <div class="modal-header" style="border-bottom:1px solid #f1f5f9;"><h5 class="modal-title" style="font-size:15px;font-weight:700;color:#dc2626;">Hapus User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><p style="margin:0 0 6px;">Hapus akun <span id="hapusNama" style="font-weight:700;color:#dc2626;"></span>?</p><p style="font-size:12px;color:#94a3b8;">Data tidak bisa dikembalikan.</p></div>
+      <div class="modal-footer" style="border-top:1px solid #f1f5f9;"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+        <form id="formHapus" action="" method="POST" style="display:inline;"><button type="submit" class="btn btn-danger fw-bold">Hapus</button></form>
       </div>
     </div>
   </div>
@@ -499,162 +348,77 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// ===========================
-// PERMISSION STATE
-// ===========================
-var permState = {
-  add:  { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false },
-  edit: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false }
-};
-
-var PRESETS = {
-  admin:             { canView:true,  canAdd:true,  canEdit:true,  canDelete:true,  canAsset:true,  canExport:true,  canUsers:true,  canViewLog:true,  canAudit:false, canVendor:true,  canTugas:false, canViewMaintenance:false },
-  user:              { canView:true,  canAdd:true,  canEdit:true,  canDelete:false, canAsset:true,  canExport:true,  canUsers:false, canViewLog:true,  canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
-  viewer:            { canView:true,  canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true,  canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
-  maintenance:       { canView:true,  canAdd:true,  canEdit:true,  canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:true,  canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
-  viewerMaintenance: { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:true  },
-  clear:             { canView:false, canAdd:false, canEdit:false, canDelete:false, canAsset:false, canExport:false, canUsers:false, canViewLog:false, canAudit:false, canVendor:false, canTugas:false, canViewMaintenance:false },
-};
+(function(){ var t=localStorage.getItem('theme')||'dark'; document.documentElement.setAttribute('data-theme',t); })();
 
 var PERM_KEYS = ['canView','canAdd','canEdit','canDelete','canAsset','canExport','canUsers','canViewLog','canAudit','canVendor','canTugas','canViewMaintenance'];
+var permState = { add:{}, edit:{} };
+PERM_KEYS.forEach(function(k){ permState.add[k]=false; permState.edit[k]=false; });
 
-// Toggle satu permission
-function togglePerm(form, perm) {
-  permState[form][perm] = !permState[form][perm];
-  renderPerms(form);
-  syncCheckboxes(form);
-}
+var PRESETS = {
+  admin:             {canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true,canViewLog:true,canAudit:false,canVendor:true,canTugas:false,canViewMaintenance:false},
+  user:              {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false},
+  viewer:            {canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false},
+  maintenance:       {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false},
+  viewerMaintenance: {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:true},
+  clear:             {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false}
+};
 
-// Set preset
-function setPreset(form, preset) {
-  permState[form] = Object.assign({}, PRESETS[preset]);
-  // Auto-set divisi sesuai preset
-  if (preset === 'maintenance') {
-    var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
-    if (divisiEl) divisiEl.value = 'MAINTENANCE';
-  } else if (preset === 'viewerMaintenance') {
-    var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
-    if (divisiEl) divisiEl.value = 'HRGA';
-  } else if (preset === 'user' || preset === 'admin') {
-    var divisiEl = document.getElementById(form === 'add' ? 'add_divisi' : 'edit_divisi');
-    if (divisiEl && (divisiEl.value === 'MAINTENANCE' || divisiEl.value === 'HRGA')) divisiEl.value = 'IT';
-  }
-  renderPerms(form);
-  syncCheckboxes(form);
-}
+var ON_CLASS = {canView:'on',canAdd:'on',canEdit:'on',canDelete:'on-del',canAsset:'on',canExport:'on',canUsers:'on-adm',canViewLog:'on-log',canAudit:'on-aud',canVendor:'on-ven',canTugas:'on-tgs',canViewMaintenance:'on-vmtc'};
 
-// Set dari object (untuk load data edit)
-function setPermState(form, obj) {
-  permState[form] = Object.assign({}, PRESETS.clear, obj);
-  renderPerms(form);
-  syncCheckboxes(form);
-}
-
-// Render visual state ke DOM
 function renderPerms(form) {
-  PERM_KEYS.forEach(function(perm) {
-    var val = permState[form][perm];
-    var el  = document.getElementById('lbl_' + form + '_' + perm);
-    var box = document.getElementById('box_' + form + '_' + perm);
-    if (!el || !box) return;
-
-    el.className = 'perm-check';
-    box.textContent = '';
-
-    if (val) {
-      if (perm === 'canDelete') {
-        el.className = 'perm-check checked-delete';
-      } else if (perm === 'canUsers') {
-        el.className = 'perm-check checked-users';
-      } else if (perm === 'canViewLog') {
-        el.className = 'perm-check checked-viewlog';
-      } else if (perm === 'canAudit') {
-        el.className = 'perm-check checked-audit';
-      } else if (perm === 'canVendor') {
-        el.className = 'perm-check checked-vendor';
-      } else {
-        el.className = 'perm-check checked';
-      }
-      box.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    }
+  PERM_KEYS.forEach(function(k){
+    var el = document.getElementById('pt_'+form+'_'+k);
+    var cb = document.getElementById((form==='add'?'add':'edit')+'_'+k);
+    if(!el||!cb) return;
+    var val = permState[form][k];
+    el.className = 'perm-toggle' + (val ? ' '+ON_CLASS[k] : '');
+    cb.checked = val;
   });
 }
 
-// Sync hidden checkbox values (untuk dikirim form)
-function syncCheckboxes(form) {
-  PERM_KEYS.forEach(function(perm) {
-    var input = document.getElementById(form + '_' + perm);
-    if (input) input.checked = permState[form][perm];
-  });
+function togglePerm(form,perm){ permState[form][perm]=!permState[form][perm]; renderPerms(form); }
+
+function setPreset(form,preset){
+  permState[form] = Object.assign({},PRESETS[preset]);
+  if(preset==='maintenance'){ var d=document.getElementById(form==='add'?'add_divisi':'edit_divisi'); if(d)d.value='MAINTENANCE'; }
+  else if(preset==='viewerMaintenance'){ var d=document.getElementById(form==='add'?'add_divisi':'edit_divisi'); if(d)d.value='HRGA'; }
+  else if(preset==='user'||preset==='admin'){ var d=document.getElementById(form==='add'?'add_divisi':'edit_divisi'); if(d&&(d.value==='MAINTENANCE'||d.value==='HRGA'))d.value='IT'; }
+  renderPerms(form);
 }
 
-// ===========================
-// PASANG CLICK LISTENER — pakai event delegation
-// Attach SETELAH DOM ready, satu listener per grid
-// ===========================
-document.addEventListener('DOMContentLoaded', function() {
-  // Pasang listener ke semua div.perm-check yang punya data-form dan data-perm
-  document.querySelectorAll('.perm-check[data-form][data-perm]').forEach(function(el) {
-    el.addEventListener('click', function(e) {
-      // Cegah event bubble ke mana-mana
-      e.stopPropagation();
-      var form = el.getAttribute('data-form');
-      var perm = el.getAttribute('data-perm');
-      togglePerm(form, perm);
-    });
-  });
-
-  // Init default: form tambah mulai dengan preset user
-  setPreset('add', 'user');
-});
-
-// ===========================
-// MODALS
-// ===========================
-function openEditModal(id, nama, username, role, divisi, perms, noHp) {
-  document.getElementById('formEdit').action     = '/users/edit/' + id;
-  document.getElementById('edit_nama').value     = nama;
-  document.getElementById('edit_username').value = username;
-  document.getElementById('edit_role').value     = role;
-  document.getElementById('edit_divisi').value   = divisi || 'IT';
-  document.getElementById('edit_noHp').value     = noHp || '';
-  document.getElementById('edit_pass').value     = '';
-  document.getElementById('passStrengthBarEdit').style.width = '0%';
-  setPermState('edit', perms || {});
+function openEditModal(id,nama,username,role,divisi,perms,noHp){
+  document.getElementById('formEdit').action='/users/edit/'+id;
+  document.getElementById('edit_nama').value=nama;
+  document.getElementById('edit_username').value=username;
+  document.getElementById('edit_role').value=role;
+  document.getElementById('edit_divisi').value=divisi||'IT';
+  document.getElementById('edit_noHp').value=noHp||'';
+  document.getElementById('edit_pass').value='';
+  document.getElementById('passStrengthBarEdit').style.width='0%';
+  permState.edit = Object.assign({},PRESETS.clear,perms||{});
+  renderPerms('edit');
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
 
-function confirmHapus(id, nama) {
-  document.getElementById('formHapus').action = '/users/hapus/' + id;
-  document.getElementById('hapusNama').textContent = '"' + nama + '"';
+function confirmHapus(id,nama){
+  document.getElementById('formHapus').action='/users/hapus/'+id;
+  document.getElementById('hapusNama').textContent='"'+nama+'"';
   new bootstrap.Modal(document.getElementById('hapusModal')).show();
 }
 
-// ===========================
-// PASSWORD STRENGTH
-// ===========================
-function checkStrength(v, barId) {
-  var el = document.getElementById(barId);
-  if (!v) { el.style.width = '0%'; return; }
-  var score = 0;
-  if (v.length >= 6)  score++;
-  if (v.length >= 10) score++;
-  if (/[A-Z]/.test(v)) score++;
-  if (/[0-9]/.test(v)) score++;
-  if (/[^a-zA-Z0-9]/.test(v)) score++;
-  var pct = Math.min(100, score * 20);
-  var colors = ['#f87171','#fb923c','#fbbf24','#4ade80','#22c55e'];
-  el.style.width = pct + '%';
-  el.style.background = colors[Math.max(0, score - 1)] || '#f87171';
+function checkStrength(v,barId){
+  var s=0,w=''; if(v.length>=6)s++;if(v.length>=10)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  var c=['#e2e8f0','#ef4444','#f97316','#eab308','#22c55e','#16a34a'][s];
+  var bar=document.getElementById(barId);if(bar){bar.style.width=(s*20)+'%';bar.style.background=c;}
 }
-</script>
-<script src="/offline-sync.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js').catch(function() {});
-    });
-}
+
+function toggleTheme(){var c=document.documentElement.getAttribute('data-theme');var n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);localStorage.setItem('theme',n);updateThemeUI(n);}
+function updateThemeUI(t){var l=document.getElementById('navThemeLabel');var th=document.getElementById('navThumb');if(l)l.textContent=t==='light'?'Light':'Dark';document.documentElement.setAttribute('data-theme',t);if(th){th.style.transform=t==='light'?'translateX(12px)':'';th.style.background=t==='light'?'#fff':'';}};
+(function(){updateThemeUI(localStorage.getItem('theme')||'dark');})();
+function toggleUserDropdown(e){e.stopPropagation();document.getElementById('userDropdown')?.classList.toggle('open');}
+document.addEventListener('click',function(){document.getElementById('userDropdown')?.classList.remove('open');});
+function toggleMobileNav(){document.getElementById('mobileNav')?.classList.add('open');document.getElementById('sidebarOverlay')?.classList.add('open');}
+function closeSidebar(){document.getElementById('mobileNav')?.classList.remove('open');document.getElementById('sidebarOverlay')?.classList.remove('open');}
 </script>
 </body>
 </html>
