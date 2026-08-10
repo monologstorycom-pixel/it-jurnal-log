@@ -30,7 +30,6 @@ const app = express();
 // VIEW ENGINE
 // ==========================================
 app.set('view engine', 'ejs');
-app.set('view options', { async: true });
 
 // ==========================================
 // BODY PARSER
