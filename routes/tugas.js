@@ -236,7 +236,7 @@ router.post('/tugas/status/:id', requireLogin, uploadSingle, async (req, res) =>
             }
         }
 
-        res.redirect('/maintenance?tugasDone=1');
+        res.redirect('/tugas?tanggal=' + (tanggal || '') + '&statusDone=' + newStatus);
     } catch (err) { console.error(err); res.status(500).send('Gagal update status: ' + err.message); }
 });
 
