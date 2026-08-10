@@ -2,6 +2,7 @@ const multer = require('multer');
 const path   = require('path');
 const fs     = require('fs');
 const sharp  = require('sharp');
+const { uploadToR2, isR2Enabled } = require('./r2');
 
 const uploadDir    = path.resolve(__dirname, '..', 'public', 'uploads');
 const uploadTmpDir = path.join(__dirname, '..', 'uploads', 'tmp');
@@ -87,6 +88,14 @@ async function saveCompressedPhoto(file, fieldname, tipe = 'log', divisi = 'IT')
             .toBuffer();
         fs.writeFileSync(outPath, buffer);
         if (file.path && fs.existsSync(file.path)) { try { fs.unlinkSync(file.path); } catch(e) {} }
+
+        // Upload ke R2 kalau aktif
+        if (isR2Enabled()) {
+            const r2Key = subFolder + filename;
+            const r2Url = await uploadToR2(outPath, r2Key);
+            if (r2Url) return r2Url; // Kembalikan R2 URL
+        }
+
         return '/uploads/' + subFolder + filename;
     } catch(sharpErr) {
         console.warn('[Sharp fallback]', sharpErr.message);
@@ -101,6 +110,14 @@ async function saveCompressedPhoto(file, fieldname, tipe = 'log', divisi = 'IT')
         } else {
             return null;
         }
+
+        // Upload ke R2 kalau aktif
+        if (isR2Enabled()) {
+            const r2Key = subFolder + rawFilename;
+            const r2Url = await uploadToR2(rawOutPath, r2Key);
+            if (r2Url) return r2Url;
+        }
+
         return '/uploads/' + subFolder + rawFilename;
     }
 }
