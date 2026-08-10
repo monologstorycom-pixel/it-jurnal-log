@@ -84,13 +84,17 @@ async function deleteFromR2(fileUrl) {
 // CEK APAKAH R2 AKTIF
 // ==========================================
 function isR2Enabled() {
-    return !!(
+    const enabled = !!(
         process.env.R2_ACCOUNT_ID &&
         process.env.R2_ACCESS_KEY_ID &&
         process.env.R2_SECRET_ACCESS_KEY &&
         process.env.R2_BUCKET_NAME &&
         process.env.R2_PUBLIC_URL
     );
+    if (!enabled) {
+        console.warn('[R2] isR2Enabled=false — cek env: ACCOUNT_ID=' + (process.env.R2_ACCOUNT_ID ? 'ada' : 'KOSONG') + ' PUBLIC_URL=' + (process.env.R2_PUBLIC_URL || 'KOSONG'));
+    }
+    return enabled;
 }
 
 module.exports = { uploadToR2, deleteFromR2, isR2Enabled };
