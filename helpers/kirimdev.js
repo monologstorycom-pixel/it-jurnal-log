@@ -1,24 +1,97 @@
 const https = require('https');
+const fs    = require('fs');
+const path  = require('path');
 
-const APP_URL = process.env.APP_URL || 'https://jurnal.rsby.cloud';
+// ==========================================
+// UPLOAD MEDIA KE META (dapat media_id)
+// ==========================================
+function uploadMediaToMeta(filePath) {
+    return new Promise((resolve) => {
+        const API_KEY  = process.env.KIRIMDEV_API_KEY;
+        const PHONE_ID = process.env.KIRIMDEV_PHONE_ID;
+        if (!API_KEY || !PHONE_ID || !filePath) return resolve(null);
+
+        // Cek apakah file ada di disk (foto lokal dari uploads/)
+        let diskPath = filePath;
+        if (filePath.startsWith('/uploads/') || filePath.startsWith('uploads/')) {
+            diskPath = path.join(__dirname, '..', 'public', filePath);
+        } else if (filePath.startsWith('http')) {
+            // URL R2 — tidak bisa upload langsung, fallback ke link
+            return resolve(null);
+        }
+
+        if (!fs.existsSync(diskPath)) {
+            console.warn('[KirimDev] File tidak ditemukan di disk:', diskPath);
+            return resolve(null);
+        }
+
+        try {
+            const fileBuffer  = fs.readFileSync(diskPath);
+            const filename    = path.basename(diskPath);
+            const boundary    = '----WAboundary' + Date.now();
+
+            const part1 = Buffer.from(
+                '--' + boundary + '\r\n' +
+                'Content-Disposition: form-data; name="messaging_product"\r\n\r\nwhatsapp\r\n' +
+                '--' + boundary + '\r\n' +
+                'Content-Disposition: form-data; name="type"\r\n\r\nimage/jpeg\r\n' +
+                '--' + boundary + '\r\n' +
+                'Content-Disposition: form-data; name="file"; filename="' + filename + '"\r\n' +
+                'Content-Type: image/jpeg\r\n\r\n'
+            );
+            const part2 = Buffer.from('\r\n--' + boundary + '--\r\n');
+            const body  = Buffer.concat([part1, fileBuffer, part2]);
+
+            const options = {
+                hostname: 'api.kirimdev.com',
+                path:     '/v1/' + PHONE_ID + '/media',
+                method:   'POST',
+                headers:  {
+                    'Authorization': 'Bearer ' + API_KEY,
+                    'Content-Type':  'multipart/form-data; boundary=' + boundary,
+                    'Content-Length': body.length
+                }
+            };
+
+            const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', c => data += c);
+                res.on('end', () => {
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.id) {
+                            console.log('[KirimDev] ✅ Media uploaded, id:', parsed.id);
+                            resolve(parsed.id);
+                        } else {
+                            console.warn('[KirimDev] ❌ Media upload failed:', JSON.stringify(parsed));
+                            resolve(null);
+                        }
+                    } catch(e) { console.warn('[KirimDev] Parse error media:', e.message); resolve(null); }
+                });
+            });
+            req.on('error', e => { console.warn('[KirimDev] Media upload error:', e.message); resolve(null); });
+            req.write(body);
+            req.end();
+        } catch(e) {
+            console.warn('[KirimDev] File read error:', e.message);
+            resolve(null);
+        }
+    });
+}
 
 // ==========================================
 // SEND WHATSAPP TEMPLATE VIA KIRIMDEV
 // ==========================================
 function sendWATemplate(to, templateName, components) {
-    // Baca env SAAT dipanggil (bukan saat module load)
     const API_KEY  = process.env.KIRIMDEV_API_KEY;
     const PHONE_ID = process.env.KIRIMDEV_PHONE_ID;
 
     if (!API_KEY || !PHONE_ID) {
-        console.warn('[KirimDev] ❌ KIRIMDEV_API_KEY atau KIRIMDEV_PHONE_ID belum diset di .env');
-        console.warn('[KirimDev] API_KEY:', API_KEY ? 'ada' : 'KOSONG');
-        console.warn('[KirimDev] PHONE_ID:', PHONE_ID ? 'ada' : 'KOSONG');
+        console.warn('[KirimDev] ❌ API_KEY atau PHONE_ID kosong');
         return;
     }
-    if (!to) { console.warn('[KirimDev] ❌ Nomor HP kosong'); return; }
+    if (!to) return;
 
-    // Normalize nomor HP — hapus +, pastikan format 628xxx
     const noHp = to.toString().replace(/\D/g, '').replace(/^0/, '62');
     if (!noHp || noHp.length < 10) {
         console.warn('[KirimDev] ❌ Nomor HP tidak valid:', to);
@@ -27,131 +100,114 @@ function sendWATemplate(to, templateName, components) {
 
     const payload = {
         messaging_product: 'whatsapp',
-        to:                noHp,
-        type:              'template',
-        template: {
-            name:       templateName,
-            language:   { code: 'id' },
-            components
-        }
+        to:   noHp,
+        type: 'template',
+        template: { name: templateName, language: { code: 'id' }, components }
     };
 
     const body = JSON.stringify(payload);
     console.log('[KirimDev] 📤 Kirim ke', noHp, '- template:', templateName);
-    console.log('[KirimDev] Payload:', body);
 
     const options = {
         hostname: 'api.kirimdev.com',
         path:     '/v1/' + PHONE_ID + '/messages',
         method:   'POST',
-        headers:  {
-            'Authorization':  'Bearer ' + API_KEY,
-            'Content-Type':   'application/json',
-            'Content-Length': Buffer.byteLength(body)
-        }
+        headers:  { 'Authorization': 'Bearer ' + API_KEY, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
     };
 
     const req = https.request(options, (res) => {
         let data = '';
-        res.on('data', chunk => data += chunk);
+        res.on('data', c => data += c);
         res.on('end', () => {
             try {
-                const parsed = JSON.parse(data);
-                if (parsed.error || (parsed.messages && parsed.messages[0]?.message_status === 'failed')) {
-                    console.warn('[KirimDev] ❌ Error response:', JSON.stringify(parsed));
-                } else {
-                    console.log('[KirimDev] ✅ Berhasil terkirim ke', noHp);
-                    console.log('[KirimDev] Response:', JSON.stringify(parsed));
-                }
-            } catch(e) {
-                console.warn('[KirimDev] Parse error:', e.message, '| Raw:', data);
-            }
+                const p = JSON.parse(data);
+                if (p.error) console.warn('[KirimDev] ❌ Error:', JSON.stringify(p));
+                else console.log('[KirimDev] ✅ Terkirim ke', noHp);
+            } catch(e) { console.warn('[KirimDev] Parse error:', e.message, data); }
         });
     });
-    req.on('error', e => console.warn('[KirimDev] ❌ Request error:', e.message));
+    req.on('error', e => console.warn('[KirimDev] Request error:', e.message));
     req.write(body);
     req.end();
 }
 
 // ==========================================
-// NOTIF TUGAS BARU → ke penerima (maintenance)
-// Template: notif_tugas_baru
-// Header: IMAGE (foto petunjuk lokasi, opsional)
-// Body: {{1}}=judul, {{2}}=deskripsi, {{3}}=tanggal, {{4}}=prioritas, {{5}}=pembuat
+// BUILD IMAGE HEADER COMPONENT
+// Upload ke Meta dulu → pakai media_id
+// Fallback ke link kalau upload gagal
 // ==========================================
-function notifWATugasBaru(noHpPenerima, tugas) {
+async function buildImageHeader(fotoUrl) {
+    if (!fotoUrl) return null;
+
+    // Upload ke Meta Media API
+    const mediaId = await uploadMediaToMeta(fotoUrl);
+    if (mediaId) {
+        return { type: 'header', parameters: [{ type: 'image', image: { id: mediaId } }] };
+    }
+
+    // Fallback: pakai link langsung (kalau R2 bisa diakses)
+    const fullUrl = fotoUrl.startsWith('http') ? fotoUrl : (process.env.APP_URL || 'https://jurnal.rsby.cloud') + fotoUrl;
+    console.warn('[KirimDev] Fallback ke link:', fullUrl);
+    return { type: 'header', parameters: [{ type: 'image', image: { link: fullUrl } }] };
+}
+
+// ==========================================
+// NOTIF TUGAS BARU → ke maintenance
+// ==========================================
+async function notifWATugasBaru(noHpPenerima, tugas) {
     if (!noHpPenerima) return;
 
     const tgl = new Date(tugas.tanggal).toLocaleDateString('id-ID', {
         weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
     });
 
-    const bodyParams = [
+    const components = [];
+
+    if (tugas.fotoTugasUrl) {
+        const header = await buildImageHeader(tugas.fotoTugasUrl);
+        if (header) components.push(header);
+    }
+
+    components.push({ type: 'body', parameters: [
         { type: 'text', text: tugas.judul },
         { type: 'text', text: tugas.deskripsi || '-' },
         { type: 'text', text: tgl },
         { type: 'text', text: tugas.prioritas },
         { type: 'text', text: tugas.buatOleh },
-    ];
-
-    const components = [];
-
-    // Kalau ada foto petunjuk, kirim sebagai image header
-    if (tugas.fotoTugasUrl) {
-        const fotoUrl = APP_URL + tugas.fotoTugasUrl;
-        components.push({
-            type: 'header',
-            parameters: [{ type: 'image', image: { link: fotoUrl } }]
-        });
-    }
-
-    components.push({ type: 'body', parameters: bodyParams });
+    ]});
 
     sendWATemplate(noHpPenerima, 'notif_tugas_baru', components);
 }
 
 // ==========================================
-// NOTIF UPDATE TUGAS → ke pembuat tugas (HRGA)
-// Template: notif_tugas_proses (status Proses)
-//           notif_update_tugas (status Selesai)
+// NOTIF UPDATE TUGAS → ke pembuat tugas
 // ==========================================
-function notifWAUpdateTugas(noHpPembuat, namaPembuat, tugas, newStatus, namaTeknisi, fotoUrl) {
+async function notifWAUpdateTugas(noHpPembuat, namaPembuat, tugas, newStatus, namaTeknisi, fotoUrl) {
     if (!noHpPembuat) return;
 
     const components = [];
 
     if (newStatus === 'Proses') {
-        // Template notif_tugas_proses
-        // Header: Text (tidak ada foto)
-        // Body: {{1}}=nama, {{2}}=judul, {{3}}=teknisi, {{4}}=catatan
-        const bodyParams = [
+        components.push({ type: 'body', parameters: [
             { type: 'text', text: namaPembuat },
             { type: 'text', text: tugas.judul },
             { type: 'text', text: namaTeknisi },
             { type: 'text', text: tugas.catatan || 'Segera dikerjakan' },
-        ];
-        components.push({ type: 'body', parameters: bodyParams });
+        ]});
         sendWATemplate(noHpPembuat, 'notif_tugas_prosess', components);
-
     } else {
-        // Template notif_update_tugas (Selesai)
-        // Header: IMAGE (foto bukti, opsional)
-        // Body: {{1}}=nama, {{2}}=judul, {{3}}=status, {{4}}=teknisi, {{5}}=catatan
-        const bodyParams = [
+        // Selesai — upload foto bukti ke Meta dulu
+        if (fotoUrl) {
+            const header = await buildImageHeader(fotoUrl);
+            if (header) components.push(header);
+        }
+        components.push({ type: 'body', parameters: [
             { type: 'text', text: namaPembuat },
             { type: 'text', text: tugas.judul },
             { type: 'text', text: newStatus },
             { type: 'text', text: namaTeknisi },
             { type: 'text', text: tugas.catatan || '-' },
-        ];
-        if (fotoUrl) {
-            const APP_URL = process.env.APP_URL || 'https://jurnal.rsby.cloud';
-            components.push({
-                type: 'header',
-                parameters: [{ type: 'image', image: { link: APP_URL + fotoUrl } }]
-            });
-        }
-        components.push({ type: 'body', parameters: bodyParams });
+        ]});
         sendWATemplate(noHpPembuat, 'notif_update_tugas', components);
     }
 }

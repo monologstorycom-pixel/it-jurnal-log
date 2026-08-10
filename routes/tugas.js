@@ -81,6 +81,11 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
             fotoTugasUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
         }
 
+        // WAJIB ada foto saat buat tugas
+        if (!fotoTugasUrl) {
+            return res.status(400).send('Gagal: Foto petunjuk lokasi wajib dilampirkan saat membuat tugas.');
+        }
+
         const tugasBaru = await prisma.tugas.create({
             data: {
                 judul: judul.trim(),
@@ -171,6 +176,12 @@ router.post('/tugas/status/:id', requireLogin, uploadSingle, async (req, res) =>
     try {
         const id      = parseInt(req.params.id);
         const { newStatus, catatan, tanggal } = req.body;
+
+        // WAJIB foto bukti kalau status Selesai
+        if (newStatus === 'Selesai' && !req.file) {
+            return res.status(400).send('Gagal: Foto bukti wajib dilampirkan saat menandai tugas Selesai.');
+        }
+
         const updateData = { status: newStatus, catatan: catatan || null };
         if (req.file) {
             updateData.fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
