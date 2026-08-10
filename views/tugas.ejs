@@ -502,8 +502,12 @@ function showFoto(url, title) {
 
 // FILTER TODAY
 function setToday() {
-    const t = new Date().toISOString().split('T')[0];
-    window.location.href = '/tugas?tanggal=' + t;
+    // Pakai timezone lokal browser, bukan UTC
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    window.location.href = '/tugas?tanggal=' + y + '-' + m + '-' + d;
 }
 
 // EXPORT BULAN INI

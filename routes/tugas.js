@@ -32,7 +32,10 @@ router.get('/tugas', requireLogin, async (req, res) => {
     try {
         const { tanggal, status } = req.query;
         const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
+        // Pakai WIB (UTC+7) untuk tanggal default
+        const wibOffset = 7 * 60 * 60 * 1000;
+        const todayWIB = new Date(today.getTime() + wibOffset);
+        const todayStr = todayWIB.toISOString().split('T')[0];
 
         // Tentukan filter tanggal
         const filterTanggal = tanggal || todayStr;
