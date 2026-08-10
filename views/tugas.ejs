@@ -295,7 +295,7 @@
         <form method="POST" action="/tugas/status/<%= t.id %>" style="margin:0;">
           <input type="hidden" name="newStatus" value="Proses">
           <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
-          <button type="submit" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">⏳ Proses</button>
+          <button type="submit" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">▶ Mulai Kerjakan</button>
         </form>
         <% } else if (t.status === 'Proses') { %>
         <!-- Buka modal Selesai -->
