@@ -79,7 +79,7 @@
 <div class="page-wrap">
   <% if (typeof msg !== 'undefined' && msg) { %>
     <div class="<%= msgType === 'error' ? 'alert-error-custom' : 'alert-success-custom' %>">
-      <%- msgType === 'error' ? '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' : '<svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"/></svg>' %> <%= msg %>
+      <%- msgType === 'error' ? '⚠️' : '✓' %> <%= msg %>
     </div>
   <% } %>
 
@@ -107,8 +107,7 @@
 
             <!-- TOMBOL TAMBAH -->
             <button type="button" class="btn-add" style="width:auto;margin:0;padding:8px 16px;display:flex;align-items:center;gap:6px;white-space:nowrap;" onclick="new bootstrap.Modal(document.getElementById('modalTambahVendor')).show()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Tambah Vendor
+              ➕ Tambah Vendor
             </button>
           </div>
 
@@ -177,7 +176,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
-        <h5 class="modal-title"><svg class="lc" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Vendor</h5>
+        <h5 class="modal-title">✏️ Edit Vendor</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formEdit" action="" method="POST">
@@ -225,8 +224,7 @@
     <div class="modal-content m-content" style="border-radius:14px;max-height:90vh;display:flex;flex-direction:column;">
       <div class="modal-header m-header" style="padding:14px 20px;flex-shrink:0;">
         <h6 class="modal-title" style="color:#4da6ff;font-weight:700;font-size:0.85rem;letter-spacing:0.06em;text-transform:uppercase;margin:0;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Tambah Vendor Baru
+          ➕ Tambah Vendor Baru
         </h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -264,8 +262,7 @@
         <div class="modal-footer m-footer" style="padding:12px 20px;flex-shrink:0;">
           <button type="button" class="btn btn-sm fw-bold" data-bs-dismiss="modal" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);">Batal</button>
           <button type="submit" class="btn-add" style="width:auto;margin:0;padding:8px 24px;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;"><polyline points="20 6 9 17 4 12"/></svg>
-            Simpan Vendor
+            ✓ Simpan Vendor
           </button>
         </div>
       </form>
