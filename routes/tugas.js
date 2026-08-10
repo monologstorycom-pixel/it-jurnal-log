@@ -112,13 +112,18 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
             }
         });
 
-        // Cek apakah tanggal tugas = hari ini
-        const today     = new Date();
-        const todayStr  = today.toISOString().split('T')[0];
+        // Cek apakah tanggal tugas = hari ini (WIB)
+        const wibOffset = 7 * 60 * 60 * 1000;
+        const nowWIB    = new Date(Date.now() + wibOffset);
+        const todayStr  = nowWIB.toISOString().split('T')[0];
         const isToday   = tanggal === todayStr;
 
-        if (isToday) {
-            // Hari ini → kirim langsung sekarang
+        // Jam sekarang dalam WIB
+        const jamWIB    = nowWIB.getUTCHours() * 60 + nowWIB.getUTCMinutes(); // menit sejak midnight WIB
+        const jam830    = 8 * 60 + 30; // 08:30 = 510 menit
+
+        if (isToday && jamWIB >= jam830) {
+            // Hari ini dan sudah lewat 08:30 → kirim langsung sekarang
             notifTugasBaru(tugasBaru, process.env.APP_URL);
 
             const maintenanceUsers = await prisma.user.findMany({
@@ -127,10 +132,13 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
             });
             maintenanceUsers.forEach(u => { if (u.noHp) notifWATugasBaru(u.noHp, tugasBaru); });
 
-            console.log('[Tugas] Notif langsung dikirim - tugas untuk hari ini');
+            console.log('[Tugas] Notif langsung dikirim - tugas hari ini sudah lewat 08:30 WIB');
+        } else if (isToday && jamWIB < jam830) {
+            // Hari ini tapi belum jam 08:30 → tunggu cronjob
+            console.log('[Tugas] Tugas hari ini - notif akan dikirim cronjob jam 08:30 WIB');
         } else {
-            // Masa depan → scheduler yang akan kirim jam 09:00 WIB di hari H
-            console.log('[Tugas] Tugas dijadwalkan untuk', tanggal, '- notif akan dikirim jam 09:00 WIB');
+            // Masa depan → scheduler yang akan kirim jam 08:30 WIB di hari H
+            console.log('[Tugas] Tugas dijadwalkan untuk', tanggal, '- notif akan dikirim jam 08:30 WIB');
         }
 
         res.redirect('/tugas?saved=1&tanggal=' + tanggal);
