@@ -273,7 +273,11 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <span class="badge-status <%= t.status === 'Selesai' ? 'badge-selesai' : (t.status === 'Proses' ? 'badge-proses' : 'badge-belum') %>">
-            <%= t.status === 'Selesai' ? '✓ Selesai' : (t.status === 'Proses' ? '⏳ Proses' : '○ Belum') %>
+            <% if (isMtc) { %>
+              <%= t.status === 'Selesai' ? '✓ Selesai' : (t.status === 'Proses' ? '⏳ Sedang Dikerjakan' : '○ Belum Mulai') %>
+            <% } else { %>
+              <%= t.status === 'Selesai' ? '✓ Sudah Selesai' : (t.status === 'Proses' ? '⏳ Sedang Dikerjakan' : '○ Belum Dikerjakan') %>
+            <% } %>
           </span>
           <% if (t.fotoTugasUrl) { %>
           <button onclick="showFoto('<%= t.fotoTugasUrl %>','Foto Petunjuk Lokasi')" style="background:#3d1a00;color:#fb923c;border:1px solid #7c3300;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;">📍 Lihat Lokasi</button>
