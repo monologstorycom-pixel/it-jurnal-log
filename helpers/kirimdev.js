@@ -219,11 +219,11 @@ async function notifWATugasBaru(noHpPenerima, tugas) {
     }
 
     components.push({ type: 'body', parameters: [
-        { type: 'text', text: tugas.judul },
-        { type: 'text', text: tugas.deskripsi || '-' },
+        { type: 'text', text: tugas.judul.replace(/[\r\n]+/g,' ').trim().slice(0,1024) },
+        { type: 'text', text: (tugas.deskripsi || '-').replace(/[\r\n]+/g,' ').trim().slice(0,1024) },
         { type: 'text', text: tgl },
         { type: 'text', text: tugas.prioritas },
-        { type: 'text', text: tugas.buatOleh },
+        { type: 'text', text: tugas.buatOleh.replace(/[\r\n]+/g,' ').trim().slice(0,1024) },
     ]});
 
     sendWATemplate(noHpPenerima, 'notif_tugas_baru', components);
@@ -238,11 +238,13 @@ async function notifWAUpdateTugas(noHpPembuat, namaPembuat, tugas, newStatus, na
     const components = [];
 
     if (newStatus === 'Proses') {
+        // Sanitize
+        const sanitize = (s) => (s || '-').replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1024);
         components.push({ type: 'body', parameters: [
-            { type: 'text', text: namaPembuat },
-            { type: 'text', text: tugas.judul },
-            { type: 'text', text: namaTeknisi },
-            { type: 'text', text: tugas.catatan || 'Segera dikerjakan' },
+            { type: 'text', text: sanitize(namaPembuat) },
+            { type: 'text', text: sanitize(tugas.judul) },
+            { type: 'text', text: sanitize(namaTeknisi) },
+            { type: 'text', text: sanitize(tugas.catatan || 'Segera dikerjakan') },
         ]});
         sendWATemplate(noHpPembuat, 'notif_tugas_prosess', components);
     } else {
@@ -251,12 +253,14 @@ async function notifWAUpdateTugas(noHpPembuat, namaPembuat, tugas, newStatus, na
             const header = await buildImageHeader(fotoUrl);
             if (header) components.push(header);
         }
+        // Sanitize — hapus newline, trim, max 1024 char
+        const sanitize = (s) => (s || '-').replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1024);
         components.push({ type: 'body', parameters: [
-            { type: 'text', text: namaPembuat },
-            { type: 'text', text: tugas.judul },
-            { type: 'text', text: newStatus },
-            { type: 'text', text: namaTeknisi },
-            { type: 'text', text: tugas.catatan || '-' },
+            { type: 'text', text: sanitize(namaPembuat) },
+            { type: 'text', text: sanitize(tugas.judul) },
+            { type: 'text', text: sanitize(newStatus) },
+            { type: 'text', text: sanitize(namaTeknisi) },
+            { type: 'text', text: sanitize(tugas.catatan) },
         ]});
         sendWATemplate(noHpPembuat, 'notif_update_tugas', components);
     }
