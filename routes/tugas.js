@@ -7,6 +7,7 @@ const { hasPerm }      = require('../helpers/permissions');
 const { uploadSingle, uploadFields, saveCompressedPhoto } = require('../helpers/photo');
 const { notifTugasBaru, notifStatusUpdate } = require('../helpers/telegram');
 const { notifWATugasBaru, notifWAUpdateTugas } = require('../helpers/kirimdev');
+const { kirimNotifTugasHariIni } = require('../helpers/scheduler');
 
 // ==========================================
 // HELPER
@@ -339,6 +340,29 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (err) { console.error(err); res.status(500).send('Gagal export: ' + err.message); }
+});
+
+// ==========================================
+// TRIGGER MANUAL SCHEDULER (admin only)
+// GET /tugas/trigger-notif
+// ==========================================
+router.get('/tugas/trigger-notif', requireLogin, async (req, res) => {
+    const user = req.session.user;
+    if (!hasPerm(user, 'canUsers') && !canManageTugas(user)) {
+        return res.status(403).json({ error: 'Akses ditolak.' });
+    }
+    try {
+        console.log('[Manual Trigger] Dipanggil oleh:', user.nama);
+        const result = await kirimNotifTugasHariIni();
+        res.json({
+            ok: true,
+            message: `Notif terkirim untuk ${result.sent} tugas`,
+            tugas: result.tugas
+        });
+    } catch (err) {
+        console.error('[Manual Trigger] Error:', err.message);
+        res.status(500).json({ ok: false, error: err.message });
+    }
 });
 
 module.exports = router;
