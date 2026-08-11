@@ -248,55 +248,78 @@
   </div>
   <% } else { %>
   <% tugas.forEach(function(t) { %>
+  <%
+    var tglTugas2 = new Date(t.tanggal); tglTugas2.setHours(0,0,0,0);
+    var tglHariIni2 = new Date(); tglHariIni2.setHours(0,0,0,0);
+    var isFuture2 = tglTugas2 > tglHariIni2;
+  %>
   <div class="tugas-card <%= t.status === 'Selesai' ? 'selesai' : (t.prioritas === 'Urgent' ? 'urgent' : 'normal') %>">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:0;">
-        <div class="tugas-judul">
-          <% if (t.prioritas === 'Urgent') { %><span class="badge-status badge-urgent" style="margin-right:6px;">🔴 URGENT</span><% } %>
-          <%= t.judul %>
-        </div>
-        <% if (t.deskripsi) { %>
-        <div class="tugas-desc"><%= t.deskripsi %></div>
-        <% } %>
-        <div class="tugas-meta">
-          <span>📅 <%= new Date(t.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></span>
-          <span>👤 <%= t.buatOleh %></span>
-          <% if (t.catatan) { %><span>💬 <%= t.catatan %></span><% } %>
-          <%
-            var tglTugas = new Date(t.tanggal);
-            var tglHariIni = new Date(); tglHariIni.setHours(0,0,0,0); tglTugas.setHours(0,0,0,0);
-            var isFuture = tglTugas > tglHariIni;
-          %>
-          <% if (isFuture) { %>
-          <span style="background:#1a1a38;color:#818cf8;border:1px solid #3730a3;border-radius:4px;padding:1px 7px;font-size:0.62rem;font-weight:700;">🕐 Terjadwal — notif dikirim jam 08:30 WIB</span>
-          <% } %>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span class="badge-status <%= t.status === 'Selesai' ? 'badge-selesai' : (t.status === 'Proses' ? 'badge-proses' : 'badge-belum') %>">
-            <% if (isMtc) { %>
-              <%= t.status === 'Selesai' ? '✓ Selesai' : (t.status === 'Proses' ? '⏳ Sedang Dikerjakan' : '○ Belum Mulai') %>
-            <% } else { %>
-              <%= t.status === 'Selesai' ? '✓ Sudah Selesai' : (t.status === 'Proses' ? '⏳ Sedang Dikerjakan' : '○ Belum Dikerjakan') %>
-            <% } %>
-          </span>
-          <% if (t.fotoTugasUrl) { %>
-          <button onclick="showFoto('<%= t.fotoTugasUrl %>','Foto Petunjuk Lokasi')" style="background:#3d1a00;color:#fb923c;border:1px solid #7c3300;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;">📍 Lihat Lokasi</button>
-          <% } %>
-          <% if (t.fotoUrl) { %>
-          <button onclick="showFoto('<%= t.fotoUrl %>','Bukti Selesai')" style="background:#0d2a18;color:#4ade80;border:1px solid #1a5c30;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;">📷 Lihat Bukti</button>
-          <% } %>
-          <% if (isMtc && t.noHpPembuat) { %>
-          <a href="https://wa.me/<%= t.noHpPembuat.replace(/\D/g,'').replace(/^0/,'62') %>?text=<%= encodeURIComponent('Halo pak/buk saya dari tim maintenance') %>" target="_blank" style="background:#0d2a1a;color:#25d366;border:1px solid #1a5c30;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            Hubungi Pelapor
-          </a>
-          <% } %>
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
-        <% if (isMtc && t.status === 'Belum') { %>
-        <!-- 1x klik langsung Proses — hanya untuk maintenance -->
-        <form method="POST" action="/tugas/status/<%= t.id %>" style="margin:0;">
+
+    <!-- ROW 1: badge prioritas + judul -->
+    <div style="margin-bottom:6px;">
+      <% if (t.prioritas === 'Urgent') { %><span class="badge-status badge-urgent" style="margin-right:6px;">🔴 URGENT</span><% } %>
+      <span class="tugas-judul" style="display:inline;"><%= t.judul %></span>
+    </div>
+
+    <!-- ROW 2: deskripsi -->
+    <% if (t.deskripsi) { %>
+    <div class="tugas-desc" style="margin-bottom:8px;"><%= t.deskripsi %></div>
+    <% } %>
+
+    <!-- ROW 3: meta info -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:0.72rem;color:var(--body-text2);">
+      <span>📅 <%= new Date(t.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></span>
+      <span>👤 <%= t.buatOleh %></span>
+      <% if (t.catatan) { %><span>💬 <%= t.catatan %></span><% } %>
+      <% if (isFuture2) { %><span style="background:#1a1a38;color:#818cf8;border:1px solid #3730a3;border-radius:4px;padding:1px 6px;font-size:0.62rem;font-weight:700;">🕐 Terjadwal</span><% } %>
+    </div>
+
+    <!-- ROW 4: status badge -->
+    <div style="margin-bottom:10px;">
+      <span class="badge-status <%= t.status === 'Selesai' ? 'badge-selesai' : (t.status === 'Proses' ? 'badge-proses' : 'badge-belum') %>">
+        <%= t.status === 'Selesai' ? '✓ Selesai' : (t.status === 'Proses' ? '⏳ Sedang Dikerjakan' : '○ Belum Mulai') %>
+      </span>
+    </div>
+
+    <!-- ROW 5: semua tombol — full width wrap -->
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+
+      <!-- Foto petunjuk -->
+      <% if (t.fotoTugasUrl) { %>
+      <button onclick="showFoto('<%= t.fotoTugasUrl %>','Foto Petunjuk Lokasi')" style="padding:6px 12px;background:#3d1a00;color:#fb923c;border:1px solid #7c3300;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">📍 Lihat Lokasi</button>
+      <% } %>
+
+      <!-- Foto bukti -->
+      <% if (t.fotoUrl) { %>
+      <button onclick="showFoto('<%= t.fotoUrl %>','Bukti Selesai')" style="padding:6px 12px;background:#0d2a18;color:#4ade80;border:1px solid #1a5c30;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">📷 Lihat Bukti</button>
+      <% } %>
+
+      <!-- MAINTENANCE: Mulai Kerjakan -->
+      <% if (isMtc && t.status === 'Belum') { %>
+      <form method="POST" action="/tugas/status/<%= t.id %>" enctype="multipart/form-data" style="margin:0;flex-shrink:0;" onsubmit="return confirm('Mulai kerjakan tugas ini?')">
+        <input type="hidden" name="newStatus" value="Proses">
+        <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
+        <button type="submit" style="padding:6px 14px;background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">▶ Mulai Kerjakan</button>
+      </form>
+      <% } else if (isMtc && t.status === 'Proses') { %>
+      <button onclick="openStatusModal(<%= t.id %>, '<%= t.status %>', `<%- (t.judul||'').replace(/`/g,'\\`') %>`)" style="padding:6px 14px;background:#0d2a18;border:1px solid #1a5c30;color:#4ade80;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">✓ Tandai Selesai</button>
+      <% } else if (!isMtc && t.status !== 'Selesai') { %>
+      <button onclick="openStatusModal(<%= t.id %>, '<%= t.status %>', `<%- (t.judul||'').replace(/`/g,'\\`') %>`)" style="padding:6px 14px;background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">⚡ Update Status</button>
+      <% } %>
+
+      <!-- MANAGER: Edit & Hapus -->
+      <% if (canManage) { %>
+      <button onclick="openEditModal(<%= t.id %>, `<%- (t.judul||'').replace(/`/g,'\\`') %>`, `<%- (t.deskripsi||'').replace(/`/g,'\\`') %>`, '<%= new Date(t.tanggal).toISOString().slice(0,10) %>', '<%= t.prioritas %>', '<%= t.status %>', '<%= t.fotoTugasUrl || '' %>')" style="padding:6px 14px;background:#0d3d6e;border:1px solid #1a5a9e;color:#7eb8f7;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">✏️ Edit</button>
+      <form method="POST" action="/tugas/hapus/<%= t.id %>" style="margin:0;flex-shrink:0;" onsubmit="return confirm('Hapus tugas ini?')">
+        <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
+        <button type="submit" style="padding:6px 14px;background:#2a0d0d;border:1px solid #5c1a1a;color:#f87171;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">🗑 Hapus</button>
+      </form>
+      <% } %>
+
+    </div>
+  </div>
+  <% }) %>
+  <% } %>
           <input type="hidden" name="newStatus" value="Proses">
           <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
           <button type="submit" class="btn btn-sm fw-bold" style="background:#0d1a38;border:1px solid #0d3d6e;color:#4da6ff;font-size:0.7rem;">▶ Mulai Kerjakan</button>
