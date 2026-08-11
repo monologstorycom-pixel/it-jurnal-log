@@ -32,6 +32,13 @@
     .p-vmtc  {background:#f0f9ff;color:#0284c7;border-color:#7dd3fc;} .p-vmtc:hover{background:#0284c7;color:#fff;}
     .p-tmtc  {background:#fdf4ff;color:#9333ea;border-color:#d8b4fe;} .p-tmtc:hover{background:#9333ea;color:#fff;}
     .p-clear {background:#f8fafc;color:#94a3b8;border-color:#e2e8f0;} .p-clear:hover{background:#e2e8f0;color:#374151;}
+    .profile-help{font-size:11px;color:#64748b;line-height:1.45;margin:-6px 0 12px;}
+    .advanced-access{border-top:1px solid #e2e8f0;margin-top:12px;padding-top:10px;}
+    .advanced-access summary{cursor:pointer;color:#475569;font-size:12px;font-weight:600;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:4px 0 10px;}
+    .advanced-access summary::after{content:'+';font-size:16px;font-weight:400;color:#94a3b8;}
+    .advanced-access[open] summary::after{content:'−';}
+    .profile-badge{display:inline-block;background:#eef2f6;color:#334155;border:1px solid #d7dde5;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:700;}
+    .access-summary{font-size:11px;color:#64748b;margin-top:4px;line-height:1.35;}
 
     /* PERMISSION TOGGLES */
     .perm-section{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;margin-bottom:14px;}
@@ -131,8 +138,15 @@
           <label class="f-label">No. HP / WhatsApp <span style="color:#94a3b8;font-weight:400;">(untuk notif WA)</span></label>
           <input type="text" name="noHp" id="add_noHp" class="f-input" placeholder="628xxx...">
 
-          <label class="f-label">Label Role</label>
-          <input type="text" name="role" class="f-input" placeholder="IT Support / Supervisor..." value="user">
+          <label class="f-label">Profil Akses</label>
+          <select id="add_profile" class="f-input" onchange="setProfile('add',this.value)">
+            <option value="reporter">Pelapor Maintenance</option>
+            <option value="maintenance">Teknisi Maintenance</option>
+            <option value="admin">Administrator</option>
+            <option value="audit">Audit</option>
+          </select>
+          <div class="profile-help" id="add_profileHelp">Melihat semua laporan, membuat laporan, dan mengedit laporan miliknya sendiri.</div>
+          <input type="hidden" name="role" id="add_role" value="pelapor">
 
           <label class="f-label">Divisi</label>
           <select name="divisi" id="add_divisi" class="f-input">
@@ -147,6 +161,7 @@
             <option value="ADMIN SALES">ADMIN SALES</option>
             <option value="EXIM & PEMBELIAN">EXIM &amp; PEMBELIAN</option>
             <option value="IT & IC">IT &amp; IC</option>
+            <option value="INTERNAL CONTROL">INTERNAL CONTROL</option>
           </select>
 
           <!-- HIDDEN CHECKBOXES (dikelola JS) -->
@@ -165,17 +180,11 @@
           <input type="checkbox" name="canTugasMtc"        id="add_canTugasMtc"        style="display:none;">
 
           <div class="perm-section">
-            <div class="perm-section-title">Hak Akses</div>
-            <div class="preset-row">
-              <button type="button" class="preset p-admin"  onclick="setPreset('add','admin')">Admin</button>
-              <button type="button" class="preset p-user"   onclick="setPreset('add','user')">User IT</button>
-              <button type="button" class="preset p-viewer" onclick="setPreset('add','viewer')">Viewer</button>
-              <button type="button" class="preset p-mtc"    onclick="setPreset('add','maintenance')">🔧 MTC</button>
-              <button type="button" class="preset p-vmtc"   onclick="setPreset('add','viewerMaintenance')">👁 View MTC</button>
-              <button type="button" class="preset p-tmtc"   onclick="setPreset('add','tugasMtc')">📋 Tugas MTC</button>
-              <button type="button" class="preset p-clear"  onclick="setPreset('add','clear')">Clear</button>
-            </div>
-            <div class="perm-grid" id="permGrid_add">
+            <div class="perm-section-title">Akses dari profil</div>
+            <div class="profile-help" style="margin:0;">Izin utama diatur otomatis. Buka akses tambahan hanya bila diperlukan.</div>
+            <details class="advanced-access">
+              <summary>Akses tambahan</summary>
+              <div class="perm-grid" id="permGrid_add">
               <div class="perm-toggle" id="pt_add_canView"   onclick="togglePerm('add','canView')"><span class="perm-name">Lihat</span><div class="switch"></div></div>
               <div class="perm-toggle" id="pt_add_canAdd"    onclick="togglePerm('add','canAdd')"><span class="perm-name">Tambah</span><div class="switch"></div></div>
               <div class="perm-toggle" id="pt_add_canEdit"   onclick="togglePerm('add','canEdit')"><span class="perm-name">Edit</span><div class="switch"></div></div>
@@ -189,7 +198,8 @@
               <div class="perm-toggle" id="pt_add_canTugas"  onclick="togglePerm('add','canTugas')"><span class="perm-name">Kelola Tugas MTC</span><div class="switch"></div></div>
               <div class="perm-toggle" id="pt_add_canViewMaintenance" onclick="togglePerm('add','canViewMaintenance')"><span class="perm-name">Lihat Jurnal MTC</span><div class="switch"></div></div>
               <div class="perm-toggle" id="pt_add_canTugasMtc" onclick="togglePerm('add','canTugasMtc')"><span class="perm-name">Tugas MTC</span><div class="switch"></div></div>
-            </div>
+              </div>
+            </details>
           </div>
 
           <button type="submit" class="btn-add">Simpan User</button>
@@ -206,12 +216,20 @@
         </div>
         <div style="overflow-x:auto;">
           <table class="user-table">
-            <thead><tr><th>#</th><th>User</th><th>Divisi</th><th>Hak Akses</th><th>Dibuat</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>#</th><th>User</th><th>Divisi</th><th>Profil Akses</th><th>Dibuat</th><th>Aksi</th></tr></thead>
             <tbody>
               <% users.forEach((u,i) => {
                 let perms = {};
                 try { perms = u.permissions ? JSON.parse(u.permissions) : {}; } catch(e) {}
-                const rc = u.role==='admin'?'rt-admin':u.role==='user'?'rt-user':u.role==='viewer'?'rt-viewer':'rt-other';
+                const profileName = perms.canAudit && !perms.canUsers ? 'Audit'
+                  : perms.canUsers ? 'Administrator'
+                  : (u.role||'').toLowerCase()==='pelapor' ? 'Pelapor Maintenance'
+                  : (u.divisi||'').toUpperCase()==='MAINTENANCE' ? 'Teknisi Maintenance'
+                  : 'Custom / akun lama';
+                const accessNotes = [];
+                if (perms.canExport) accessNotes.push('Export Excel');
+                if (perms.canAsset) accessNotes.push('Aset');
+                if (perms.canVendor) accessNotes.push('Vendor');
                 const initials = u.nama ? u.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase() : u.username.slice(0,2).toUpperCase();
               %>
               <tr>
@@ -221,27 +239,14 @@
                     <div class="avatar"><% if(u.fotoUrl){%><img src="<%= u.fotoUrl %>" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"><%}else{%><%= initials %><%}%></div>
                     <div>
                       <div style="font-weight:600;"><%= u.nama %><% if(currentUser&&u.id===currentUser.id){%><span class="you-tag">Kamu</span><%}%></div>
-                      <div style="font-size:12px;color:#64748b;">@<%= u.username %> &nbsp;<span class="role-tag <%= rc %>"><%= u.role %></span></div>
+                      <div style="font-size:12px;color:#64748b;">@<%= u.username %></div>
                     </div>
                   </div>
                 </td>
                 <td><span class="div-tag"><%= u.divisi||'IT' %></span></td>
                 <td>
-                  <div class="pt-wrap">
-                    <% if(perms.canView)    { %><span class="pt pt-v">Lihat</span><% } %>
-                    <% if(perms.canAdd)     { %><span class="pt pt-a">Tambah</span><% } %>
-                    <% if(perms.canEdit)    { %><span class="pt pt-e">Edit</span><% } %>
-                    <% if(perms.canDelete)  { %><span class="pt pt-d">Hapus</span><% } %>
-                    <% if(perms.canAsset)   { %><span class="pt pt-as">Aset</span><% } %>
-                    <% if(perms.canExport)  { %><span class="pt pt-ex">Export</span><% } %>
-                    <% if(perms.canUsers)   { %><span class="pt pt-u">User</span><% } %>
-                    <% if(perms.canViewLog) { %><span class="pt pt-l">Log IT</span><% } %>
-                    <% if(perms.canAudit)   { %><span class="pt pt-au">Audit</span><% } %>
-                    <% if(perms.canVendor)  { %><span class="pt pt-vn">Vendor</span><% } %>
-                    <% if(perms.canTugas)   { %><span class="pt pt-tg">Tugas MTC</span><% } %>
-                    <% if(perms.canViewMaintenance){ %><span class="pt pt-vm">View MTC</span><% } %>
-                    <% if(perms.canTugasMtc){ %><span class="pt pt-tmtc">Tugas MTC Only</span><% } %>
-                  </div>
+                  <span class="profile-badge"><%= profileName %></span>
+                  <% if (accessNotes.length) { %><div class="access-summary">Tambahan: <%= accessNotes.join(', ') %></div><% } %>
                 </td>
                 <td style="font-size:12px;color:#64748b;white-space:nowrap;"><%= new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></td>
                 <td>
@@ -275,8 +280,16 @@
               <input type="text" name="nama" id="edit_nama" class="f-input" required>
               <label class="f-label">Username</label>
               <input type="text" name="username" id="edit_username" class="f-input" required pattern="[a-z0-9_]+">
-              <label class="f-label">Label Role</label>
-              <input type="text" name="role" id="edit_role" class="f-input">
+              <label class="f-label">Profil Akses</label>
+              <select id="edit_profile" class="f-input" onchange="setProfile('edit',this.value)">
+                <option value="reporter">Pelapor Maintenance</option>
+                <option value="maintenance">Teknisi Maintenance</option>
+                <option value="admin">Administrator</option>
+                <option value="audit">Audit</option>
+                <option value="custom">Custom / akun lama</option>
+              </select>
+              <div class="profile-help" id="edit_profileHelp"></div>
+              <input type="hidden" name="role" id="edit_role">
               <label class="f-label">Divisi</label>
               <select name="divisi" id="edit_divisi" class="f-input">
                 <option value="IT">IT</option><option value="MAINTENANCE">MAINTENANCE</option>
@@ -286,6 +299,7 @@
                 <option value="ADMIN SALES">ADMIN SALES</option>
                 <option value="EXIM & PEMBELIAN">EXIM &amp; PEMBELIAN</option>
                 <option value="IT & IC">IT &amp; IC</option>
+                <option value="INTERNAL CONTROL">INTERNAL CONTROL</option>
               </select>
               <label class="f-label">No. HP / WhatsApp</label>
               <input type="text" name="noHp" id="edit_noHp" class="f-input" placeholder="628xxx...">
@@ -295,16 +309,8 @@
             </div>
             <div class="col-md-6">
               <div class="perm-section" style="height:100%;">
-                <div class="perm-section-title">Hak Akses</div>
-                <div class="preset-row">
-                  <button type="button" class="preset p-admin"  onclick="setPreset('edit','admin')">Admin</button>
-                  <button type="button" class="preset p-user"   onclick="setPreset('edit','user')">User IT</button>
-                  <button type="button" class="preset p-viewer" onclick="setPreset('edit','viewer')">Viewer</button>
-                  <button type="button" class="preset p-mtc"    onclick="setPreset('edit','maintenance')">🔧 MTC</button>
-                  <button type="button" class="preset p-vmtc"   onclick="setPreset('edit','viewerMaintenance')">👁 View MTC</button>
-                  <button type="button" class="preset p-tmtc"   onclick="setPreset('edit','tugasMtc')">📋 Tugas MTC</button>
-                  <button type="button" class="preset p-clear"  onclick="setPreset('edit','clear')">Clear</button>
-                </div>
+                <div class="perm-section-title">Akses dari profil</div>
+                <div class="profile-help" style="margin:0;">Izin utama mengikuti profil. Pengaturan di bawah dapat dipakai untuk kebutuhan khusus.</div>
                 <!-- HIDDEN CHECKBOXES EDIT -->
                 <input type="checkbox" name="canView"            id="edit_canView"            style="display:none;">
                 <input type="checkbox" name="canAdd"             id="edit_canAdd"             style="display:none;">
@@ -319,7 +325,9 @@
                 <input type="checkbox" name="canTugas"           id="edit_canTugas"           style="display:none;">
                 <input type="checkbox" name="canViewMaintenance" id="edit_canViewMaintenance" style="display:none;">
                 <input type="checkbox" name="canTugasMtc"        id="edit_canTugasMtc"        style="display:none;">
-                <div class="perm-grid" id="permGrid_edit">
+                <details class="advanced-access">
+                  <summary>Akses tambahan</summary>
+                  <div class="perm-grid" id="permGrid_edit">
                   <div class="perm-toggle" id="pt_edit_canView"             onclick="togglePerm('edit','canView')"><span class="perm-name">Lihat</span><div class="switch"></div></div>
                   <div class="perm-toggle" id="pt_edit_canAdd"              onclick="togglePerm('edit','canAdd')"><span class="perm-name">Tambah</span><div class="switch"></div></div>
                   <div class="perm-toggle" id="pt_edit_canEdit"             onclick="togglePerm('edit','canEdit')"><span class="perm-name">Edit</span><div class="switch"></div></div>
@@ -333,7 +341,8 @@
                   <div class="perm-toggle" id="pt_edit_canTugas"            onclick="togglePerm('edit','canTugas')"><span class="perm-name">Kelola Tugas MTC</span><div class="switch"></div></div>
                   <div class="perm-toggle" id="pt_edit_canViewMaintenance"  onclick="togglePerm('edit','canViewMaintenance')"><span class="perm-name">Lihat Jurnal MTC</span><div class="switch"></div></div>
                   <div class="perm-toggle" id="pt_edit_canTugasMtc"         onclick="togglePerm('edit','canTugasMtc')"><span class="perm-name">Tugas MTC</span><div class="switch"></div></div>
-                </div>
+                  </div>
+                </details>
               </div>
             </div>
           </div>
@@ -366,13 +375,19 @@ var permState = { add:{}, edit:{} };
 PERM_KEYS.forEach(function(k){ permState.add[k]=false; permState.edit[k]=false; });
 
 var PRESETS = {
-  admin:             {canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true,canViewLog:true,canAudit:false,canVendor:true,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
-  user:              {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:true,canExport:true,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
-  viewer:            {canView:true,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
-  maintenance:       {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
-  viewerMaintenance: {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:true,canTugasMtc:false},
-  tugasMtc:          {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:true},
+  admin:             {canView:true,canAdd:true,canEdit:true,canDelete:true,canAsset:true,canExport:true,canUsers:true,canViewLog:true,canAudit:false,canVendor:true,canTugas:true,canViewMaintenance:true,canTugasMtc:true},
+  maintenance:       {canView:true,canAdd:true,canEdit:true,canDelete:false,canAsset:false,canExport:true,canUsers:false,canViewLog:true,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:true,canTugasMtc:true},
+  reporter:          {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
+  audit:             {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:true,canExport:true,canUsers:false,canViewLog:false,canAudit:true,canVendor:true,canTugas:false,canViewMaintenance:false,canTugasMtc:false},
   clear:             {canView:false,canAdd:false,canEdit:false,canDelete:false,canAsset:false,canExport:false,canUsers:false,canViewLog:false,canAudit:false,canVendor:false,canTugas:false,canViewMaintenance:false,canTugasMtc:false}
+};
+
+var PROFILE_HELP = {
+  reporter:'Melihat semua laporan, membuat laporan, dan mengedit laporan miliknya sendiri.',
+  maintenance:'Menerima laporan, mengerjakan tugas, membuka dashboard maintenance, dan export Excel.',
+  admin:'Akses penuh ke seluruh fitur dan pengelolaan user.',
+  audit:'Profil audit lama tetap dipertahankan.',
+  custom:'Akun lama dengan kombinasi izin khusus.'
 };
 
 var ON_CLASS = {canView:'on',canAdd:'on',canEdit:'on',canDelete:'on-del',canAsset:'on',canExport:'on',canUsers:'on-adm',canViewLog:'on-log',canAudit:'on-aud',canVendor:'on-ven',canTugas:'on-tgs',canViewMaintenance:'on-vmtc',canTugasMtc:'on-tmtc'};
@@ -398,6 +413,29 @@ function setPreset(form,preset){
   renderPerms(form);
 }
 
+function setProfile(form,profile){
+  if(profile==='custom') return;
+  permState[form] = Object.assign({},PRESETS[profile]);
+  var prefix=form==='add'?'add':'edit';
+  var role=document.getElementById(prefix+'_role');
+  var divisi=document.getElementById(prefix+'_divisi');
+  var help=document.getElementById(prefix+'_profileHelp');
+  if(role) role.value=profile==='reporter'?'pelapor':profile;
+  if(divisi && profile==='maintenance') divisi.value='MAINTENANCE';
+  if(divisi && profile==='admin') divisi.value='IT';
+  if(divisi && profile==='audit') divisi.value='INTERNAL CONTROL';
+  if(help) help.textContent=PROFILE_HELP[profile]||'';
+  renderPerms(form);
+}
+
+function detectProfile(role,divisi,perms){
+  if(perms.canAudit && !perms.canUsers) return 'audit';
+  if(perms.canUsers) return 'admin';
+  if((role||'').toLowerCase()==='pelapor') return 'reporter';
+  if((divisi||'').toUpperCase()==='MAINTENANCE') return 'maintenance';
+  return 'custom';
+}
+
 function openEditModal(id,nama,username,role,divisi,perms,noHp){
   document.getElementById('formEdit').action='/users/edit/'+id;
   document.getElementById('edit_nama').value=nama;
@@ -408,6 +446,9 @@ function openEditModal(id,nama,username,role,divisi,perms,noHp){
   document.getElementById('edit_pass').value='';
   document.getElementById('passStrengthBarEdit').style.width='0%';
   permState.edit = Object.assign({},PRESETS.clear,perms||{});
+  var profile=detectProfile(role,divisi,permState.edit);
+  document.getElementById('edit_profile').value=profile;
+  document.getElementById('edit_profileHelp').textContent=PROFILE_HELP[profile]||'';
   renderPerms('edit');
   new bootstrap.Modal(document.getElementById('editModal')).show();
 }
@@ -431,6 +472,7 @@ function toggleUserDropdown(e){e.stopPropagation();document.getElementById('user
 document.addEventListener('click',function(){document.getElementById('userDropdown')?.classList.remove('open');});
 function toggleMobileNav(){document.getElementById('mobileNav')?.classList.add('open');document.getElementById('sidebarOverlay')?.classList.add('open');}
 function closeSidebar(){document.getElementById('mobileNav')?.classList.remove('open');document.getElementById('sidebarOverlay')?.classList.remove('open');}
+setProfile('add','reporter');
 </script>
 </body>
 </html>

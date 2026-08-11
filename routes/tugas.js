@@ -15,12 +15,21 @@ const { kirimNotifTugasHariIni } = require('../helpers/scheduler');
 function isMaintenance(user) {
     return (user.divisi || '').toUpperCase() === 'MAINTENANCE';
 }
+function isReporter(user) {
+    return (user.role || '').toLowerCase() === 'pelapor';
+}
 function canManageTugas(user) {
     // Admin atau user dengan canTugas
     return hasPerm(user, 'canUsers') || hasPerm(user, 'canTugas');
 }
+function canCreateTugas(user) {
+    return canManageTugas(user) || isReporter(user);
+}
+function canWorkTugas(user) {
+    return canManageTugas(user) || isMaintenance(user) || hasPerm(user, 'canTugasMtc');
+}
 function canSeeTugas(user) {
-    return canManageTugas(user) || isMaintenance(user) || hasPerm(user, 'canViewMaintenance') || hasPerm(user, 'canTugasMtc');
+    return canManageTugas(user) || isMaintenance(user) || isReporter(user) || hasPerm(user, 'canViewMaintenance') || hasPerm(user, 'canTugasMtc');
 }
 
 // ==========================================
@@ -61,17 +70,20 @@ router.get('/tugas', requireLogin, async (req, res) => {
         const tugasWithHp = tugas.map(t => ({ ...t, noHpPembuat: noHpMap[t.buatOleh] || null }));
 
         // Stats hari ini
+        const statsWhere = { tanggal: { gte: tglStart, lte: tglEnd } };
         const [total, selesai, proses, belum] = await Promise.all([
-            prisma.tugas.count({ where: { tanggal: { gte: tglStart, lte: tglEnd } } }),
-            prisma.tugas.count({ where: { tanggal: { gte: tglStart, lte: tglEnd }, status: 'Selesai' } }),
-            prisma.tugas.count({ where: { tanggal: { gte: tglStart, lte: tglEnd }, status: 'Proses' } }),
-            prisma.tugas.count({ where: { tanggal: { gte: tglStart, lte: tglEnd }, status: 'Belum' } }),
+            prisma.tugas.count({ where: statsWhere }),
+            prisma.tugas.count({ where: { ...statsWhere, status: 'Selesai' } }),
+            prisma.tugas.count({ where: { ...statsWhere, status: 'Proses' } }),
+            prisma.tugas.count({ where: { ...statsWhere, status: 'Belum' } }),
         ]);
 
         res.render('tugas', {
             tugas: tugasWithHp, filterTanggal,
             filterStatus: status || '',
             canManage: canManageTugas(user),
+            canCreate: canCreateTugas(user),
+            isReporter: isReporter(user),
             isMtc: isMaintenance(user) || hasPerm(user, 'canTugasMtc'),
             saved: req.query.saved === '1',
             stats: { total, selesai, proses, belum },
@@ -85,7 +97,7 @@ router.get('/tugas', requireLogin, async (req, res) => {
 // ==========================================
 router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
     const user = req.session.user;
-    if (!canManageTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    if (!canCreateTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
     try {
         const { judul, deskripsi, tanggal, prioritas } = req.body;
         if (!judul || !judul.trim()) return res.status(400).send('Judul wajib diisi.');
@@ -151,27 +163,37 @@ router.post('/tugas/buat', requireLogin, uploadSingle, async (req, res) => {
 // ==========================================
 router.post('/tugas/edit/:id', requireLogin, uploadSingle, async (req, res) => {
     const user = req.session.user;
-    if (!canManageTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
     try {
         const id = parseInt(req.params.id);
+        const existingTask = await prisma.tugas.findUnique({ where: { id } });
+        if (!existingTask) return res.status(404).send('Tugas tidak ditemukan.');
+        const canEditOwn = isReporter(user) &&
+            existingTask.buatOleh === user.nama &&
+            existingTask.status === 'Belum';
+        if (!canManageTugas(user) && !canEditOwn) {
+            return res.status(403).render('403', {
+                message: 'Laporan hanya dapat diedit oleh pelapor sebelum mulai dikerjakan.'
+            });
+        }
         const { judul, deskripsi, tanggal, prioritas, status } = req.body;
         if (!judul || !judul.trim()) return res.status(400).send('Judul wajib diisi.');
 
         const updateData = {
             judul: judul.trim(), deskripsi: deskripsi || '',
             tanggal: new Date(tanggal + 'T00:00:00'),
-            prioritas: prioritas || 'Normal', status: status || 'Belum'
+            prioritas: prioritas || 'Normal'
         };
+        // Hanya pengelola yang boleh mengubah status melalui form edit.
+        if (canManageTugas(user)) updateData.status = status || existingTask.status;
         if (req.file) {
             // Hapus foto lama dari R2 / lokal dulu
-            const existing = await prisma.tugas.findUnique({ where: { id }, select: { fotoTugasUrl: true } });
-            if (existing?.fotoTugasUrl) {
+            if (existingTask.fotoTugasUrl) {
                 const { deleteFromR2 } = require('../helpers/r2');
                 const fs = require('fs'), path = require('path');
-                if (existing.fotoTugasUrl.startsWith('http')) {
-                    await deleteFromR2(existing.fotoTugasUrl);
+                if (existingTask.fotoTugasUrl.startsWith('http')) {
+                    await deleteFromR2(existingTask.fotoTugasUrl);
                 } else {
-                    const p = path.join(__dirname, '..', 'public', existing.fotoTugasUrl);
+                    const p = path.join(__dirname, '..', 'public', existingTask.fotoTugasUrl);
                     if (fs.existsSync(p)) fs.unlinkSync(p);
                 }
             }
@@ -217,10 +239,12 @@ router.post('/tugas/hapus/:id', requireLogin, async (req, res) => {
 // ==========================================
 router.post('/tugas/status/:id', requireLogin, uploadSingle, async (req, res) => {
     const user = req.session.user;
-    if (!canSeeTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
+    if (!canWorkTugas(user)) return res.status(403).render('403', { message: 'Akses ditolak.' });
     try {
         const id      = parseInt(req.params.id);
         const { newStatus, catatan, tanggal } = req.body;
+        const item = await prisma.tugas.findUnique({ where: { id } });
+        if (!item) return res.status(404).send('Tugas tidak ditemukan.');
 
         // WAJIB foto bukti kalau status Selesai
         if (newStatus === 'Selesai' && !req.file) {
@@ -228,6 +252,16 @@ router.post('/tugas/status/:id', requireLogin, uploadSingle, async (req, res) =>
         }
 
         const updateData = { status: newStatus, catatan: catatan || null };
+        if (newStatus === 'Proses') {
+            updateData.mulaiDikerjakanAt = new Date();
+            updateData.selesaiDikerjakanAt = null;
+            updateData.dikerjakanOleh = user.nama;
+        }
+        if (newStatus === 'Selesai') {
+            updateData.selesaiDikerjakanAt = new Date();
+            updateData.dikerjakanOleh = item.dikerjakanOleh || user.nama;
+            if (!item.mulaiDikerjakanAt) updateData.mulaiDikerjakanAt = new Date();
+        }
         if (req.file) {
             updateData.fotoUrl = await saveCompressedPhoto(req.file, 'foto', 'log');
         }
@@ -286,6 +320,10 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
             { header: 'DESKRIPSI',    key: 'deskripsi',    width: 40 },
             { header: 'PRIORITAS',    key: 'prioritas',    width: 12 },
             { header: 'STATUS',       key: 'status',       width: 12 },
+            { header: 'MULAI DIKERJAKAN',   key: 'mulai',   width: 22 },
+            { header: 'SELESAI DIKERJAKAN', key: 'selesai', width: 22 },
+            { header: 'TOTAL PENGERJAAN',   key: 'durasi',  width: 20 },
+            { header: 'TEKNISI',             key: 'teknisi', width: 22 },
             { header: 'CATATAN',      key: 'catatan',      width: 30 },
             { header: 'DIBUAT OLEH',  key: 'buatOleh',     width: 20 },
             { header: 'FOTO PETUNJUK',key: 'fotoTugas',    width: 16 },
@@ -300,7 +338,29 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
         });
 
         const base = process.env.APP_URL || (req.protocol + '://' + req.get('host'));
+        const formatDateTime = value => value
+            ? new Date(value).toLocaleString('id-ID', {
+                timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+              }) + ' WIB'
+            : '-';
+        const formatDuration = ms => {
+            if (ms === null || ms === undefined || ms < 0) return '-';
+            const totalMinutes = Math.floor(ms / 60000);
+            const days = Math.floor(totalMinutes / 1440);
+            const hours = Math.floor((totalMinutes % 1440) / 60);
+            const minutes = totalMinutes % 60;
+            const parts = [];
+            if (days) parts.push(days + ' hari');
+            if (hours) parts.push(hours + ' jam');
+            if (minutes || parts.length === 0) parts.push(minutes + ' menit');
+            return parts.join(' ');
+        };
         data.forEach((t, i) => {
+            const durationEnd = t.selesaiDikerjakanAt || (t.mulaiDikerjakanAt ? new Date() : null);
+            const durationMs = t.mulaiDikerjakanAt && durationEnd
+                ? new Date(durationEnd).getTime() - new Date(t.mulaiDikerjakanAt).getTime()
+                : null;
             const row = ws.addRow({
                 no:        i + 1,
                 tanggal:   new Date(t.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -308,6 +368,10 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
                 deskripsi: t.deskripsi || '-',
                 prioritas: t.prioritas,
                 status:    t.status,
+                mulai:     formatDateTime(t.mulaiDikerjakanAt),
+                selesai:   formatDateTime(t.selesaiDikerjakanAt),
+                durasi:    durationMs === null ? '-' : formatDuration(durationMs) + (t.selesaiDikerjakanAt ? '' : ' (berjalan)'),
+                teknisi:   t.dikerjakanOleh || '-',
                 catatan:   t.catatan || '-',
                 buatOleh:  t.buatOleh,
             });
@@ -332,7 +396,16 @@ router.get('/tugas/export', requireLogin, async (req, res) => {
 
         // Summary row
         ws.addRow([]);
-        const summaryRow = ws.addRow(['', '', '', '', '', `Total: ${data.length}`, `Selesai: ${data.filter(t=>t.status==='Selesai').length}`, `Belum/Proses: ${data.filter(t=>t.status!=='Selesai').length}`]);
+        const completedDurationMs = data.reduce((sum, t) => {
+            if (!t.mulaiDikerjakanAt || !t.selesaiDikerjakanAt) return sum;
+            return sum + Math.max(0, new Date(t.selesaiDikerjakanAt) - new Date(t.mulaiDikerjakanAt));
+        }, 0);
+        const summaryRow = ws.addRow([
+            `Total: ${data.length}`,
+            `Selesai: ${data.filter(t=>t.status==='Selesai').length}`,
+            `Belum/Proses: ${data.filter(t=>t.status!=='Selesai').length}`,
+            `Total waktu selesai: ${formatDuration(completedDurationMs)}`
+        ]);
         summaryRow.font = { bold: true };
 
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

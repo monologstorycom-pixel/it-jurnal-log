@@ -18,22 +18,23 @@
 
   /* ===== GLOBAL THEME VARS ===== */
   :root {
-    --nav-bg: #ffffff;
+    --nav-bg: #e9ecef;
     --nav-border: rgba(0,0,0,0.08);
     --nav-text: #111827;
     --nav-text2: #6b7280;
-    --nav-hover-bg: #f9fafb;
-    --nav-active-bg: #f3f4f6;
-    --body-bg: #f9fafb;
-    --body-bg2: #ffffff;
-    --body-bg3: #f3f4f6;
+    --nav-hover-bg: #dde1e5;
+    --nav-active-bg: #d4d8dd;
+    --nav-active-text: #15803d;
+    --body-bg: #dfe3e7;
+    --body-bg2: #e9ecef;
+    --body-bg3: #d5d9de;
     --body-text: #111827;
     --body-text2: #6b7280;
     --body-text3: #9ca3af;
     --body-border: rgba(0,0,0,0.08);
     --body-border2: rgba(0,0,0,0.14);
-    --body-card: #ffffff;
-    --body-input: #f9fafb;
+    --body-card: #eceff1;
+    --body-input: #e1e5e9;
     --body-input-border: rgba(0,0,0,0.1);
     --body-input-focus: #6366f1;
     --body-accent: #16a34a;
@@ -41,11 +42,11 @@
     --body-err-bg: #fff0f0;
     --body-err-text: #dc2626;
     --body-err-border: #fca5a5;
-    --body-table-row: #ffffff;
-    --body-table-row-alt: #f9fafb;
+    --body-table-row: #eceff1;
+    --body-table-row-alt: #e2e6ea;
     --body-table-text: #111827;
     --body-table-border: rgba(0,0,0,0.07);
-    --body-table-head: #f9fafb;
+    --body-table-head: #d7dce1;
     --body-table-head-text: #374151;
     --avatar-bg: #dcfce7;
     --avatar-text: #15803d;
@@ -64,6 +65,7 @@
     --nav-text2: #94a3b8;
     --nav-hover-bg: #1e2130;
     --nav-active-bg: #1a1d2e;
+    --nav-active-text: #4ade80;
     --body-bg: #080a10;
     --body-bg2: #0f1117;
     --body-bg3: #13161f;
@@ -142,9 +144,9 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 13px;
+    padding: 7px 10px;
+    border-radius: 5px;
+    font-size: 12.5px;
     color: var(--nav-text2);
     text-decoration: none;
     cursor: pointer;
@@ -153,7 +155,7 @@
     line-height: 1;
   }
   .it-nav-link:hover { background: var(--nav-hover-bg); color: var(--nav-text); }
-  .it-nav-link.active { background: var(--nav-active-bg); color: var(--nav-text); font-weight: 500; }
+  .it-nav-link.active { background: transparent; color: var(--nav-active-text); font-weight: 600; box-shadow: none; }
   .it-nav-link svg { width: 14px; height: 14px; flex-shrink: 0; }
 
   /* RIGHT SIDE */
@@ -380,12 +382,12 @@
   }
   .it-sidebar-brand {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--nav-text);
     letter-spacing: -0.01em;
     text-decoration: none;
   }
-  .it-sidebar-brand span { color: #16a34a; }
+  .it-sidebar-brand span { color: var(--body-accent); }
   .it-sidebar-close {
     background: none;
     border: none;
@@ -427,6 +429,7 @@
     background: var(--nav-active-bg);
     color: var(--nav-text);
     font-weight: 600;
+    box-shadow: inset 3px 0 0 #64748b;
   }
   .it-nav-mobile a svg { width: 16px; height: 16px; flex-shrink: 0; }
 
@@ -517,20 +520,24 @@
   // 3b. Cek apakah user Viewer Maintenance (misal HRGA)
   var isViewerMaintenance = currentUser && !isAdmin && !isMaintenance && userPerms && userPerms.canViewMaintenance && !userPerms.canViewLog;
 
+  // Pelapor hanya menggunakan halaman laporan/tugas maintenance.
+  var isReporter = currentUser && !isAdmin && (currentUser.role || '').toLowerCase() === 'pelapor';
+
   // 4. Logika untuk user IT atau Admin
-  var isItOrAdmin = currentUser && !isAuditOnly && !isMaintenance && !isViewerMaintenance && (
+  var isItOrAdmin = currentUser && !isAuditOnly && !isMaintenance && !isViewerMaintenance && !isReporter && (
     isAdmin ||
     (currentUser.divisi && currentUser.divisi.toLowerCase() === 'it')
   );
   
   // 5. Logika untuk user divisi biasa (non-IT, non-Audit, non-Maintenance, non-ViewerMTC)
-  var isNonItUser = currentUser && !isItOrAdmin && !isAuditOnly && !isMaintenance && !isViewerMaintenance && userPerms && userPerms.canAsset && !userPerms.canViewLog;
+  var isNonItUser = currentUser && !isItOrAdmin && !isAuditOnly && !isMaintenance && !isViewerMaintenance && !isReporter && userPerms && userPerms.canAsset && !userPerms.canViewLog;
   
   var asetPublicHref = currentUser ? '/aset-public/' + encodeURIComponent(currentUser.divisi || 'IT') : '/aset-public';
 
   /* LOGIKA KLIK LOGO BRAND */
   var brandHref = '/kerja';
   if (isAuditOnly)            brandHref = '/audit';
+  else if (isReporter)        brandHref = '/tugas';
   else if (isMaintenance)     brandHref = '/maintenance';
   else if (isViewerMaintenance) brandHref = '/maintenance';
   else if (isNonItUser)       brandHref = '/aset';
@@ -546,6 +553,12 @@
       <a href="/audit" class="it-nav-link <%= activePage === 'audit' ? 'active' : '' %>" style="color:#f59e0b;">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/><line x1="4" y1="6" x2="8" y2="6"/><line x1="6" y1="4" x2="6" y2="8"/></svg>
         Dashboard Audit
+      </a>
+
+    <% } else if (isReporter) { %>
+      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
+        Laporan Maintenance
       </a>
 
     <% } else if (isNonItUser) { %>
@@ -567,22 +580,22 @@
 
     <% } else if (isMaintenance) { %>
       <!-- JIKA YANG LOGIN TIM MAINTENANCE -->
-      <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#fb923c;">
+      <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 2.5L11 5l-2-2 2.5-2.5a3 3 0 0 0-4 4L2 11a1 1 0 0 0 1.4 1.4l5.5-5.5a3 3 0 0 0 4-4z"/></svg>
         Dashboard Maintenance
       </a>
-      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
+      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas Hari Ini
       </a>
 
     <% } else if (isViewerMaintenance) { %>
       <!-- JIKA YANG LOGIN VIEWER MAINTENANCE (HRGA, dll) -->
-      <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#67e8f9;">
+      <a href="/maintenance" class="it-nav-link <%= activePage === 'maintenance' ? 'active' : '' %>">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
         Jurnal Maintenance
       </a>
-      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
+      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas Maintenance
       </a>
@@ -631,7 +644,7 @@
       <% } %>
       
       <% if (typeof currentUser !== 'undefined' && currentUser && (userPerms.canUsers || userPerms.canTugas)) { %>
-      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;">
+      <a href="/tugas" class="it-nav-link <%= activePage === 'tugas' ? 'active' : '' %>">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas
       </a>
@@ -722,6 +735,12 @@
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><line x1="9" y1="9" x2="14" y2="14"/></svg>
         Dashboard Audit
       </a>
+    <% } else if (isReporter) { %>
+      <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" onclick="closeSidebar()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
+        Laporan Maintenance
+      </a>
+
     <% } else if (isNonItUser) { %>
       <a href="<%= asetPublicHref %>" class="<%= activePage === 'aset-public' ? 'active' : '' %>" onclick="closeSidebar()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6.5L8 2l6 4.5V14a1 1 0 01-1 1H3a1 1 0 01-1-1V6.5z"/></svg>
@@ -739,21 +758,21 @@
       <% } %>
     <% } else if (isMaintenance) { %>
       <!-- MAINTENANCE USER SIDEBAR -->
-      <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#fb923c;" onclick="closeSidebar()">
+      <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" onclick="closeSidebar()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 2.5L11 5l-2-2 2.5-2.5a3 3 0 0 0-4 4L2 11a1 1 0 0 0 1.4 1.4l5.5-5.5a3 3 0 0 0 4-4z"/></svg>
         Dashboard Maintenance
       </a>
-      <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;" onclick="closeSidebar()">
+      <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" onclick="closeSidebar()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/><line x1="6" y1="12" x2="8" y2="12"/></svg>
         Tugas Hari Ini
       </a>
     <% } else if (isViewerMaintenance) { %>
       <!-- VIEWER MAINTENANCE SIDEBAR (HRGA, dll) -->
-      <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" style="color:#67e8f9;" onclick="closeSidebar()">
+      <a href="/maintenance" class="<%= activePage === 'maintenance' ? 'active' : '' %>" onclick="closeSidebar()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>
         Jurnal Maintenance
       </a>
-      <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" style="color:#fbbf24;" onclick="closeSidebar()">
+      <a href="/tugas" class="<%= activePage === 'tugas' ? 'active' : '' %>" onclick="closeSidebar()">
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="2" width="10" height="12" rx="1"/><line x1="6" y1="6" x2="10" y2="6"/><line x1="6" y1="9" x2="10" y2="9"/></svg>
         Tugas Maintenance
       </a>

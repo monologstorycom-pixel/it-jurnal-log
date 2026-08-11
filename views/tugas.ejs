@@ -10,6 +10,8 @@
         .input-custom { background: var(--body-bg3, #1e1e2e) !important; border: 1.5px solid var(--body-border) !important; border-radius: 10px; color: var(--body-text) !important; padding: 10px 13px; width: 100%; margin-bottom: 0.65rem; font-size: 0.875rem; }
         .input-custom:focus { outline: none; border-color: #f97316 !important; box-shadow: 0 0 0 3px rgba(249,115,22,0.13) !important; }
         .label-text { color: var(--body-text2); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .icon-text { display:inline-flex; align-items:center; gap:5px; }
+        .icon-text .lc { width:13px; height:13px; }
         /* STAT CARDS */
         .stat-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
         .stat-card { background: var(--body-card); border: 1px solid var(--body-border); border-radius: 10px; padding: 14px 16px; }
@@ -28,12 +30,24 @@
         .tugas-judul { font-size: 0.95rem; font-weight: 700; color: var(--body-text); margin-bottom: 4px; }
         .tugas-desc { font-size: 0.8rem; color: var(--body-text2); margin-bottom: 8px; }
         .tugas-meta { font-size: 0.68rem; color: var(--body-text3); display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+        .tugas-info { display:grid; gap:7px; margin:9px 0 10px; }
+        .tugas-info-row { display:flex; align-items:flex-start; gap:9px; padding:9px 11px; border:1px solid var(--body-border); border-radius:8px; background:var(--body-bg2); }
+        .tugas-info-row .lc { width:15px; height:15px; margin-top:2px; color:var(--body-text2); flex-shrink:0; }
+        .tugas-info-label { color:var(--body-text3); font-size:0.61rem; font-weight:800; letter-spacing:0.06em; line-height:1.2; margin-bottom:3px; text-transform:uppercase; }
+        .tugas-info-value { color:var(--body-text); font-size:0.78rem; font-weight:600; line-height:1.45; white-space:pre-line; }
+        .tugas-info-row.pelapor { border-left:3px solid #64748b; }
+        .tugas-info-row.hasil { border-left:3px solid #22c55e; background:color-mix(in srgb, var(--body-card) 88%, #22c55e 12%); }
+        .tugas-info-row.hasil .lc, .tugas-info-row.hasil .tugas-info-label { color:#16a34a; }
         .badge-status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 700; }
         .badge-belum   { background: #2a1a0d; color: #fb923c; border: 1px solid #7c3300; }
         .badge-proses  { background: #0d1a38; color: #4da6ff; border: 1px solid #0d3d6e; }
         .badge-selesai { background: #0d2a18; color: #4ade80; border: 1px solid #1a5c30; }
         .badge-urgent  { background: #3d0000; color: #ff6b6b; border: 1px solid #7c0000; }
         .badge-normal  { background: #1a1a0d; color: #fde68a; border: 1px solid #5c4a00; }
+        .status-line { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+        .work-timer { display:inline-flex; align-items:center; gap:5px; min-height:24px; padding:3px 9px; border:1px solid var(--body-border2); border-radius:6px; background:var(--body-bg2); color:var(--body-text2); font-size:.67rem; font-weight:700; font-variant-numeric:tabular-nums; }
+        .work-timer.running { color:#2563eb; border-color:rgba(37,99,235,.25); background:rgba(37,99,235,.06); }
+        .work-timer .lc { width:12px; height:12px; }
         /* DRAWER */
         .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1040; opacity: 0; pointer-events: none; transition: opacity 0.25s; backdrop-filter: blur(2px); }
         .drawer-overlay.open { opacity: 1; pointer-events: all; }
@@ -67,6 +81,14 @@
         .status-btn.active-selesai { background: linear-gradient(135deg,#0d2a18,#1a5c30); border-color: #22c55e; color: #4ade80; }
         .fab-tugas { position: fixed; bottom: 88px; right: 24px; z-index: 1039; background: linear-gradient(135deg,#c2410c,#f97316); color: #fff; border: none; border-radius: 50px; padding: 13px 22px; font-size: 0.85rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(249,115,22,0.4); display: flex; align-items: center; gap: 8px; }
         .fab-tugas:hover { transform: translateY(-2px); }
+        .toast-notif { position:fixed; right:20px; bottom:20px; z-index:9999; pointer-events:none; display:none; width:min(340px,calc(100vw - 28px)); }
+        .toast-notif.show { display:block; animation:toastIn .22s ease-out; }
+        .toast-notif-box { background:var(--body-card); border:1px solid var(--body-border2); border-left:3px solid #2563eb; border-radius:10px; padding:13px 15px; display:flex; align-items:flex-start; gap:11px; box-shadow:0 12px 30px rgba(15,23,42,.16); }
+        .toast-notif-icon { width:30px; height:30px; border-radius:50%; background:rgba(37,99,235,.1); color:#2563eb; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .toast-notif-icon .lc { width:16px; height:16px; }
+        .toast-notif-title { color:var(--body-text); font-weight:700; font-size:.82rem; line-height:1.3; }
+        .toast-notif-msg { color:var(--body-text2); font-size:.72rem; margin-top:2px; line-height:1.4; }
+        @keyframes toastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @media(min-width:768px){
             .drawer-overlay { display: flex; align-items: center; justify-content: center; }
             .drawer-overlay.open { opacity: 1; pointer-events: all; }
@@ -102,7 +124,7 @@
 <%- include('navbar', {activePage: 'tugas'}) %>
 
 <!-- DRAWER TAMBAH TUGAS -->
-<% if (canManage) { %>
+<% if (canCreate) { %>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="drawer-panel" id="drawerPanel" onclick="event.stopPropagation()">
   <div class="drawer-header">
@@ -129,8 +151,8 @@
       <div class="field-group">
         <div class="field-group-title">Prioritas</div>
         <div class="prioritas-toggle">
-          <div class="prio-btn active-normal" id="btnNormal" onclick="setPrioritas('Normal')">⚡ NORMAL</div>
-          <div class="prio-btn" id="btnUrgent" onclick="setPrioritas('Urgent')">🔴 URGENT</div>
+          <div class="prio-btn active-normal icon-text" id="btnNormal" onclick="setPrioritas('Normal')"><svg class="lc" viewBox="0 0 24 24"><path d="m13 2-9 12h8l-1 8 9-12h-8z"/></svg> NORMAL</div>
+          <div class="prio-btn icon-text" id="btnUrgent" onclick="setPrioritas('Urgent')"><svg class="lc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> URGENT</div>
         </div>
       </div>
       <div class="field-group">
@@ -160,18 +182,17 @@
 
   <% if (saved) { %>
   <div class="alert" style="background:#0d2a18;border:1px solid #1a5c30;color:#4ade80;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-weight:600;">
-    ✓ Tugas berhasil dibuat!
+    <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Tugas berhasil dibuat!</span>
   </div>
   <% } %>
 
   <!-- PAGE HEADER -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
     <div>
-      <h5 style="margin:0;font-weight:800;color:var(--body-text);">
-        📋 Tugas Maintenance
-        <span style="display:inline-block;background:#3d1a00;color:#fb923c;border:1px solid #7c3300;border-radius:4px;padding:2px 8px;font-size:0.65rem;font-weight:800;margin-left:6px;">MAINTENANCE</span>
+      <h5 style="margin:0;font-weight:700;color:var(--body-text);font-size:1.05rem;">
+        <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg> Tugas Maintenance</span>
       </h5>
-      <div style="font-size:0.72rem;color:var(--body-text3);margin-top:3px;">Daftar tugas harian tim maintenance</div>
+      <div style="font-size:0.72rem;color:var(--body-text2);margin-top:4px;">Daftar tugas harian tim maintenance</div>
     </div>
   </div>
 
@@ -213,12 +234,12 @@
     <% if (canManage) { %>
     <!-- Export range -->
     <div style="border-top:1px solid var(--body-border);padding-top:8px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
-      <span style="font-size:0.7rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;">📥 EXPORT:</span>
+      <span class="icon-text" style="font-size:0.7rem;font-weight:700;color:var(--body-text3);text-transform:uppercase;"><svg class="lc" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg> EXPORT:</span>
       <!-- Export hari ini -->
       <a href="/tugas/export?tanggal=<%= filterTanggal %>"
          class="btn btn-sm fw-bold"
          style="background:#1a3a2a;border:1px solid #22c55e;color:#4ade80;white-space:nowrap;">
-        ↓ Export Hari Ini
+        <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg> Export Hari Ini</span>
       </a>
       <!-- Export range -->
       <form action="/tugas/export" method="GET" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -230,7 +251,7 @@
           <span style="font-size:0.7rem;color:var(--body-text3);">s/d</span>
           <input type="date" name="dateTo" id="exportTo" class="form-control form-control-sm" style="width:145px;background:var(--body-input);color:var(--body-text);border-color:var(--body-input-border);">
         </div>
-        <button type="submit" class="btn btn-sm fw-bold" style="background:#1a3a2a;border:1px solid #22c55e;color:#4ade80;white-space:nowrap;">↓ Export Range</button>
+        <button type="submit" class="btn btn-sm fw-bold icon-text" style="background:#1a3a2a;border:1px solid #22c55e;color:#4ade80;white-space:nowrap;"><svg class="lc" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg> Export Range</button>
         <button type="button" onclick="setExportThisMonth()" class="btn btn-sm fw-bold" style="background:var(--body-bg3);border:1px solid var(--body-border);color:var(--body-text2);font-size:0.68rem;">Bulan Ini</button>
       </form>
     </div>
@@ -240,9 +261,9 @@
   <!-- LIST TUGAS -->
   <% if (tugas.length === 0) { %>
   <div style="text-align:center;padding:3rem 1rem;color:var(--body-text3);">
-    <div style="font-size:2rem;margin-bottom:8px;">📋</div>
+    <div class="empty-state-icon" style="margin-bottom:8px;"><svg class="lc" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
     <div style="font-size:0.85rem;font-weight:600;">Tidak ada tugas untuk tanggal ini</div>
-    <% if (canManage) { %>
+    <% if (canCreate) { %>
     <div style="font-size:0.75rem;margin-top:4px;">Klik <strong>Buat Tugas</strong> untuk menambah</div>
     <% } %>
   </div>
@@ -255,33 +276,65 @@
     var cardClass = t.status==='Selesai' ? 'selesai' : (t.prioritas==='Urgent' ? 'urgent' : 'normal');
   %>
   <div class="tugas-card <%= cardClass %>">
+    <% var canEditThis = canManage || (isReporter && currentUser && t.buatOleh === currentUser.nama && t.status === 'Belum'); %>
 
     <!-- Baris 1: Prioritas + Judul -->
     <div style="margin-bottom:6px;">
       <% if (t.prioritas==='Urgent') { %>
-      <span style="display:inline-block;background:#3d0000;color:#ff6b6b;border:1px solid #7c0000;border-radius:4px;padding:1px 7px;font-size:0.62rem;font-weight:800;margin-right:6px;vertical-align:middle;">🔴 URGENT</span>
+      <span class="icon-text" style="background:#3d0000;color:#ff6b6b;border:1px solid #7c0000;border-radius:4px;padding:1px 7px;font-size:0.62rem;font-weight:800;margin-right:6px;vertical-align:middle;"><svg class="lc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> URGENT</span>
       <% } %>
       <span style="font-size:0.92rem;font-weight:700;color:var(--body-text);line-height:1.4;"><%= t.judul %></span>
     </div>
 
-    <!-- Baris 2: Deskripsi -->
-    <% if (t.deskripsi) { %>
-    <div style="font-size:0.8rem;color:var(--body-text2);margin-bottom:8px;line-height:1.5;"><%= t.deskripsi %></div>
-    <% } %>
+    <!-- Informasi utama: pelapor, detail pekerjaan, dan hasil maintenance -->
+    <div class="tugas-info">
+      <div class="tugas-info-row pelapor">
+        <svg class="lc" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <div>
+          <div class="tugas-info-label">Dilaporkan oleh</div>
+          <div class="tugas-info-value"><%= t.buatOleh %></div>
+        </div>
+      </div>
+      <% if (t.deskripsi) { %>
+      <div class="tugas-info-row">
+        <svg class="lc" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        <div>
+          <div class="tugas-info-label">Detail pekerjaan</div>
+          <div class="tugas-info-value"><%= t.deskripsi %></div>
+        </div>
+      </div>
+      <% } %>
+      <% if (t.catatan) { %>
+      <div class="tugas-info-row hasil">
+        <svg class="lc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>
+        <div>
+          <div class="tugas-info-label">Hasil maintenance</div>
+          <div class="tugas-info-value"><%= t.catatan %></div>
+        </div>
+      </div>
+      <% } %>
+    </div>
 
     <!-- Baris 3: Meta -->
     <div style="font-size:0.7rem;color:var(--body-text3);margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px 12px;">
-      <span>📅 <%= new Date(t.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></span>
-      <span>👤 <%= t.buatOleh %></span>
-      <% if (t.catatan) { %><span>💬 <%= t.catatan.replace(/[\r\n]+/g,' ').slice(0,60) %></span><% } %>
-      <% if (isFuture) { %><span style="color:#818cf8;">🕐 Terjadwal</span><% } %>
+      <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="3" y1="10" x2="21" y2="10"/></svg><%= new Date(t.tanggal).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) %></span>
+      <% if (isFuture) { %><span class="icon-text" style="color:#818cf8;"><svg class="lc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>Terjadwal</span><% } %>
     </div>
 
     <!-- Baris 4: Status badge -->
-    <div style="margin-bottom:10px;">
+    <div class="status-line">
       <span class="badge-status <%= t.status==='Selesai'?'badge-selesai':(t.status==='Proses'?'badge-proses':'badge-belum') %>">
-        <%= t.status==='Selesai'?'✓ Selesai':(t.status==='Proses'?'⏳ Dikerjakan':'○ Belum Mulai') %>
+        <%= t.status==='Selesai'?'Selesai':(t.status==='Proses'?'Dikerjakan':'Belum Mulai') %>
       </span>
+      <% if (t.mulaiDikerjakanAt) { %>
+      <span class="work-timer <%= t.status==='Proses' ? 'running' : '' %>"
+            data-start="<%= new Date(t.mulaiDikerjakanAt).toISOString() %>"
+            data-end="<%= t.selesaiDikerjakanAt ? new Date(t.selesaiDikerjakanAt).toISOString() : '' %>"
+            title="<%= t.dikerjakanOleh ? 'Dikerjakan oleh ' + t.dikerjakanOleh : 'Durasi pengerjaan' %>">
+        <svg class="lc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>
+        <span class="work-timer-value">Menghitung...</span>
+      </span>
+      <% } %>
     </div>
 
     <!-- Baris 5: Tombol aksi — selalu full width, auto wrap -->
@@ -290,49 +343,50 @@
       <% if (t.fotoTugasUrl) { %>
       <button onclick="showFoto('<%= t.fotoTugasUrl %>','Foto Petunjuk')"
         style="padding:7px 14px;background:#3d1a00;color:#fb923c;border:1px solid #7c3300;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
-        📍 Lihat Lokasi
+        <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2"/></svg> Lihat Lokasi</span>
       </button>
       <% } %>
 
       <% if (t.fotoUrl) { %>
       <button onclick="showFoto('<%= t.fotoUrl %>','Bukti Selesai')"
         style="padding:7px 14px;background:#0d2a18;color:#4ade80;border:1px solid #1a5c30;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
-        📷 Bukti
+        <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v13H4z"/><circle cx="12" cy="13" r="4"/></svg> Bukti</span>
       </button>
       <% } %>
 
       <% if (isMtc && t.status==='Belum') { %>
-      <form method="POST" action="/tugas/status/<%= t.id %>" enctype="multipart/form-data" style="margin:0;"
-        onsubmit="return confirm('Mulai kerjakan tugas ini?')">
+      <form method="POST" action="/tugas/status/<%= t.id %>" enctype="multipart/form-data" style="margin:0;">
         <input type="hidden" name="newStatus" value="Proses">
         <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
         <button type="submit"
           style="padding:7px 14px;background:#0d1a38;color:#4da6ff;border:1px solid #0d3d6e;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
-          ▶ Mulai Kerjakan
+          <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20 7 4"/></svg> Mulai Kerjakan</span>
         </button>
       </form>
       <% } else if (isMtc && t.status==='Proses') { %>
       <button onclick="openSelesaiModal(<%= t.id %>,`<%- (t.judul||'').replace(/`/g,'\\`') %>`)"
         style="padding:7px 14px;background:#0d2a18;color:#4ade80;border:1px solid #1a5c30;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
-        ✓ Tandai Selesai
+        <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Tandai Selesai</span>
       </button>
       <% } else if (!isMtc && t.status!=='Selesai') { %>
       <button onclick="openStatusModal(<%= t.id %>,'<%= t.status %>',`<%- (t.judul||'').replace(/`/g,'\\`') %>`)"
         style="padding:7px 14px;background:#0d1a38;color:#4da6ff;border:1px solid #0d3d6e;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
-        ⚡ Update Status
+        <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><path d="m13 2-9 12h8l-1 8 9-12h-8z"/></svg> Update Status</span>
       </button>
       <% } %>
 
-      <% if (canManage) { %>
+      <% if (canEditThis) { %>
       <button onclick="openEditModal(<%= t.id %>,`<%- (t.judul||'').replace(/`/g,'\\`') %>`,`<%- (t.deskripsi||'').replace(/`/g,'\\`') %>`, '<%= new Date(t.tanggal).toISOString().slice(0,10) %>','<%= t.prioritas %>','<%= t.status %>','<%= t.fotoTugasUrl||'' %>')"
         style="padding:7px 14px;background:#0d3d6e;color:#7eb8f7;border:1px solid #1a5a9e;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
-        ✏️ Edit
+        <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg> Edit</span>
       </button>
+      <% } %>
+      <% if (canManage) { %>
       <form method="POST" action="/tugas/hapus/<%= t.id %>" style="margin:0;" onsubmit="return confirm('Hapus tugas ini?')">
         <input type="hidden" name="tanggal" value="<%= filterTanggal %>">
         <button type="submit"
           style="padding:7px 14px;background:#2a0d0d;color:#f87171;border:1px solid #5c1a1a;border-radius:8px;font-size:0.72rem;font-weight:700;cursor:pointer;">
-          🗑 Hapus
+          <span class="icon-text"><svg class="lc" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4h8v2M19 6l-1 15H6L5 6"/></svg> Hapus</span>
         </button>
       </form>
       <% } %>
@@ -349,7 +403,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
-        <h5 class="modal-title" style="color:var(--body-text);">📷 Bukti Foto</h5>
+        <h5 class="modal-title icon-text" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v13H4z"/><circle cx="12" cy="13" r="4"/></svg> Bukti Foto</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-0" style="background:#000;">
@@ -364,7 +418,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
-        <h5 class="modal-title" style="color:var(--body-text);">✅ Tandai Selesai</h5>
+        <h5 class="modal-title icon-text" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg> Tandai Selesai</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formStatus" action="" method="POST" enctype="multipart/form-data">
@@ -374,7 +428,7 @@
           <div id="statusJudul" style="font-weight:700;color:var(--body-text);margin-bottom:12px;font-size:0.9rem;"></div>
           <span class="label-text">Catatan / Hasil Pekerjaan <span style="color:#ef4444;">*</span></span>
           <textarea name="catatan" id="statusCatatan" class="input-custom" rows="2" placeholder="Jelaskan apa yang sudah dikerjakan..." required></textarea>
-          <span class="label-text" style="color:#fb923c;">📷 Foto Bukti <span style="color:#ef4444;">*</span></span>
+          <span class="label-text icon-text" style="color:#fb923c;"><svg class="lc" viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v13H4z"/><circle cx="12" cy="13" r="4"/></svg> Foto Bukti <span style="color:#ef4444;">*</span></span>
           <div class="upload-area">
             <input type="file" name="foto" id="statusFoto" accept="image/*" capture="environment" onchange="document.getElementById('fotoLabel').textContent=this.files[0]?.name||'Pilih foto bukti'" required>
             <div class="upload-area-inner">
@@ -385,7 +439,7 @@
         </div>
         <div class="modal-footer m-footer">
           <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">BATAL</button>
-          <button type="submit" id="btnSimpanSelesai" class="btn fw-bold" style="background:#16a34a;color:#fff;">✓ TANDAI SELESAI</button>
+          <button type="submit" id="btnSimpanSelesai" class="btn fw-bold icon-text" style="background:#16a34a;color:#fff;"><svg class="lc" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> TANDAI SELESAI</button>
         </div>
       </form>
     </div>
@@ -397,7 +451,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content m-content">
       <div class="modal-header m-header">
-        <h5 class="modal-title" style="color:var(--body-text);">✏️ Edit Tugas</h5>
+        <h5 class="modal-title icon-text" style="color:var(--body-text);"><svg class="lc" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg> Edit Tugas</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form id="formEdit" action="" method="POST" enctype="multipart/form-data">
@@ -413,13 +467,17 @@
             <option value="Normal">Normal</option>
             <option value="Urgent">Urgent</option>
           </select>
-          <span class="label-text">Status</span>
-          <select name="status" id="edit_status" class="input-custom">
-            <option value="Belum">Belum</option>
-            <option value="Proses">Proses</option>
-            <option value="Selesai">Selesai</option>
-          </select>
-          <span class="label-text" style="color:#fb923c;">📍 Ganti Foto Petunjuk Lokasi (opsional)</span>
+          <% if (canManage) { %>
+            <span class="label-text">Status</span>
+            <select name="status" id="edit_status" class="input-custom">
+              <option value="Belum">Belum</option>
+              <option value="Proses">Proses</option>
+              <option value="Selesai">Selesai</option>
+            </select>
+          <% } else { %>
+            <input type="hidden" id="edit_status" value="Belum">
+          <% } %>
+          <span class="label-text icon-text" style="color:#fb923c;"><svg class="lc" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2"/></svg> Ganti Foto Petunjuk Lokasi (opsional)</span>
           <div id="editFotoTugasPreview" style="display:none;margin-bottom:8px;">
             <img id="editFotoTugasImg" src="" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;border:1px solid #f97316;">
           </div>
@@ -444,12 +502,12 @@
 <form id="formHapus" method="POST" action="" style="display:none;"></form>
 
 <!-- TOAST NOTIF -->
-<div id="toastWrap" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;display:none;min-width:280px;max-width:90vw;">
-  <div id="toastBox" style="background:#0d2a18;border:1.5px solid #16a34a;border-radius:14px;padding:24px 28px;display:flex;align-items:center;gap:14px;box-shadow:0 16px 48px rgba(0,0,0,0.6);">
-    <span id="toastIcon" style="font-size:2rem;flex-shrink:0;">✅</span>
+<div id="toastWrap" class="toast-notif">
+  <div id="toastBox" class="toast-notif-box">
+    <span id="toastIcon" class="toast-notif-icon"></span>
     <div>
-      <div id="toastTitle" style="color:#4ade80;font-weight:800;font-size:1rem;"></div>
-      <div id="toastMsg" style="color:#86efac;font-size:0.8rem;margin-top:4px;"></div>
+      <div id="toastTitle" class="toast-notif-title"></div>
+      <div id="toastMsg" class="toast-notif-msg"></div>
     </div>
   </div>
 </div>
@@ -501,7 +559,7 @@ function openEditModal(id, judul, deskripsi, tanggal, prioritas, status, fotoTug
     if (fotoTugasUrl) {
         imgEl.src = fotoTugasUrl;
         prevEl.style.display = 'block';
-        lblEl.textContent = '✓ Ada foto — pilih untuk ganti';
+        lblEl.textContent = 'Ada foto — pilih untuk ganti';
     } else {
         prevEl.style.display = 'none';
         lblEl.textContent = 'Biarkan kosong = tidak berubah';
@@ -524,7 +582,7 @@ function previewEditFotoTugas(input) {
 // FOTO
 function showFoto(url, title) {
     document.getElementById('fotoImg').src = url;
-    document.querySelector('#fotoModal .modal-title').textContent = title || '📷 Foto';
+    document.querySelector('#fotoModal .modal-title').textContent = title || 'Foto';
     new bootstrap.Modal(document.getElementById('fotoModal')).show();
 }
 
@@ -560,21 +618,50 @@ function closeSidebar() { document.getElementById('mobileNav')?.classList.remove
 function showToast(icon, title, msg, color) {
     const wrap = document.getElementById('toastWrap');
     const box  = document.getElementById('toastBox');
-    document.getElementById('toastIcon').textContent  = icon;
+    const toastIcons = {
+        proses: '<svg class="lc lc-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg>',
+        selesai: '<svg class="lc lc-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>'
+    };
+    document.getElementById('toastIcon').innerHTML = toastIcons[icon] || toastIcons.selesai;
     document.getElementById('toastTitle').textContent = title;
     document.getElementById('toastMsg').textContent   = msg;
-    box.style.background   = color === 'blue'  ? '#0d1a38' : '#0d2a18';
-    box.style.borderColor  = color === 'blue'  ? '#1d4ed8' : '#16a34a';
-    document.getElementById('toastTitle').style.color = color === 'blue' ? '#93c5fd' : '#4ade80';
-    document.getElementById('toastMsg').style.color   = color === 'blue' ? '#bfdbfe' : '#86efac';
-    wrap.style.display = 'block';
-    setTimeout(() => { wrap.style.display = 'none'; }, 4000);
+    const accent = color === 'blue' ? '#2563eb' : '#16a34a';
+    box.style.borderLeftColor = accent;
+    document.getElementById('toastIcon').style.color = accent;
+    document.getElementById('toastIcon').style.background = color === 'blue' ? 'rgba(37,99,235,.1)' : 'rgba(22,163,74,.1)';
+    wrap.classList.add('show');
+    setTimeout(() => { wrap.classList.remove('show'); }, 3200);
 }
+
+function formatWorkDuration(ms, isDone) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (!isDone) {
+        return [hours, minutes, seconds].map(v => String(v).padStart(2, '0')).join(':');
+    }
+    if (hours > 0) return 'Durasi ' + hours + 'j ' + minutes + 'm';
+    if (minutes > 0) return 'Durasi ' + minutes + ' menit';
+    return 'Durasi < 1 menit';
+}
+
+function updateWorkTimers() {
+    document.querySelectorAll('.work-timer').forEach(timer => {
+        const start = Date.parse(timer.dataset.start);
+        const end = timer.dataset.end ? Date.parse(timer.dataset.end) : Date.now();
+        if (Number.isNaN(start) || Number.isNaN(end)) return;
+        const value = timer.querySelector('.work-timer-value');
+        if (value) value.textContent = formatWorkDuration(end - start, Boolean(timer.dataset.end));
+    });
+}
+updateWorkTimers();
+setInterval(updateWorkTimers, 1000);
 (function(){
     const p = new URLSearchParams(window.location.search);
     const s = p.get('statusDone');
-    if (s === 'Proses')  showToast('⏳', 'Tugas Diproses!', 'Silakan segera dikerjakan.', 'blue');
-    if (s === 'Selesai') showToast('✅', 'Tugas Selesai!', 'Laporan berhasil disimpan.', 'green');
+    if (s === 'Proses')  showToast('proses', 'Tugas Diproses!', 'Silakan segera dikerjakan.', 'blue');
+    if (s === 'Selesai') showToast('selesai', 'Tugas Selesai!', 'Laporan berhasil disimpan.', 'green');
     if (s) { const u = new URL(window.location); u.searchParams.delete('statusDone'); window.history.replaceState({}, '', u); }
 })();</script>
 </body>

@@ -38,6 +38,7 @@ router.post('/login', async (req, res) => {
         };
         const perms = getUserPerms(req.session.user);
         if (perms.canAudit && !perms.canViewLog) return res.redirect('/audit');
+        if ((user.role || '').toLowerCase() === 'pelapor') return res.redirect('/tugas');
         if (!perms.canViewLog && perms.canAsset)  return res.redirect('/aset');
         // User dengan role Tugas MTC — langsung ke halaman tugas
         if (perms.canTugasMtc && !perms.canViewLog && !perms.canViewMaintenance) return res.redirect('/tugas');

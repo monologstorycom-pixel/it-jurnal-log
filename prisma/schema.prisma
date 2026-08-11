@@ -123,6 +123,9 @@ model Tugas {
   catatan     String?   @db.Text            // feedback dari maintenance
   fotoTugasUrl String?                      // foto dari pemberi tugas (petunjuk lokasi)
   fotoUrl     String?                       // bukti foto dari maintenance
+  mulaiDikerjakanAt   DateTime?             // waktu teknisi menekan Mulai Kerjakan
+  selesaiDikerjakanAt DateTime?             // waktu teknisi menandai tugas selesai
+  dikerjakanOleh      String?               // nama teknisi yang menangani
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
